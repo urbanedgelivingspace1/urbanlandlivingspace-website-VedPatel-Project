@@ -1,6 +1,6 @@
 # UrbanEdge Land Space V1 — Implementation Ledger
 
-**Ledger status:** M0 consistency review complete; M0 remains blocked before Git baseline/M1 because the promised read-only Living Space repository and logo/asset files are not accessible.
+**Ledger status:** M0 consistency review complete and documentation baseline committed; M0 remains blocked before M1 because the promised read-only Living Space repository and logo/asset files are not accessible.
 
 **Last reconciled:** 3 September 2026 (embedded master prompt read in full; ADR-0001 reconfirmed; reference repository/assets still not located)
 

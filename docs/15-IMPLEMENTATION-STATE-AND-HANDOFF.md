@@ -8,14 +8,14 @@ This is the live record of what has actually happened. Update it after every mea
 |---|---|
 | Project | UrbanEdge Land Space |
 | Repository | `/Users/vedpatel/Desktop/UrbanLand_website` |
-| Current branch | Not available — this directory is not currently a Git repository |
-| Latest relevant commit | Not available |
-| Working tree | Git status unavailable; uncommitted M0 documentation and `.gitignore` exist |
+| Current branch | `main` |
+| Latest relevant commit | `HEAD` records this handoff update; baseline M0 documentation commit is `a9d6fba6f0d3312c6ee848327f3d7122e90fd430` |
+| Working tree | CLEAN after committing this state-record update; verified with `git status --short --branch` |
 | Current milestone | M0 — Architecture Lock and Implementation Ledger |
 | Current milestone status | BLOCKED |
 | Last completed milestone | None |
 | Next milestone | M1 — Repository Foundation, Tooling and Test Bootstrap |
-| Last updated | 2026-09-03 02:27:23 IST |
+| Last updated | 2026-09-03 02:34:00 IST |
 | Last updating agent | Codex |
 
 ## 2. Source-of-Truth Documents
@@ -141,7 +141,7 @@ The complete master prompt and all available architecture sources have been reco
 
 ### Foundation
 
-No application foundation exists. Documentation directories required by M0 and a protective pre-initialization `.gitignore` now exist.
+No application foundation exists. Documentation directories required by M0 and a protective `.gitignore` exist. Git is initialized on `main`; baseline commit `a9d6fba6f0d3312c6ee848327f3d7122e90fd430` contains the supplied architecture/research documents and truthful blocked-M0 state.
 
 ### Database
 
@@ -228,7 +228,7 @@ docs/
     README.md                               runbook scope and production guardrails
 ```
 
-There is no `package.json`, application source, Supabase directory, test suite, CI configuration, `.openai/hosting.json`, Git repository metadata, logo file or reference-app source in the project at this point. The `.gitignore` exists and excludes secrets, environment files, dependencies, build/test output, local Supabase runtime, provider state and other local-only artifacts. Git initialization and the baseline commit are explicitly authorized but remain deferred until the promised read-only reference repository/assets are present and reconciled or their inspection is explicitly deferred.
+There is no `package.json`, application source, Supabase directory, test suite, CI configuration, `.openai/hosting.json`, logo file or reference-app source in the project at this point. Git is initialized on `main`. The `.gitignore` excludes secrets, environment files, dependencies, build/test output, local Supabase runtime, provider state and other local-only artifacts. The documentation-only baseline is committed; no M1 scaffold or feature implementation has begun.
 
 ## 7. Database State
 
@@ -335,7 +335,8 @@ M1 must add explicit test-target/project-reference safety names and, if used, a 
 | ADR-0001 source/decision review | PASS | 2026-09-03 | Owner resolution mapped to documents `03`, `04`, `05`, `11` and `12`; no schema addition introduced |
 | ADR-0001 master compatibility review | PASS | 2026-09-03 | Master contains no `FOLLOW_UP_REQUIRED` visit state; detailed scheduling refinement remains compatible |
 | ADR-0001 structural/negative validation | PASS | 2026-09-03 | Required decision sections exist; no instruction adds `FOLLOW_UP_REQUIRED` to the visit enum |
-| Git repository checks | FAIL / EXPECTED GAP | 2026-09-03 | Directory is not a Git repository |
+| Git repository initialization | PASS | 2026-09-03 | Initialized `main`; baseline commit `a9d6fba6f0d3312c6ee848327f3d7122e90fd430` created from the reviewed documentation-only staged set |
+| Baseline tracked-file safety scan | PASS | 2026-09-03 | No tracked `.env`, dependency/build, local Supabase/provider state or credential-shaped token was detected |
 | `.gitignore` policy review | PASS | 2026-09-03 | Excludes `.env`/secrets, dependencies, generated builds/tests, local Supabase/provider state, logs and editor/OS artifacts; preserves example env files and migration source |
 | Lint | NOT_RUN | — | No application/tooling exists |
 | Typecheck | NOT_RUN | — | No application/tooling exists |
@@ -352,8 +353,7 @@ M1 must add explicit test-target/project-reference safety names and, if used, a 
 
 ### Important
 
-1. **Directory is not a Git repository.** The protective `.gitignore` exists, but branch/history/clean-tree evidence cannot exist until initialization. Initialization is authorized but must occur only after M0 clears, per the user’s required sequence.
-2. **Provider facts are dated.** Revalidate current terms/free limits before configuration or launch.
+1. **Provider facts are dated.** Revalidate current terms/free limits before configuration or launch.
 
 ### Minor
 
@@ -423,12 +423,10 @@ Do not invent production values or fabricate property/geography records to popul
 2. Update `docs/architecture/SOURCE-MANIFEST.md` with the newly accessible exact paths, roles, line counts/checksums as appropriate, and photography/media presence.
 3. Re-run the narrow M0 consistency delta against those references; resolve any new governing contradiction by hierarchy/ADR rather than silently changing architecture.
 4. Recheck the existing `.gitignore` against any newly supplied reference layout; keep secrets, `.env` variants, dependencies/build/test output, local Supabase state, editor/OS files and other local-only data excluded.
-5. Initialize this directory as a Git repository, verify the staged file set contains no secrets/local artifacts, and create the baseline architecture/M0 commit.
-6. Record the branch, baseline commit hash and clean/dirty status here.
-7. Resolve M0-B02; mark M0 COMPLETE only when every documented M0 completion criterion passes.
-8. When M0 passes, update this file to mark M0 COMPLETE and M1 IN_PROGRESS.
-9. Read the M1 sections of `12-IMPLEMENTATION-ROADMAP.md`, plus repository/tooling requirements in `01`, `08`, `10` and `11`, before scaffolding.
-10. Implement only M1 foundation/tooling/test bootstrap, run every M1 validation command, record actual results here, and fix failures before M2.
+5. Resolve M0-B02; mark M0 COMPLETE only when every documented M0 completion criterion passes, then commit the reconciliation.
+6. Update this file to mark M0 COMPLETE and M1 IN_PROGRESS.
+7. Read the M1 sections of `12-IMPLEMENTATION-ROADMAP.md`, plus repository/tooling requirements in `01`, `08`, `10` and `11`, before scaffolding.
+8. Implement only M1 foundation/tooling/test bootstrap, run every M1 validation command, record actual results here, and fix failures before M2.
 
 ## 20. Resume Instructions For The Next Coding Agent
 
