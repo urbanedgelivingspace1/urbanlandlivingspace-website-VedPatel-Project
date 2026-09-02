@@ -9,13 +9,13 @@ This is the live record of what has actually happened. Update it after every mea
 | Project | UrbanEdge Land Space |
 | Repository | `/Users/vedpatel/Desktop/UrbanLand_website` |
 | Current branch | `main` |
-| Latest relevant commit | `HEAD` records this handoff update; baseline M0 documentation commit is `a9d6fba6f0d3312c6ee848327f3d7122e90fd430` |
-| Working tree | DIRTY while the M0-completion update and approved logo await commit |
-| Current milestone | M1 — Repository Foundation, Tooling and Test Bootstrap |
+| Latest relevant commit | M0 completion commit `1735db86bd6a9b32200c4ec79d6e3ef2246b9f6c`; M1 changes await commit |
+| Working tree | DIRTY with validated M1 foundation and this handoff update |
+| Current milestone | M2 — Database Schema, Migrations, Reference Data and Constraints |
 | Current milestone status | IN_PROGRESS |
-| Last completed milestone | M0 — Architecture Lock and Implementation Ledger |
-| Next milestone | M2 — Database Schema, Migrations, Reference Data and Constraints |
-| Last updated | 2026-09-03 02:39:42 IST |
+| Last completed milestone | M1 — Repository Foundation, Tooling and Test Bootstrap |
+| Next milestone | M3 — Server Data Contracts, State Machines and Public-Safe Projections |
+| Last updated | 2026-09-03 02:53:01 IST |
 | Last updating agent | Codex |
 
 ## 2. Source-of-Truth Documents
@@ -79,8 +79,8 @@ The design report governs Living Space brand/design reference only. It does not 
 | Milestone | Status | Started | Completed | Evidence / Notes |
 |---|---|---|---|---|
 | M0 Architecture Lock and Implementation Ledger | COMPLETE | 2026-09-03 | 2026-09-03 | Master prompt and architecture reviewed; owner-designated design report and approved logo inspected; consistency checks pass; ADR-0001 reconfirmed; Git baseline established |
-| M1 Repository Foundation, Tooling and Test Bootstrap | IN_PROGRESS | 2026-09-03 | — | Establishing Next.js, strict TypeScript, tooling, environment safety, tests, CI and route-group shells |
-| M2 Database Schema, Migrations, Reference Data and Constraints | NOT_STARTED | — | — | ADR-0001 fixes the eight-value site-visit enum contract; M2 still depends on M0/M1 |
+| M1 Repository Foundation, Tooling and Test Bootstrap | COMPLETE | 2026-09-03 | 2026-09-03 | Clean install, lint, formatting, strict typecheck, unit/component tests, safety guard, boundary/secret checks and webpack production build pass; public/admin route shells compile |
+| M2 Database Schema, Migrations, Reference Data and Constraints | IN_PROGRESS | 2026-09-03 | — | M1 prerequisite complete; next work is the full migration-controlled schema and database validation suite |
 | M3 Server Data Contracts, State Machines and Public-Safe Projections | NOT_STARTED | — | — | — |
 | M4 RLS, Grants and Authorization Data Boundary | NOT_STARTED | — | — | — |
 | M5 Admin Authentication and Admin Shell | NOT_STARTED | — | — | — |
@@ -101,15 +101,16 @@ The design report governs Living Space brand/design reference only. It does not 
 
 ## 4. Current Work
 
-Objective: implement and validate the complete M1 repository, tooling, environment-safety, test and CI foundation without beginning domain/database work.
+Objective: implement M2's complete migration-controlled database schema, constraints, reference data and disposable-database validation without beginning M3 server contracts.
 
 Relevant sources:
 
 - owner's implementation brief;
 - embedded master prompt and finalized architecture;
-- `12-IMPLEMENTATION-ROADMAP.md`, M1;
-- repository/tooling/security/testing requirements in documents `01`, `08`, `10` and `11`;
-- authoritative `URBANEDGE_LIVINGSPACE_DESIGN_REPORT.md` brand/design reference;
+- `12-IMPLEMENTATION-ROADMAP.md`, M2;
+- authoritative database contract `03-DATABASE-SCHEMA-ARCHITECTURE.md`;
+- related security, storage and testing requirements in documents `08`, `09` and `11`;
+- ADR-0001's unchanged eight-value `site_visit_status` contract;
 - `docs/architecture/IMPLEMENTATION-LEDGER.md`.
 
 Files involved:
@@ -122,19 +123,19 @@ Files involved:
 - `docs/runbooks/README.md`
 - this handoff file.
 
-Dependencies/blockers: none for M1. M0 is complete. Production/provider configuration remains out of scope and approval-gated.
+Dependencies/blockers: M1 is complete. M2 requires a disposable local Supabase/PostgreSQL environment; no production database operation is authorized.
 
-Required M1 checks: clean install, lint, strict typecheck, baseline unit and component tests, production build, production-shaped test-target refusal, server-only boundary test, and successful public/admin route-group compilation.
+Required M2 checks: clean migration reset, all 49 tables/enums/constraints/indexes/triggers, invalid-row rejection, privacy-sensitive nullability/visibility constraints, canonical property-ID allocation and migration reproducibility.
 
 ## 5. Completed Implementation
 
 ### Foundation
 
-M0 documentation, source manifest, ADR structure and Git baseline exist. M1 application/tooling foundation is in progress; no domain implementation exists yet.
+Next.js 16 App Router, React 19, strict TypeScript, Tailwind 4, shadcn configuration, ESLint, Prettier, environment validation, server-only graph enforcement, secret scanning, public/admin route-group shells, error/not-found foundations, Vitest/component/Playwright scaffolds, synthetic builders, a stateful-test production guard, local Supabase structure and GitHub Actions CI are implemented and validated.
 
 ### Database
 
-Not implemented.
+No application schema is implemented yet. `supabase/config.toml`, empty migration/seed source directories and guarded database-test helpers exist for M2.
 
 ### RLS
 
@@ -182,11 +183,11 @@ Not implemented.
 
 ### Security
 
-Not implemented. Architecture-only boundaries are captured in the ledger.
+M1 foundation security is implemented: server environment access is marked `server-only`, client dependency graphs are checked for privileged imports, stateful tests fail closed against production-shaped targets, examples contain names only, and tracked/candidate files are secret-scanned. RLS and domain privacy enforcement begin in M2–M4.
 
 ### Testing
 
-No application/test harness exists and no application tests have run.
+Vitest unit/component and guarded integration foundations exist; Playwright plus axe accessibility tests are scaffolded and discovered. Nine default tests and one guarded integration smoke test pass. Full browser execution is deferred to later route/E2E milestones.
 
 ### Deployment Preparation
 
@@ -195,6 +196,21 @@ Not implemented or configured.
 ## 6. Repository / Important File Map
 
 ```text
+app/                                       Next.js App Router
+  (public)/                                public shell and foundation page
+  (admin)/admin/                           explicit admin route-group placeholder
+  error.tsx / global-error.tsx / not-found.tsx
+components/foundation/                     M1 shell components
+config/                                    site and environment schemas
+features/                                  domain-module boundary (empty in M1)
+lib/                                       shared/test/privacy/SEO/Supabase boundaries
+server/                                    server-only env and domain-layer boundaries
+supabase/                                  local config; migrations/seed placeholders
+tests/                                     unit, component, integration and E2E scaffolds
+scripts/                                   secret and server-boundary checks
+.github/workflows/ci.yml                   M1 CI gate
+package.json / package-lock.json           pinned reproducible toolchain
+
 01-MASTER-WEBSITE-ARCHITECTURE.md ... 14-PRE-LAUNCH-CHECKLIST.md
 LANDSPACE_PRODUCT_REQUIREMENTS.md
 LAND_DATA_MODEL_REPORT.md
@@ -206,6 +222,7 @@ UrbanEdge_Living_Space_Logo_HD.jpg          approved brand-reference asset
 docs/
   REQUIREMENTS.md                           reconciled product/technical/privacy contract
   DECISIONS.md                              M0 decision register
+  PRE-LAUNCH-PLACEHOLDERS.md                required placeholder replacement register
   15-IMPLEMENTATION-STATE-AND-HANDOFF.md   live implementation truth
   architecture/
     IMPLEMENTATION-LEDGER.md               reconciled M0 route/data/state/security map
@@ -218,7 +235,7 @@ docs/
     README.md                               runbook scope and production guardrails
 ```
 
-There is no `package.json`, application source, Supabase directory, test suite, CI configuration or `.openai/hosting.json` in the project at this point. The approved Living Space logo reference is present; the old reference-app source is intentionally unavailable. Git is initialized on `main`. The `.gitignore` excludes secrets, environment files, dependencies, build/test output, local Supabase runtime, provider state and other local-only artifacts. The documentation-only baseline is committed; M1 scaffolding is the active work.
+There is no `.openai/hosting.json`; no hosting/deployment is configured. The approved Living Space logo reference is present, while the old reference-app source is intentionally unavailable. Git is on `main`. The `.gitignore` excludes secrets, environment files, dependencies, generated output, local Supabase runtime and provider state. M1 is complete; M2 database work is the active scope.
 
 ## 7. Database State
 
@@ -251,13 +268,15 @@ Known current security limitation: there is no running application or database t
 
 | Route | Status | Notes |
 |---|---|---|
-| All public routes in the canonical route map | NOT_STARTED | No Next.js project exists; none are shell-only or functional |
+| `/` | SHELL_ONLY / TESTED | Responsive development-only public foundation; no property data or imagery |
+| Other canonical public routes | NOT_STARTED | Implemented only in their roadmap milestones |
 
 ### Admin routes
 
 | Route | Status | Notes |
 |---|---|---|
-| All admin routes in the canonical route map | NOT_STARTED | No Next.js project or authentication exists |
+| `/admin` | SHELL_ONLY / TESTED | Explicit non-dashboard placeholder; authentication intentionally begins M5 |
+| Other canonical admin routes | NOT_STARTED | Implemented only after database/RLS/auth prerequisites |
 
 The planned route inventory and route-specific data/authorization sources are in the implementation ledger.
 
@@ -306,8 +325,13 @@ No environment file or values currently exist. Required names only:
 | `NEXT_PUBLIC_ANALYTICS_ENABLED` | Yes | Yes | Yes | Public |
 | `HMAC_SECRET` | If selected | If selected | If selected | Server secret |
 | `WEBHOOK_SIGNING_SECRET` | If selected | If selected | If selected | Server secret |
+| `TEST_SUPABASE_PROJECT_REF` | Test only | Test only | No | Test safety identity |
+| `PRODUCTION_SUPABASE_PROJECT_REF` | Block-list reference | CI-protected block-list reference | No test use | Safety comparison only |
+| `TEST_TARGET_URL` | Test only | Test only | No | Test safety target |
+| `PRODUCTION_SITE_URL` | Block-list reference | CI-protected block-list reference | Public canonical value | Safety comparison only |
+| `TEST_SAFETY_TOKEN` | Test-only non-secret guard | Test-only non-secret guard | No | Explicit stateful-test acknowledgement |
 
-M1 must add explicit test-target/project-reference safety names and, if used, a test-only safety token. Never store actual values in this document.
+The environment schema and `.env.example` contain names only. Never store actual secret values in this document.
 
 ## 13. Tests Actually Run
 
@@ -329,12 +353,18 @@ M1 must add explicit test-target/project-reference safety names and, if used, a 
 | Git repository initialization | PASS | 2026-09-03 | Initialized `main`; baseline commit `a9d6fba6f0d3312c6ee848327f3d7122e90fd430` created from the reviewed documentation-only staged set |
 | Baseline tracked-file safety scan | PASS | 2026-09-03 | No tracked `.env`, dependency/build, local Supabase/provider state or credential-shaped token was detected |
 | `.gitignore` policy review | PASS | 2026-09-03 | Excludes `.env`/secrets, dependencies, generated builds/tests, local Supabase/provider state, logs and editor/OS artifacts; preserves example env files and migration source |
-| Lint | NOT_RUN | — | No application/tooling exists |
-| Typecheck | NOT_RUN | — | No application/tooling exists |
-| Unit/component/integration/E2E | NOT_RUN | — | No application/test harness exists |
+| `npm ci` | PASS | 2026-09-03 | Lockfile-clean install completed; 479 packages audited with zero reported vulnerabilities |
+| `npm run lint` | PASS | 2026-09-03 | ESLint completed with zero warnings/errors |
+| `npm run format:check` | PASS | 2026-09-03 | All non-authoritative-source implementation files match Prettier |
+| `npm run typecheck` | PASS | 2026-09-03 | Strict TypeScript completed with no errors |
+| `npm test` | PASS | 2026-09-03 | 3 files / 9 baseline unit and component tests passed |
+| Guarded integration smoke | PASS | 2026-09-03 | Safe synthetic target accepted; 1 integration foundation test passed |
+| Production-shaped integration target | PASS (REFUSED AS REQUIRED) | 2026-09-03 | Guard exited non-zero at `APP_ENV=production` before stateful tests ran |
+| `npm run check:server-boundaries` | PASS | 2026-09-03 | Dependency graph checked 2 client entries; no server-only path reachable |
+| `npm run check:secrets` | PASS | 2026-09-03 | 89 tracked/candidate files scanned; no credential-shaped value detected |
+| `npm run test:e2e -- --list` | PASS | 2026-09-03 | Two Chromium/axe foundation tests discovered; browser execution deferred |
 | Database/RLS/storage | NOT_RUN | — | Supabase/local database not configured |
-| Accessibility/SEO/privacy/responsive | NOT_RUN | — | No application exists |
-| Production build | NOT_RUN | — | No Next.js project exists |
+| `npm run build` | PASS | 2026-09-03 | Next.js 16 webpack production build compiled `/`, `/_not-found` and `/admin` as static routes |
 
 ## 14. Known Issues
 
@@ -345,6 +375,7 @@ None for M1.
 ### Important
 
 1. **Provider facts are dated.** Revalidate current terms/free limits before configuration or launch.
+2. **ESLint compatibility warning.** Clean install succeeds, but npm reports ESLint 9 as deprecated; Next 16's bundled lint plugins do not yet declare ESLint 10 peer compatibility. Upgrade when the dependency set supports it without overrides.
 
 ### Minor
 
@@ -366,11 +397,13 @@ The non-ADR M0 reconciliation decisions are recorded in `docs/DECISIONS.md`: lat
 
 ## 16. Deviations From Architecture
 
-No application implementation exists, so there is no code deviation.
+No business/domain implementation deviation exists.
 
 Document `05`'s treatment of `FOLLOW_UP_REQUIRED` as a visit status is intentionally superseded by ADR-0001 under the owner's explicit resolution. The underlying source document was not edited; the accepted deviation is documented and linked from the ledger.
 
 Documentation placement deviation: the roadmap requested an implementation ledger but did not prescribe its filename; it was created as `docs/architecture/IMPLEMENTATION-LEDGER.md`. This is organizational only and does not change architecture.
+
+Build-tooling note: the default production build uses Next's supported webpack builder because Turbopack's PostCSS worker cannot bind an internal local port on this execution host. `npm run build:turbo` remains available for diagnostics. This does not change application architecture or production output requirements.
 
 ## 17. Pending Owner Decisions / Approval Gates
 
@@ -387,7 +420,7 @@ Future explicit approval gates (not currently requested):
 
 ## 18. Placeholder / Pre-Launch Data
 
-No application placeholders have been introduced. If reference photography/media is still unavailable when public UI implementation begins, only clearly identifiable development placeholders may be used. Each placeholder must be recorded in this section and synchronized with `14-PRE-LAUNCH-CHECKLIST.md`; placeholders cannot be mistaken for real production property inventory or imagery.
+Three clearly labeled M1 placeholders are recorded in `docs/PRE-LAUNCH-PLACEHOLDERS.md`: the public foundation page, unauthenticated admin foundation notice and provisional text wordmark. No property imagery or inventory is shown. Every item must be replaced or explicitly approved before launch.
 
 The following real inputs remain unavailable/unconfigured:
 
@@ -407,15 +440,14 @@ Do not invent production values or fabricate property/geography records to popul
 
 ## 19. Exact Next Actions
 
-1. Commit the M0 source-resolution records and approved logo asset.
-2. Scaffold the M1 Next.js App Router repository structure with strict TypeScript and public/admin route groups.
-3. Add environment validation, server-only boundaries and the production-test safety guard.
-4. Add linting, formatting, unit/component/Playwright/accessibility scaffolds and CI.
-5. Run a clean install, lint, typecheck, unit, component, safety-negative test and production build; fix all M1 failures.
-6. Update this handoff with actual evidence and mark M1 COMPLETE only if every M1 criterion passes.
+1. Commit the validated M1 foundation and handoff evidence.
+2. Read the complete M2 schema/migration/validation sections and map the authoritative table dependency order.
+3. Implement only M2 migrations, reference data and database validation helpers against disposable local Supabase/PostgreSQL.
+4. Reset from empty state and run the complete M2 constraint/trigger/index/privacy test suite.
+5. Update this handoff and mark M2 COMPLETE only when every documented M2 condition passes.
 
 ## 20. Resume Instructions For The Next Coding Agent
 
-> You are continuing an existing UrbanEdge Land Space implementation at M1. Read this file, `docs/architecture/IMPLEMENTATION-LEDGER.md`, the M1 section of `12-IMPLEMENTATION-ROADMAP.md`, and repository/security/testing requirements in documents `01`, `08`, `10` and `11`. The owner confirmed the old Living Space repository will not be provided; do not block on it. Treat `URBANEDGE_LIVINGSPACE_DESIGN_REPORT.md` as the authoritative brand/design reference and the supplied JPEG as a reference asset. Continue from the first incomplete M1 action. Do not begin M2 until every M1 completion criterion passes.
+> You are continuing an existing UrbanEdge Land Space implementation at M2. M0 and M1 are complete. Read this file, `docs/architecture/IMPLEMENTATION-LEDGER.md`, ADR-0001, the complete M2 section of `12-IMPLEMENTATION-ROADMAP.md`, and the authoritative database/security/storage/testing contracts in documents `03`, `08`, `09` and `11`. Use only a disposable local/test database and preserve the production guard. Do not apply anything to production. Continue from the first incomplete M2 action and do not begin M3 until every M2 criterion passes.
 
 Special warning: owner submissions must never auto-publish, site-visit requests must never auto-confirm, and no public payload may contain owner PII, private documents/evidence/internal notes, unpublished inventory or exact coordinates for approximate/hidden listings.
