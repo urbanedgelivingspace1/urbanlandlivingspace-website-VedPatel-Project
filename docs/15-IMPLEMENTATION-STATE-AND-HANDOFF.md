@@ -10,12 +10,12 @@ This is the live record of what has actually happened. Update it after every mea
 | Repository | `/Users/vedpatel/Desktop/UrbanLand_website` |
 | Current branch | `main` |
 | Latest relevant commit | `HEAD` records this handoff update; baseline M0 documentation commit is `a9d6fba6f0d3312c6ee848327f3d7122e90fd430` |
-| Working tree | CLEAN after committing this state-record update; verified with `git status --short --branch` |
-| Current milestone | M0 — Architecture Lock and Implementation Ledger |
-| Current milestone status | BLOCKED |
-| Last completed milestone | None |
-| Next milestone | M1 — Repository Foundation, Tooling and Test Bootstrap |
-| Last updated | 2026-09-03 02:34:00 IST |
+| Working tree | DIRTY while the M0-completion update and approved logo await commit |
+| Current milestone | M1 — Repository Foundation, Tooling and Test Bootstrap |
+| Current milestone status | IN_PROGRESS |
+| Last completed milestone | M0 — Architecture Lock and Implementation Ledger |
+| Next milestone | M2 — Database Schema, Migrations, Reference Data and Constraints |
+| Last updated | 2026-09-03 02:39:42 IST |
 | Last updating agent | Codex |
 
 ## 2. Source-of-Truth Documents
@@ -66,19 +66,20 @@ Accepted ADR:
 - `docs/adr/0001-separate-site-visit-lifecycle-from-follow-up.md` supersedes document `05` only where it treats `FOLLOW_UP_REQUIRED` as a visit status. It retains document `03`'s eight visit states and uses CRM follow-up state instead.
 - Full master-prompt review confirms ADR-0001 remains compatible: the master contains no `FOLLOW_UP_REQUIRED` visit state and uses `SCHEDULED` as a high-level lifecycle phase, which document `03` refines into `PROPOSED`, `CONFIRMED` and `RESCHEDULED`.
 
-Unavailable required reference inputs:
+Resolved source limitation:
 
-- UrbanEdge Living Space repository source files: no accessible path located.
-- UrbanEdge logo/brand asset files: no accessible path located.
+- UrbanEdge Living Space repository: owner confirmed it will not be provided and must not block M0.
+- Authoritative Living Space reference: `URBANEDGE_LIVINGSPACE_DESIGN_REPORT.md`, by owner direction dated 2026-09-03.
+- Approved logo/reference asset: `UrbanEdge_Living_Space_Logo_HD.jpg`, present and inspected.
 
-`URBANEDGE_LIVINGSPACE_DESIGN_REPORT.md` was reviewed and provides useful code-derived design evidence, but it is a secondary report and cannot substitute for direct read-only inspection of the promised repository and assets.
+The design report governs Living Space brand/design reference only. It does not authorize source-code/backend coupling, and the approved Living Space logo must not be silently relabeled as a finished Land Space-specific logo.
 
 ## 3. Milestone Progress
 
 | Milestone | Status | Started | Completed | Evidence / Notes |
 |---|---|---|---|---|
-| M0 Architecture Lock and Implementation Ledger | BLOCKED | 2026-09-03 | — | Master prompt read in full and consistency review passed; direct Living Space repository/logo inspection remains impossible because the files are not accessible; ADR-0001 reconfirmed |
-| M1 Repository Foundation, Tooling and Test Bootstrap | NOT_STARTED | — | — | Must not start until M0 clears |
+| M0 Architecture Lock and Implementation Ledger | COMPLETE | 2026-09-03 | 2026-09-03 | Master prompt and architecture reviewed; owner-designated design report and approved logo inspected; consistency checks pass; ADR-0001 reconfirmed; Git baseline established |
+| M1 Repository Foundation, Tooling and Test Bootstrap | IN_PROGRESS | 2026-09-03 | — | Establishing Next.js, strict TypeScript, tooling, environment safety, tests, CI and route-group shells |
 | M2 Database Schema, Migrations, Reference Data and Constraints | NOT_STARTED | — | — | ADR-0001 fixes the eight-value site-visit enum contract; M2 still depends on M0/M1 |
 | M3 Server Data Contracts, State Machines and Public-Safe Projections | NOT_STARTED | — | — | — |
 | M4 RLS, Grants and Authorization Data Boundary | NOT_STARTED | — | — | — |
@@ -100,15 +101,15 @@ Unavailable required reference inputs:
 
 ## 4. Current Work
 
-Objective: finish M0 without substituting a secondary design report for the promised read-only repository and asset files.
+Objective: implement and validate the complete M1 repository, tooling, environment-safety, test and CI foundation without beginning domain/database work.
 
 Relevant sources:
 
 - owner's implementation brief;
-- embedded `00-MASTER-CODEX-BUILD-PROMPT.md` in `/Users/vedpatel/Desktop/merged (1).md`, lines 56904–62392;
-- `01` through `14` architecture documents;
-- product, data-model, legal-verification and design reports;
-- `12-IMPLEMENTATION-ROADMAP.md`, especially M0;
+- embedded master prompt and finalized architecture;
+- `12-IMPLEMENTATION-ROADMAP.md`, M1;
+- repository/tooling/security/testing requirements in documents `01`, `08`, `10` and `11`;
+- authoritative `URBANEDGE_LIVINGSPACE_DESIGN_REPORT.md` brand/design reference;
 - `docs/architecture/IMPLEMENTATION-LEDGER.md`.
 
 Files involved:
@@ -121,27 +122,15 @@ Files involved:
 - `docs/runbooks/README.md`
 - this handoff file.
 
-Dependencies/blockers:
+Dependencies/blockers: none for M1. M0 is complete. Production/provider configuration remains out of scope and approval-gated.
 
-- obtain or explicitly defer the missing Living Space source and logo/assets;
-- preserve ADR-0001's separation between site-visit lifecycle and CRM follow-up.
-
-Required M0 checks:
-
-- verify every public route has a public-safe source;
-- verify every admin route has an active-admin boundary;
-- verify every public mutation is server-owned;
-- verify exact coordinates and documents remain private;
-- verify every workflow maps to approved tables/states;
-- verify no excluded V1 feature is required.
-
-The complete master prompt and all available architecture sources have been reconciled. The route, mutation, privacy, workflow and exclusion checks pass, and ADR-0001 remains consistent. M0 still fails its direct-reference-inspection condition because the Living Space repository and logo/assets were not found in the project, Codex attachments, standard supplied directories, mounted volumes or permitted temporary locations. Once those exact inputs are made accessible (or their inspection is explicitly deferred), inspect and reconcile them, initialize Git with an appropriate `.gitignore`, establish the baseline commit, complete M0 and only then begin M1.
+Required M1 checks: clean install, lint, strict typecheck, baseline unit and component tests, production build, production-shaped test-target refusal, server-only boundary test, and successful public/admin route-group compilation.
 
 ## 5. Completed Implementation
 
 ### Foundation
 
-No application foundation exists. Documentation directories required by M0 and a protective `.gitignore` exist. Git is initialized on `main`; baseline commit `a9d6fba6f0d3312c6ee848327f3d7122e90fd430` contains the supplied architecture/research documents and truthful blocked-M0 state.
+M0 documentation, source manifest, ADR structure and Git baseline exist. M1 application/tooling foundation is in progress; no domain implementation exists yet.
 
 ### Database
 
@@ -211,6 +200,7 @@ LANDSPACE_PRODUCT_REQUIREMENTS.md
 LAND_DATA_MODEL_REPORT.md
 LEGAL_VERIFICATION_REPORT.md
 URBANEDGE_LIVINGSPACE_DESIGN_REPORT.md
+UrbanEdge_Living_Space_Logo_HD.jpg          approved brand-reference asset
 .gitignore                                      secrets/local/build/Supabase exclusions
 
 docs/
@@ -228,7 +218,7 @@ docs/
     README.md                               runbook scope and production guardrails
 ```
 
-There is no `package.json`, application source, Supabase directory, test suite, CI configuration, `.openai/hosting.json`, logo file or reference-app source in the project at this point. Git is initialized on `main`. The `.gitignore` excludes secrets, environment files, dependencies, build/test output, local Supabase runtime, provider state and other local-only artifacts. The documentation-only baseline is committed; no M1 scaffold or feature implementation has begun.
+There is no `package.json`, application source, Supabase directory, test suite, CI configuration or `.openai/hosting.json` in the project at this point. The approved Living Space logo reference is present; the old reference-app source is intentionally unavailable. Git is initialized on `main`. The `.gitignore` excludes secrets, environment files, dependencies, build/test output, local Supabase runtime, provider state and other local-only artifacts. The documentation-only baseline is committed; M1 scaffolding is the active work.
 
 ## 7. Database State
 
@@ -328,10 +318,11 @@ M1 must add explicit test-target/project-reference safety names and, if used, a 
 | Required handoff section check (`1..20`) | PASS | 2026-09-03 | All 20 required numbered sections are present |
 | Milestone inventory check (`M0..M19`) | PASS | 2026-09-03 | All roadmap milestones are represented in the progress table |
 | Ledger source-reference check | PASS | 2026-09-03 | Every supplied architecture/research filename is referenced |
-| Ledger/handoff blocker consistency scan | PASS | 2026-09-03 | Embedded master prompt is consistently marked reviewed; only the direct reference repository/assets input remains open; former site-visit conflict is consistently marked resolved |
+| Ledger/handoff M0 consistency scan | PASS | 2026-09-03 | Owner-approved source limitation is recorded; master/design/logo inputs are resolved; former site-visit conflict remains consistently resolved |
 | Embedded master-prompt location and sequential full read | PASS | 2026-09-03 | Read `/Users/vedpatel/Desktop/merged (1).md` lines 56904–62392 in full; treated as highest-priority source |
 | Master-to-final-architecture reconciliation | PASS | 2026-09-03 | High-level/example differences are documented in `docs/REQUIREMENTS.md`, `docs/DECISIONS.md` and the ledger; no unresolved architecture contradiction found |
-| Living Space repository/logo discovery | FAIL / BLOCKED INPUT | 2026-09-03 | Searched project, Codex attachments, Desktop/Documents/Downloads, accessible user paths, volumes and permitted temp paths; actual source/assets were not found |
+| Living Space source limitation resolution | PASS | 2026-09-03 | Owner designated the design report authoritative and confirmed the repository will not be provided or block M0 |
+| Approved logo inspection | PASS | 2026-09-03 | 4267×4267 RGB JPEG visually inspected; SHA-256 recorded in source manifest |
 | ADR-0001 source/decision review | PASS | 2026-09-03 | Owner resolution mapped to documents `03`, `04`, `05`, `11` and `12`; no schema addition introduced |
 | ADR-0001 master compatibility review | PASS | 2026-09-03 | Master contains no `FOLLOW_UP_REQUIRED` visit state; detailed scheduling refinement remains compatible |
 | ADR-0001 structural/negative validation | PASS | 2026-09-03 | Required decision sections exist; no instruction adds `FOLLOW_UP_REQUIRED` to the visit enum |
@@ -349,7 +340,7 @@ M1 must add explicit test-target/project-reference safety names and, if used, a 
 
 ### Blocking
 
-1. **Missing Living Space source and logo/assets.** Affects the user-required direct brand/reference inspection and therefore M0 completion. Next action: owner supplies the exact accessible paths/files or explicitly defers that inspection.
+None for M1.
 
 ### Important
 
@@ -371,7 +362,7 @@ M1 must add explicit test-target/project-reference safety names and, if used, a 
 |---|---|---|---|
 | `ADR-0001` | Keep site-visit lifecycle separate from CRM follow-up; do not add `FOLLOW_UP_REQUIRED` to `site_visit_status` | A completed visit can simultaneously require follow-up; visit outcome and operational work are independent | Database enum, visit service, CRM follow-up, admin derived views, tests |
 
-The non-ADR M0 reconciliation decisions are recorded in `docs/DECISIONS.md`: later finalized documents refine master examples where the master describes them as recommendations/high-level guidance; the design report remains secondary evidence; missing photography may use only clearly marked development placeholders tracked for replacement.
+The non-ADR M0 reconciliation decisions are recorded in `docs/DECISIONS.md`: later finalized documents refine master examples where the master describes them as recommendations/high-level guidance; the owner-designated design report is the authoritative Living Space brand/design reference; the approved Living Space logo is a reference asset rather than an automatically relabeled Land Space logo; missing photography may use only clearly marked development placeholders tracked for replacement.
 
 ## 16. Deviations From Architecture
 
@@ -382,10 +373,6 @@ Document `05`'s treatment of `FOLLOW_UP_REQUIRED` as a visit status is intention
 Documentation placement deviation: the roadmap requested an implementation ledger but did not prescribe its filename; it was created as `docs/architecture/IMPLEMENTATION-LEDGER.md`. This is organizational only and does not change architecture.
 
 ## 17. Pending Owner Decisions / Approval Gates
-
-Immediate input decisions:
-
-1. Provide the exact accessible UrbanEdge Living Space read-only source path and logo/assets, or explicitly authorize deferring direct inspection of those inputs.
 
 Future explicit approval gates (not currently requested):
 
@@ -404,7 +391,8 @@ No application placeholders have been introduced. If reference photography/media
 
 The following real inputs remain unavailable/unconfigured:
 
-- logo and approved images/assets;
+- Land Space-specific logo/lockup, if distinct from the approved Living Space reference asset;
+- approved property photography/media;
 - phone and WhatsApp destination;
 - public email and sending identity;
 - office address;
@@ -419,17 +407,15 @@ Do not invent production values or fabricate property/geography records to popul
 
 ## 19. Exact Next Actions
 
-1. Obtain and inspect the UrbanEdge Living Space source read-only and supplied logo/assets, or record the owner's explicit deferral; do not modify it, copy backend configuration from it or couple Land Space to it.
-2. Update `docs/architecture/SOURCE-MANIFEST.md` with the newly accessible exact paths, roles, line counts/checksums as appropriate, and photography/media presence.
-3. Re-run the narrow M0 consistency delta against those references; resolve any new governing contradiction by hierarchy/ADR rather than silently changing architecture.
-4. Recheck the existing `.gitignore` against any newly supplied reference layout; keep secrets, `.env` variants, dependencies/build/test output, local Supabase state, editor/OS files and other local-only data excluded.
-5. Resolve M0-B02; mark M0 COMPLETE only when every documented M0 completion criterion passes, then commit the reconciliation.
-6. Update this file to mark M0 COMPLETE and M1 IN_PROGRESS.
-7. Read the M1 sections of `12-IMPLEMENTATION-ROADMAP.md`, plus repository/tooling requirements in `01`, `08`, `10` and `11`, before scaffolding.
-8. Implement only M1 foundation/tooling/test bootstrap, run every M1 validation command, record actual results here, and fix failures before M2.
+1. Commit the M0 source-resolution records and approved logo asset.
+2. Scaffold the M1 Next.js App Router repository structure with strict TypeScript and public/admin route groups.
+3. Add environment validation, server-only boundaries and the production-test safety guard.
+4. Add linting, formatting, unit/component/Playwright/accessibility scaffolds and CI.
+5. Run a clean install, lint, typecheck, unit, component, safety-negative test and production build; fix all M1 failures.
+6. Update this handoff with actual evidence and mark M1 COMPLETE only if every M1 criterion passes.
 
 ## 20. Resume Instructions For The Next Coding Agent
 
-> You are continuing an existing UrbanEdge Land Space implementation. Do not restart architecture, scaffold an application or make database decisions yet. Read this file first, then read `docs/architecture/IMPLEMENTATION-LEDGER.md`, the embedded master prompt at `/Users/vedpatel/Desktop/merged (1).md` lines 56904–62392, and the M0/M1 sections of `12-IMPLEMENTATION-ROADMAP.md`. Inspect the repository and Git state before modifying files. Verify whether the missing Living Space repository/logo inputs have become accessible. Continue from the first incomplete item under Exact Next Actions. Preserve the serial milestone order, public/private boundary, dedicated Supabase requirement, no-paid-service rule and all production approval gates.
+> You are continuing an existing UrbanEdge Land Space implementation at M1. Read this file, `docs/architecture/IMPLEMENTATION-LEDGER.md`, the M1 section of `12-IMPLEMENTATION-ROADMAP.md`, and repository/security/testing requirements in documents `01`, `08`, `10` and `11`. The owner confirmed the old Living Space repository will not be provided; do not block on it. Treat `URBANEDGE_LIVINGSPACE_DESIGN_REPORT.md` as the authoritative brand/design reference and the supplied JPEG as a reference asset. Continue from the first incomplete M1 action. Do not begin M2 until every M1 completion criterion passes.
 
 Special warning: owner submissions must never auto-publish, site-visit requests must never auto-confirm, and no public payload may contain owner PII, private documents/evidence/internal notes, unpublished inventory or exact coordinates for approximate/hidden listings.

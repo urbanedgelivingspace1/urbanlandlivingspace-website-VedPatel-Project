@@ -41,7 +41,7 @@ The strongest source-backed UrbanEdge family language is deep navy, warm gold, P
 
 Land Space must use that family resemblance while replacing apartment/residential metaphors with land, scale, access, location, planning and verification language. It must not copy Living Space implementation debt or clone a competitor.
 
-The detailed design report records code-derived tokens and asset names, but the actual Living Space repository and logo files are not currently visible in the accessible filesystem. Do not pretend those files were inspected in this M0 session.
+The owner confirmed that the old Living Space repository will not be provided and designated the detailed design report as the authoritative Living Space brand/design reference. The approved `UrbanEdge_Living_Space_Logo_HD.jpg` asset is present and inspected. Do not infer unreported implementation details from the unavailable repository or couple Land Space to it.
 
 ## Reconciled source differences
 
@@ -60,7 +60,7 @@ These are refinements explicitly anticipated by the master prompt and implementa
 
 ## Open input gap
 
-Filesystem searches found the master prompt only as the final embedded document in `/Users/vedpatel/Desktop/merged (1).md` (lines 56904–62392). The actual UrbanEdge Living Space repository and actual logo/assets were not found in the Land Space directory, Codex attachments, Desktop, Documents, Downloads, temporary workspace locations or accessible mounted volumes.
+Filesystem searches found the master prompt as the final embedded document in `/Users/vedpatel/Desktop/merged (1).md` (lines 56904–62392). The owner subsequently confirmed that the actual UrbanEdge Living Space repository will not be provided and instructed that this must not block M0. `URBANEDGE_LIVINGSPACE_DESIGN_REPORT.md` is therefore the authoritative Living Space brand/design reference. The approved logo asset is available at `/Users/vedpatel/Desktop/UrbanLand_website/UrbanEdge_Living_Space_Logo_HD.jpg`; no additional photography/property media was supplied.
 
 Consequences:
 
@@ -71,4 +71,4 @@ Consequences:
 
 ## M0 exit assessment
 
-The architecture itself is coherent after ADR-0001 and the reconciliations above. The only current M0 hold is source fulfillment: the explicitly required Living Space repository and logo/assets are not accessible at an identifiable location. The master prompt is available and reviewed from the merged package.
+The architecture is coherent after ADR-0001 and the reconciliations above. The master prompt is fully reviewed, the owner has resolved the old-repository source limitation, the approved logo is inspected, and every documented M0 completion condition passes. M0 may close and M1 may begin.

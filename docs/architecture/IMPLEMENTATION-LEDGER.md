@@ -1,8 +1,8 @@
 # UrbanEdge Land Space V1 — Implementation Ledger
 
-**Ledger status:** M0 consistency review complete and documentation baseline committed; M0 remains blocked before M1 because the promised read-only Living Space repository and logo/asset files are not accessible.
+**Ledger status:** M0 COMPLETE; implementation ledger, source hierarchy, consistency review, ADR-0001, approved brand reference and Git baseline are reconciled.
 
-**Last reconciled:** 3 September 2026 (embedded master prompt read in full; ADR-0001 reconfirmed; reference repository/assets still not located)
+**Last reconciled:** 3 September 2026 (owner designated the design report authoritative; approved logo inspected; all M0 completion conditions pass)
 
 This ledger is the single implementation-facing map required by `12-IMPLEMENTATION-ROADMAP.md`. It does not replace the source documents. When this ledger conflicts with a source, the source hierarchy in the owner's build brief applies.
 
@@ -42,12 +42,12 @@ Supplied and referenced:
 | `LEGAL_VERIFICATION_REPORT.md` | Legal/verification constraints; not legal advice |
 | `URBANEDGE_LIVINGSPACE_DESIGN_REPORT.md` | Brand/design reference report |
 
-Unavailable inputs:
+Unavailable/non-required inputs:
 
-- UrbanEdge Living Space source repository/reference files.
-- Supplied logo and brand asset files.
+- UrbanEdge Living Space source repository: owner confirmed it will not be provided and must not block M0.
+- Additional photography/property media: optional for development and not supplied.
 
-The master prompt is available as an embedded converted document even though the expected standalone filename is absent. Its complete review introduced no unresolved architecture contradiction. The missing Living Space source and assets do not authorize copying or modifying that product, and the code-derived design report is not a substitute for direct read-only source/asset inspection. M1 must not start until those promised reference inputs are accessible or the owner explicitly defers that inspection.
+The master prompt is available as an embedded converted document even though the expected standalone filename is absent. Its complete review introduced no unresolved architecture contradiction. By owner direction dated 2026-09-03, `URBANEDGE_LIVINGSPACE_DESIGN_REPORT.md` is the authoritative Living Space brand/design reference and the old repository is out of scope. The approved `/Users/vedpatel/Desktop/UrbanLand_website/UrbanEdge_Living_Space_Logo_HD.jpg` asset was visually inspected and fingerprinted. Neither source authorizes copying Living Space backend/database/auth/storage/deployment behavior or coupling the products.
 
 Accepted implementation decision:
 
@@ -602,9 +602,13 @@ Development, local migrations/tests and staging preparation may proceed only aft
 
 ### Blocking before M1
 
-| ID | Finding | Impact | Required resolution |
+No unresolved M0 blocker remains.
+
+### Resolved source limitation
+
+| ID | Finding | Resolution | Evidence |
 |---|---|---|---|
-| M0-B02 | Living Space source and logo/assets described as supplied are absent. | Brand-reference inspection and faithful asset integration cannot occur. | Supply paths/files, or explicitly authorize placeholder-free implementation from reports until assets arrive. |
+| M0-R04 | The old Living Space repository will not be supplied. | The owner designated `URBANEDGE_LIVINGSPACE_DESIGN_REPORT.md` as the authoritative Living Space brand/design reference and explicitly directed that the repository must not block M0. The supplied logo was inspected separately. | Owner direction dated 2026-09-03; `SOURCE-MANIFEST.md`; logo SHA-256 `a889d3814187ba2da98e77f7609fed09b31bc662dd5b6b655e281c1d8a32d072` |
 
 ### Resolved architecture conflict
 
@@ -641,9 +645,10 @@ Development, local migrations/tests and staging preparation may proceed only aft
 | Implementation ledger exists | PASS | This file |
 | All supplied architecture documents referenced | PASS | Section 1 |
 | Master prompt located and read in full | PASS | Embedded source at `/Users/vedpatel/Desktop/merged (1).md`, lines 56904–62392 |
-| Required Living Space repository and logo/assets inspected read-only | **FAIL** | No accessible repository or asset files found; only the secondary design report is present |
-| No unresolved architecture contradiction affects the next milestone | PASS | M0-R01 through M0-R03; ADR-0001 |
+| Owner-approved Living Space brand/design source available | PASS | Design report explicitly designated authoritative; old repository explicitly non-required |
+| Approved logo/assets inspected | PASS | 4267×4267 RGB JPEG visually reviewed and fingerprinted in `SOURCE-MANIFEST.md` |
+| No unresolved architecture contradiction affects the next milestone | PASS | M0-R01 through M0-R04; ADR-0001 |
 | Required schema concepts approved or marked for later ADR | PASS | Sections 15–16 |
 | Single authoritative route/state/data map exists | PASS | Sections 3–13 |
 
-**M0 outcome: BLOCKED / NOT COMPLETE. Do not begin M1 until M0-B02 is resolved.** The master-prompt review and architecture consistency checks pass, and ADR-0001 remains valid. The sole remaining M0 failure is direct inspection of the promised Living Space repository and logo/assets; the secondary design report cannot establish their exact source custody or file contents. Repository initialization and a documentation-only baseline are permitted because they do not implement application features or declare M0 complete.
+**M0 outcome: COMPLETE.** The owner-approved source limitation is documented, the design report and supplied logo satisfy the brand-reference inputs, the full architecture consistency review passes, ADR-0001 remains valid, all required schema concepts are approved or milestone-gated, and the authoritative route/state/data map is established. M1 may begin.

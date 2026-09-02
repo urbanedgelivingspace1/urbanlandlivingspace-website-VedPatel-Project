@@ -17,17 +17,21 @@ Therefore:
 
 This is source reconciliation, not an architecture deviation.
 
-### D-002 — Living Space design report is evidence, not source-code custody
+### D-002 — Living Space design report is the authoritative brand/design reference
 
-`URBANEDGE_LIVINGSPACE_DESIGN_REPORT.md` contains detailed code-derived findings and may guide reversible M1 design-token foundations. It does not authorize treating the missing Living Space repository as part of Land Space, copying its implementation, or claiming that the current agent inspected unavailable source files.
+The owner confirmed on 2026-09-03 that the old Living Space repository will not be provided and designated `URBANEDGE_LIVINGSPACE_DESIGN_REPORT.md` as the authoritative Living Space brand/design reference. It may guide the M1 design-token foundation. This designation does not authorize treating the old repository as part of Land Space, copying its implementation, sharing its backend, or claiming direct inspection of unavailable source files.
 
 ### D-003 — Missing photography uses explicit development placeholders only
 
 If actual photography/media is unavailable when a later public-UI milestone needs it, use clearly identified development placeholders. Never represent placeholder imagery as a real property. Track each replacement in the handoff placeholder register and pre-launch documentation.
 
-### D-004 — Git baseline waits for complete M0 source custody
+### D-004 — Git baseline and source-resolution history
 
-The owner authorized Git initialization and a baseline M0 commit after the promised sources are located, inspected and reconciled. Until an exact read-only Living Space source path and logo/asset path exist, do not create a commit that misleadingly describes the source set as complete.
+The documentation-only baseline commit was created while accurately recording the unresolved reference-source input. The owner then resolved that limitation by designating the design report as authoritative and confirming the repository will not be supplied. The approved logo asset and resulting M0 completion records belong in a follow-up M0 completion commit; no commit may claim direct old-repository inspection.
+
+### D-005 — Approved logo is a reference asset, not a relabeled Land Space logo
+
+`UrbanEdge_Living_Space_Logo_HD.jpg` is an approved UrbanEdge Living Space brand asset and is valid for extracting visual character and brand colors. It must not be silently presented as a purpose-built UrbanEdge Land Space logo. A Land Space-specific wordmark/lockup remains a separately approved brand deliverable if the product needs one.
 
 ## Formal ADRs
 
