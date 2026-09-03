@@ -77,7 +77,7 @@ insert into public.private_documents (
   '45000000-0000-4000-8000-000000000001',
   '41000000-0000-4000-8000-000000000001',
   '42000000-0000-4000-8000-000000000001', 'SYNTHETIC_TEST',
-  'private-documents', 'PRIVATE_DOC_PATH_CANARY', 'application/pdf'
+  'verification-documents-private', 'PRIVATE_DOC_PATH_CANARY', 'application/pdf'
 );
 insert into public.verification_check_definitions (id, code, name)
 values (
@@ -167,10 +167,10 @@ select set_config('request.jwt.claim.sub', '40000000-0000-4000-8000-000000000003
 select set_config('request.jwt.claim.role', 'authenticated', true);
 set local role authenticated;
 select ok(public.is_active_admin(), 'database profile authorizes active admin');
-select is((select count(*)::integer from public.properties), 2, 'active admin can read published and unpublished properties');
-select is((select count(*)::integer from public.leads), 1, 'active admin can read lead PII boundary');
-select is((select count(*)::integer from public.private_documents), 1, 'active admin can read private document metadata');
-select is((select count(*)::integer from public.property_locations), 1, 'active admin can read private location row');
+select is((select count(*)::integer from public.properties where id in ('41000000-0000-4000-8000-000000000001', '41000000-0000-4000-8000-000000000002')), 2, 'active admin can read published and unpublished M4 properties');
+select is((select count(*)::integer from public.leads where id = '43000000-0000-4000-8000-000000000001'), 1, 'active admin can read M4 lead PII boundary');
+select is((select count(*)::integer from public.private_documents where id = '45000000-0000-4000-8000-000000000001'), 1, 'active admin can read M4 private document metadata');
+select is((select count(*)::integer from public.property_locations where property_id = '41000000-0000-4000-8000-000000000001'), 1, 'active admin can read M4 private location row');
 select ok(not has_table_privilege(current_user, 'public.properties', 'update'), 'admin browser cannot bypass property transition services');
 select ok(not has_table_privilege(current_user, 'public.audit_logs', 'update'), 'admin browser cannot update audit history directly');
 select ok(
@@ -184,7 +184,7 @@ select set_config('request.jwt.claim.sub', '', true);
 select set_config('request.jwt.claim.role', 'service_role', true);
 set local role service_role;
 select ok(has_table_privilege(current_user, 'public.properties', 'insert'), 'server-privileged role has business write privilege');
-select is((select count(*)::integer from public.private_documents), 1, 'server-privileged role can access private resources');
+select is((select count(*)::integer from public.private_documents where id = '45000000-0000-4000-8000-000000000001'), 1, 'server-privileged role can access the M4 private resource');
 reset role;
 
 select is(

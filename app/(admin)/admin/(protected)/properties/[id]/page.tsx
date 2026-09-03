@@ -37,6 +37,12 @@ export default async function AdminPropertyDetailPage({
           >
             Back to inventory
           </Link>
+          <Link
+            href={`/admin/properties/${id}/media`}
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold"
+          >
+            Manage media
+          </Link>
           {row.publication_status === "DRAFT" ? (
             <Link
               href={`/admin/properties/${id}/edit`}
@@ -60,7 +66,7 @@ export default async function AdminPropertyDetailPage({
         <Metric label="Availability" value={row.availability_status} />
         <Metric
           label="Media"
-          value={property.mediaCount ? `${property.mediaCount} assets` : "Not added (M7)"}
+          value={property.mediaCount ? `${property.mediaCount} assets` : "No media"}
         />
         <Metric
           label="Verification"

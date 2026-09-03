@@ -1,8 +1,8 @@
 # UrbanEdge Land Space V1 — Implementation Ledger
 
-**Ledger status:** M0–M6 COMPLETE; controlled property drafts and protected admin property CRUD are reconciled and validated.
+**Ledger status:** M0–M7 COMPLETE; controlled media, public Storage promotion and private-document access are reconciled and validated.
 
-**Last reconciled:** 3 September 2026 (M6: transactional three-category draft persistence, protected CRUD UX, optimistic concurrency, audit, archive/restore and availability controls pass the complete local regression suite)
+**Last reconciled:** 3 September 2026 (M7: five-bucket Storage boundary, validated/normalized media, immutable public promotion, private signed access, audit and protected admin UX pass the complete local regression suite)
 
 This ledger is the single implementation-facing map required by `12-IMPLEMENTATION-ROADMAP.md`. It does not replace the source documents. When this ledger conflicts with a source, the source hierarchy in the owner's build brief applies.
 
@@ -53,6 +53,7 @@ Accepted implementation decision:
 
 - `docs/adr/0001-separate-site-visit-lifecycle-from-follow-up.md` supersedes only document `05`'s treatment of `FOLLOW_UP_REQUIRED` as a visit lifecycle state. It preserves document `03`'s eight-value database enum and represents follow-up in CRM.
 - ADR-0001 remains compatible with the master prompt: the prompt uses the simplified lifecycle labels `REQUESTED`, `CONTACTED`, `SCHEDULED`, `COMPLETED`, `CANCELLED`, `NO_SHOW`, does not define `FOLLOW_UP_REQUIRED`, and leaves detailed scheduling persistence to the later finalized architecture. Document `03` refines the conceptual `SCHEDULED` phase into `PROPOSED`, `CONFIRMED` and `RESCHEDULED` without changing the decision that follow-up belongs to CRM.
+- `docs/adr/0002-hosted-and-external-media-locators.md` resolves document `03`'s required hosted-object columns versus document `09` and the owner brief's required external video/drone/360 model. `media_assets` remains the one registry, with mutually exclusive constrained hosted and canonical external locators; no fake Storage objects or duplicate tables are introduced.
 
 ## 2. V1 boundary
 
@@ -480,6 +481,8 @@ Rules:
 - SHA-256 duplicate detection and orphan reconciliation are required;
 - private paths/URLs never enter public DTOs, logs or analytics.
 
+M7 implementation status: all five buckets are migration-controlled locally. Only `property-media-public` and `guide-media-public` are public; no anonymous/authenticated `storage.objects` mutation/list policy exists. Property images stage privately, are decoded and normalized to metadata-free WebP, use SHA-256 duplicate control and server-generated immutable paths, and are copied to public storage only by an audited approval operation. Public brochures are separately validated/scanned marketing PDFs. Owner/legal/verification files use `private_documents` in private storage and receive 60–300 second signed URLs only after active-admin and resource checks; signed URLs are never persisted. Limits enforce 30 approved plus 20 staged images and one active brochure per property, while configured registry-budget thresholds are surfaced at `/admin/media` and fail uploads closed at the hard stop. Large video/360 binaries remain unsupported; reviewed YouTube/Vimeo/Matterport URLs use provider-specific rendering and CSP allowlists.
+
 ## 10. Server-owned mutation inventory
 
 Public actions:
@@ -597,6 +600,7 @@ Development, local migrations/tests and staging preparation may proceed only aft
 2. **Evidence provenance lifecycle (decision by M8):** `06-VERIFICATION-WORKFLOW.md` defines `RECEIVED`, `REVIEWED`, `SOURCE_VERIFIED`, `SUPERSEDED`, `REVOKED`, while the current schema does not persist an explicit provenance state/history. The verification document permits a future migration if stronger V1 traceability requires it. Resolve via ADR before implementing behavior that depends on those states.
 3. **Professional review lifecycle (decision by M8):** the verification architecture describes a richer professional-review state machine without a dedicated table/status in the authoritative schema. V1 may model it as scoped verification definitions/results only if every required identity/scope/material/date/outcome field can be preserved without ad hoc JSON; otherwise use an ADR and migration.
 4. **Site-visit follow-up status:** resolved by ADR-0001 with no schema addition; retain as a regression-test contract through M14.
+5. **Hosted/external media locator gap:** resolved by ADR-0002 and the M7 additive constrained migration; retain as a projection and provider-allowlist regression contract.
 
 ## 16. Consistency review and open items
 
@@ -663,5 +667,6 @@ No unresolved M0 blocker remains.
 | M4 | COMPLETE | RLS enabled on all 49 tables; 10 public views use a NOLOGIN/NOBYPASSRLS projection owner; active-admin reads, server-owned writes, trusted audit and 40 actor-matrix checks pass |
 | M5 | COMPLETE | Login/logout, refresh proxy, `requireActiveAdmin()`, protected dashboard, generic denial states and responsive shell pass a seven-scenario local browser suite |
 | M6 | COMPLETE | Service-role-only transactional draft RPCs, three-category extension consistency, offers/parcels/location/planning/party/source persistence, protected list/detail/create/edit routes, stale-write protection, controlled availability, archive/restore, public-projection exclusion and sensitive audit behavior pass 136 pgTAP, 36 unit, 3 component, 6 integration and 13 E2E assertions/scenarios |
+| M7 | COMPLETE | Five configured buckets, hosted/external media registry, private staging and immutable promotion, EXIF stripping, document scanning states, short-lived authorized signed access, archive/restore, quota surfacing and protected media UX pass 187 pgTAP, 46 unit, 7 component, 12 integration and 15 E2E assertions/scenarios plus full QA/build |
 
-M6 introduced no duplicate business field or new table. The only schema catalogue extension is `EXACT_LOCATION_ACCESS`, explicitly contemplated by document `08`; no ADR was required because it implements rather than changes that security contract. Publication remains blocked, M7 has not begun, and the next milestone may start only in a later task after this checkpoint is accepted.
+M7 introduced no new table and preserves the canonical Property ID and existing `media_assets`/`private_documents` models. ADR-0002 records the minimal locator/schema extension required for truthful external media. Publication remains blocked until M9, verification workflow behavior has not begun, and M8 may start only after this clean checkpoint is accepted.

@@ -81,8 +81,8 @@ export type PublicMediaRow = Readonly<{
   property_id: string;
   media_type:
     "IMAGE" | "VIDEO" | "PANORAMA_360" | "BROCHURE" | "DOCUMENT_PREVIEW" | "MAP_IMAGE" | "OTHER";
-  object_path: string;
-  mime_type: string;
+  object_path: string | null;
+  mime_type: string | null;
   width_px: number | null;
   height_px: number | null;
   duration_seconds: number | null;
@@ -90,6 +90,10 @@ export type PublicMediaRow = Readonly<{
   caption: string | null;
   is_cover: boolean;
   sort_order: number;
+  external_url: string | null;
+  external_provider: string | null;
+  external_media_id: string | null;
+  media_subtype: string | null;
 }>;
 
 export type PublicVerificationSummaryRow = Readonly<{

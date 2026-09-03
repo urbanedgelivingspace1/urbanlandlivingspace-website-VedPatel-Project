@@ -1208,23 +1208,30 @@ export type Database = {
       media_assets: {
         Row: {
           alt_text: string | null;
+          approved_at: string | null;
           archived_at: string | null;
           caption: string | null;
           checksum_sha256: string | null;
           created_at: string;
           created_by: string | null;
           duration_seconds: number | null;
+          external_media_id: string | null;
+          external_provider: string | null;
+          external_url: string | null;
           file_size_bytes: number | null;
           height_px: number | null;
           id: string;
           is_cover: boolean;
+          media_subtype: string | null;
           media_type: Database["public"]["Enums"]["media_type"];
-          mime_type: string;
-          object_path: string;
+          mime_type: string | null;
+          object_path: string | null;
+          processing_status: Database["public"]["Enums"]["media_processing_status"];
           property_id: string | null;
+          scan_status: Database["public"]["Enums"]["document_scan_status"] | null;
           sort_order: number;
           source_type: string | null;
-          storage_bucket: string;
+          storage_bucket: string | null;
           updated_at: string;
           updated_by: string | null;
           visibility: Database["public"]["Enums"]["record_visibility"];
@@ -1232,23 +1239,30 @@ export type Database = {
         };
         Insert: {
           alt_text?: string | null;
+          approved_at?: string | null;
           archived_at?: string | null;
           caption?: string | null;
           checksum_sha256?: string | null;
           created_at?: string;
           created_by?: string | null;
           duration_seconds?: number | null;
+          external_media_id?: string | null;
+          external_provider?: string | null;
+          external_url?: string | null;
           file_size_bytes?: number | null;
           height_px?: number | null;
           id?: string;
           is_cover?: boolean;
+          media_subtype?: string | null;
           media_type: Database["public"]["Enums"]["media_type"];
-          mime_type: string;
-          object_path: string;
+          mime_type?: string | null;
+          object_path?: string | null;
+          processing_status?: Database["public"]["Enums"]["media_processing_status"];
           property_id?: string | null;
+          scan_status?: Database["public"]["Enums"]["document_scan_status"] | null;
           sort_order?: number;
           source_type?: string | null;
-          storage_bucket: string;
+          storage_bucket?: string | null;
           updated_at?: string;
           updated_by?: string | null;
           visibility?: Database["public"]["Enums"]["record_visibility"];
@@ -1256,23 +1270,30 @@ export type Database = {
         };
         Update: {
           alt_text?: string | null;
+          approved_at?: string | null;
           archived_at?: string | null;
           caption?: string | null;
           checksum_sha256?: string | null;
           created_at?: string;
           created_by?: string | null;
           duration_seconds?: number | null;
+          external_media_id?: string | null;
+          external_provider?: string | null;
+          external_url?: string | null;
           file_size_bytes?: number | null;
           height_px?: number | null;
           id?: string;
           is_cover?: boolean;
+          media_subtype?: string | null;
           media_type?: Database["public"]["Enums"]["media_type"];
-          mime_type?: string;
-          object_path?: string;
+          mime_type?: string | null;
+          object_path?: string | null;
+          processing_status?: Database["public"]["Enums"]["media_processing_status"];
           property_id?: string | null;
+          scan_status?: Database["public"]["Enums"]["document_scan_status"] | null;
           sort_order?: number;
           source_type?: string | null;
-          storage_bucket?: string;
+          storage_bucket?: string | null;
           updated_at?: string;
           updated_by?: string | null;
           visibility?: Database["public"]["Enums"]["record_visibility"];
@@ -1791,9 +1812,12 @@ export type Database = {
           mime_type: string;
           notes_internal: string | null;
           object_path: string;
+          original_file_name: string | null;
           owner_submission_id: string | null;
+          page_count: number | null;
           party_id: string | null;
           property_id: string | null;
+          scan_status: Database["public"]["Enums"]["document_scan_status"];
           storage_bucket: string;
           updated_at: string;
           updated_by: string | null;
@@ -1813,9 +1837,12 @@ export type Database = {
           mime_type: string;
           notes_internal?: string | null;
           object_path: string;
+          original_file_name?: string | null;
           owner_submission_id?: string | null;
+          page_count?: number | null;
           party_id?: string | null;
           property_id?: string | null;
+          scan_status?: Database["public"]["Enums"]["document_scan_status"];
           storage_bucket: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -1835,9 +1862,12 @@ export type Database = {
           mime_type?: string;
           notes_internal?: string | null;
           object_path?: string;
+          original_file_name?: string | null;
           owner_submission_id?: string | null;
+          page_count?: number | null;
           party_id?: string | null;
           property_id?: string | null;
+          scan_status?: Database["public"]["Enums"]["document_scan_status"];
           storage_bucket?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -4445,9 +4475,13 @@ export type Database = {
           alt_text: string | null;
           caption: string | null;
           duration_seconds: number | null;
+          external_media_id: string | null;
+          external_provider: string | null;
+          external_url: string | null;
           height_px: number | null;
           id: string | null;
           is_cover: boolean | null;
+          media_subtype: string | null;
           media_type: Database["public"]["Enums"]["media_type"] | null;
           mime_type: string | null;
           object_path: string | null;
@@ -4596,12 +4630,29 @@ export type Database = {
       };
     };
     Functions: {
+      approve_property_media: {
+        Args: {
+          requested_actor_id: string;
+          requested_media_id: string;
+          requested_public_bucket?: string;
+          requested_public_path?: string;
+        };
+        Returns: string;
+      };
+      archive_private_document: {
+        Args: { requested_actor_id: string; requested_document_id: string };
+        Returns: string;
+      };
       archive_property_draft: {
         Args: {
           requested_actor_id: string;
           requested_expected_updated_at: string;
           requested_property_id: string;
         };
+        Returns: string;
+      };
+      archive_property_media: {
+        Args: { requested_actor_id: string; requested_media_id: string };
         Returns: string;
       };
       change_property_availability: {
@@ -4618,6 +4669,30 @@ export type Database = {
       next_owner_submission_reference: { Args: never; Returns: string };
       next_property_code: { Args: never; Returns: string };
       next_site_visit_reference: { Args: never; Returns: string };
+      record_private_document_access: {
+        Args: {
+          requested_actor_id: string;
+          requested_document_id: string;
+          requested_purpose: string;
+        };
+        Returns: string;
+      };
+      register_private_document: {
+        Args: { requested_actor_id: string; requested_payload: Json };
+        Returns: string;
+      };
+      register_property_media: {
+        Args: { requested_actor_id: string; requested_payload: Json };
+        Returns: string;
+      };
+      reorder_property_media: {
+        Args: {
+          requested_actor_id: string;
+          requested_media_ids: string[];
+          requested_property_id: string;
+        };
+        Returns: string;
+      };
       restore_property_draft: {
         Args: {
           requested_actor_id: string;
@@ -4626,12 +4701,33 @@ export type Database = {
         };
         Returns: string;
       };
+      restore_property_media: {
+        Args: { requested_actor_id: string; requested_media_id: string };
+        Returns: string;
+      };
       save_property_draft: {
         Args: {
           requested_actor_id?: string;
           requested_expected_updated_at?: string;
           requested_payload?: Json;
           requested_property_id?: string;
+        };
+        Returns: string;
+      };
+      set_property_cover: {
+        Args: {
+          requested_actor_id: string;
+          requested_media_id: string;
+          requested_property_id: string;
+        };
+        Returns: string;
+      };
+      update_property_media_metadata: {
+        Args: {
+          requested_actor_id: string;
+          requested_alt_text: string;
+          requested_caption: string;
+          requested_media_id: string;
         };
         Returns: string;
       };
@@ -4686,6 +4782,7 @@ export type Database = {
         | "NRI"
         | "BROKER"
         | "OTHER";
+      document_scan_status: "PENDING" | "CLEAN" | "INFECTED" | "FAILED";
       guide_status: "DRAFT" | "REVIEW" | "PUBLISHED" | "UNPUBLISHED" | "ARCHIVED";
       land_category: "AGRICULTURAL" | "NA" | "INDUSTRIAL";
       lead_activity_type:
@@ -4728,6 +4825,7 @@ export type Database = {
         | "NURTURE"
         | "CLOSED";
       location_visibility: "EXACT" | "APPROXIMATE" | "HIDDEN";
+      media_processing_status: "READY" | "APPROVED" | "FAILED";
       media_type:
         | "IMAGE"
         | "VIDEO"
@@ -4949,6 +5047,7 @@ export const Constants = {
         "BROKER",
         "OTHER",
       ],
+      document_scan_status: ["PENDING", "CLEAN", "INFECTED", "FAILED"],
       guide_status: ["DRAFT", "REVIEW", "PUBLISHED", "UNPUBLISHED", "ARCHIVED"],
       land_category: ["AGRICULTURAL", "NA", "INDUSTRIAL"],
       lead_activity_type: [
@@ -4994,6 +5093,7 @@ export const Constants = {
         "CLOSED",
       ],
       location_visibility: ["EXACT", "APPROXIMATE", "HIDDEN"],
+      media_processing_status: ["READY", "APPROVED", "FAILED"],
       media_type: [
         "IMAGE",
         "VIDEO",

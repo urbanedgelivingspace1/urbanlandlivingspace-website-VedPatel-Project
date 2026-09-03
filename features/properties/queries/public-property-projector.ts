@@ -77,9 +77,16 @@ export function projectPublicPropertyCard(row: PublicPropertyListingRow): Public
 }
 
 export function projectPublicMedia(row: PublicMediaRow): PublicMediaDto {
+  if (!row.object_path && (!row.external_url || !row.external_provider)) {
+    throw new Error("Public media projection returned no safe locator.");
+  }
   return {
     id: row.id,
+    mediaType: row.media_type,
     objectPath: row.object_path,
+    externalUrl: row.external_url,
+    externalProvider: row.external_provider,
+    mediaSubtype: row.media_subtype,
     altText: row.alt_text,
     width: row.width_px,
     height: row.height_px,

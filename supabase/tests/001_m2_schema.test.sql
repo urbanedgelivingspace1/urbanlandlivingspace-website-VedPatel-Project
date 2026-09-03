@@ -12,8 +12,8 @@ select is(
 );
 select is(
   (select count(*)::integer from pg_type t join pg_namespace n on n.oid = t.typnamespace where n.nspname = 'public' and t.typtype = 'e'),
-  24,
-  'authoritative enum inventory contains 24 enums'
+  26,
+  'authoritative enum inventory contains 24 base plus 2 M7 workflow enums'
 );
 select is(
   (select count(*)::integer from pg_enum e join pg_type t on t.oid = e.enumtypid where t.typname = 'site_visit_status' and e.enumlabel = 'FOLLOW_UP_REQUIRED'),
@@ -129,11 +129,11 @@ select lives_ok(
     values ('20000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000001', 'synthetic')$$,
   'matching typed attribute value is accepted'
 );
-insert into media_assets (property_id, media_type, storage_bucket, object_path, mime_type, visibility, is_cover)
-values ('20000000-0000-4000-8000-000000000001', 'IMAGE', 'property-media-public', 'synthetic/cover.jpg', 'image/jpeg', 'PUBLIC', true);
+insert into media_assets (property_id, media_type, storage_bucket, object_path, mime_type, width_px, height_px, checksum_sha256, visibility, processing_status, approved_at, alt_text, is_cover)
+values ('20000000-0000-4000-8000-000000000001', 'IMAGE', 'property-media-public', 'synthetic/cover.jpg', 'image/jpeg', 1600, 1000, repeat('a',64), 'PUBLIC', 'APPROVED', now(), 'Synthetic cover', true);
 select throws_ok(
-  $$insert into media_assets (property_id, media_type, storage_bucket, object_path, mime_type, visibility, is_cover)
-    values ('20000000-0000-4000-8000-000000000001', 'IMAGE', 'property-media-public', 'synthetic/cover-2.jpg', 'image/jpeg', 'PUBLIC', true)$$,
+  $$insert into media_assets (property_id, media_type, storage_bucket, object_path, mime_type, width_px, height_px, checksum_sha256, visibility, processing_status, approved_at, alt_text, is_cover)
+    values ('20000000-0000-4000-8000-000000000001', 'IMAGE', 'property-media-public', 'synthetic/cover-2.jpg', 'image/jpeg', 1600, 1000, repeat('b',64), 'PUBLIC', 'APPROVED', now(), 'Synthetic second cover', true)$$,
   '23505', null, 'property has at most one active cover asset'
 );
 select throws_ok(
@@ -145,7 +145,7 @@ insert into parties (id, party_type, display_name)
 values ('40000000-0000-4000-8000-000000000001', 'INDIVIDUAL', 'Synthetic Test Party');
 select throws_ok(
   $$insert into private_documents (party_id, document_type, storage_bucket, object_path, mime_type, visibility)
-    values ('40000000-0000-4000-8000-000000000001', 'TEST', 'private', 'synthetic/test.pdf', 'application/pdf', 'PUBLIC')$$,
+    values ('40000000-0000-4000-8000-000000000001', 'TEST', 'verification-documents-private', 'synthetic/test.pdf', 'application/pdf', 'PUBLIC')$$,
   '23514', null, 'private documents cannot be marked public'
 );
 select throws_ok(

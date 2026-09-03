@@ -27,7 +27,11 @@ export type PublicPriceDto = Readonly<{
 
 export type PublicMediaDto = Readonly<{
   id: string;
-  objectPath: string;
+  mediaType?: string;
+  objectPath: string | null;
+  externalUrl?: string | null;
+  externalProvider?: string | null;
+  mediaSubtype?: string | null;
   altText: string | null;
   width: number | null;
   height: number | null;

@@ -15,3 +15,8 @@ Minimum ADR fields:
 - approvals required.
 
 Known future ADR candidates are tracked in `docs/architecture/IMPLEMENTATION-LEDGER.md`. A candidate is not an approved decision.
+
+Accepted records:
+
+- `0001-separate-site-visit-lifecycle-from-follow-up.md`
+- `0002-hosted-and-external-media-locators.md`

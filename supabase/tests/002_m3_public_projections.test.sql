@@ -68,7 +68,7 @@ insert into public.private_documents (
 ) values (
   '32000000-0000-4000-8000-000000000001',
   '30000000-0000-4000-8000-000000000001',
-  '31000000-0000-4000-8000-000000000001', 'SYNTHETIC_TEST', 'private-documents',
+  '31000000-0000-4000-8000-000000000001', 'SYNTHETIC_TEST', 'verification-documents-private',
   'PRIVATE_DOC_PATH_CANARY', 'application/pdf', 'INTERNAL_NOTE_CANARY'
 );
 
@@ -79,18 +79,20 @@ insert into public.property_offers (
 );
 
 insert into public.media_assets (
-  id, property_id, media_type, storage_bucket, object_path, mime_type, alt_text,
-  visibility, is_cover, sort_order
+  id, property_id, media_type, storage_bucket, object_path, mime_type, width_px, height_px,
+  checksum_sha256, alt_text, visibility, processing_status, approved_at, is_cover, sort_order
 ) values
   (
     '33000000-0000-4000-8000-000000000001',
-    '30000000-0000-4000-8000-000000000001', 'IMAGE', 'property-public',
-    'synthetic-m3/public.jpg', 'image/jpeg', 'Synthetic placeholder', 'PUBLIC', true, 0
+    '30000000-0000-4000-8000-000000000001', 'IMAGE', 'property-media-public',
+    'synthetic-m3/public.jpg', 'image/jpeg', 1600, 1000, repeat('c',64), 'Synthetic placeholder',
+    'PUBLIC', 'APPROVED', now(), true, 0
   ),
   (
     '33000000-0000-4000-8000-000000000002',
-    '30000000-0000-4000-8000-000000000001', 'IMAGE', 'property-private',
-    'INTERNAL_NOTE_CANARY/private.jpg', 'image/jpeg', null, 'ADMIN_ONLY', false, 1
+    '30000000-0000-4000-8000-000000000001', 'IMAGE', 'property-media-private',
+    'INTERNAL_NOTE_CANARY/private.jpg', 'image/jpeg', 1600, 1000, repeat('d',64), null,
+    'ADMIN_ONLY', 'READY', null, false, 1
   );
 
 insert into public.verification_check_definitions (
