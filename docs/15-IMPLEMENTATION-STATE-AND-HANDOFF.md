@@ -9,13 +9,13 @@ This is the live record of what has actually happened. Update it after every mea
 | Project | UrbanEdge Land Space |
 | Repository | `/Users/vedpatel/Desktop/UrbanLand_website` |
 | Current branch | `main` |
-| Latest relevant commit | M1 completion commit `afa323e`; M2 changes await commit |
-| Working tree | DIRTY with validated M2 migrations/tests and this handoff update |
-| Current milestone | M3 — Server Data Contracts, State Machines and Public-Safe Projections |
+| Latest relevant commit | M2 completion commit `e027d6b2b1b994b93ab89477f6b3e89a1259e6f3`; validated M3 changes await commit |
+| Working tree | DIRTY with validated M3 contracts/projections/tests and this handoff update |
+| Current milestone | M4 — RLS, Grants and Authorization Data Boundary |
 | Current milestone status | IN_PROGRESS |
-| Last completed milestone | M2 — Database Schema, Migrations, Reference Data and Constraints |
-| Next milestone | M4 — RLS, Grants and Authorization Data Boundary |
-| Last updated | 2026-09-03 03:07:45 IST |
+| Last completed milestone | M3 — Server Data Contracts, State Machines and Public-Safe Projections |
+| Next milestone | M5 — Admin Authentication and Admin Shell |
+| Last updated | 2026-09-03 11:25:51 IST |
 | Last updating agent | Codex |
 
 ## 2. Source-of-Truth Documents
@@ -81,8 +81,8 @@ The design report governs Living Space brand/design reference only. It does not 
 | M0 Architecture Lock and Implementation Ledger | COMPLETE | 2026-09-03 | 2026-09-03 | Master prompt and architecture reviewed; owner-designated design report and approved logo inspected; consistency checks pass; ADR-0001 reconfirmed; Git baseline established |
 | M1 Repository Foundation, Tooling and Test Bootstrap | COMPLETE | 2026-09-03 | 2026-09-03 | Clean install, lint, formatting, strict typecheck, unit/component tests, safety guard, boundary/secret checks and webpack production build pass; public/admin route shells compile |
 | M2 Database Schema, Migrations, Reference Data and Constraints | COMPLETE | 2026-09-03 | 2026-09-03 | 49 tables, 24 enums, 3 ordered migrations, safe repeatable seed, 38 pgTAP tests, 24-way code concurrency test, two clean resets and database lint pass |
-| M3 Server Data Contracts, State Machines and Public-Safe Projections | IN_PROGRESS | 2026-09-03 | — | M2 schema-freeze prerequisite complete; public/private DTO, projection and state-machine implementation is next |
-| M4 RLS, Grants and Authorization Data Boundary | NOT_STARTED | — | — | — |
+| M3 Server Data Contracts, State Machines and Public-Safe Projections | COMPLETE | 2026-09-03 | 2026-09-03 | Seven public-safe views, separate public/admin DTOs, centralized location privacy, executable state machines, validation schemas, server-only privileged clients and canary tests pass |
+| M4 RLS, Grants and Authorization Data Boundary | IN_PROGRESS | 2026-09-03 | — | M3 contract prerequisite passes; actor-matrix RLS/grant and trusted audit boundary is next |
 | M5 Admin Authentication and Admin Shell | NOT_STARTED | — | — | — |
 | M6 Property Domain Services and Admin Property CRUD | NOT_STARTED | — | — | — |
 | M7 Media, Public Storage and Private Document Storage | NOT_STARTED | — | — | — |
@@ -101,13 +101,13 @@ The design report governs Living Space brand/design reference only. It does not 
 
 ## 4. Current Work
 
-Objective: implement M3's stable server-side DTO/query boundaries, explicit public-safe database projections, location privacy transformer, pure state machines and validation schemas.
+Objective: implement M4's deny-by-default grants, RLS policies, active-admin authorization predicate, trusted audit writer and full actor-matrix tests.
 
 Relevant sources:
 
 - owner's implementation brief;
 - embedded master prompt and finalized architecture;
-- `12-IMPLEMENTATION-ROADMAP.md`, M3;
+- `12-IMPLEMENTATION-ROADMAP.md`, M4;
 - database/backend/security contracts in documents `03`, `04` and `08`;
 - ADR-0001's unchanged eight-value `site_visit_status` contract;
 - `docs/architecture/IMPLEMENTATION-LEDGER.md`.
@@ -122,9 +122,9 @@ Files involved:
 - `docs/runbooks/README.md`
 - this handoff file.
 
-Dependencies/blockers: M2 is complete against the isolated local Supabase stack on ports `55320`–`55327`. No production database operation is authorized.
+Dependencies/blockers: M3 is complete against the isolated local Supabase stack on ports `55320`–`55327`. No production database operation is authorized.
 
-Required M3 checks: public DTO leak tests, location visibility tests, state-transition tests, validation tests, projection shape tests and privileged-client server-only enforcement.
+Required M4 checks: every-table RLS posture, actor-matrix reads/writes, guessed-ID denial, inactive/non-admin denial, direct publication/audit mutation denial and public projection regression tests.
 
 ## 5. Completed Implementation
 
@@ -134,7 +134,11 @@ Next.js 16 App Router, React 19, strict TypeScript, Tailwind 4, shadcn configura
 
 ### Database
 
-Three ordered migrations implement all 49 approved application tables, 24 enums, UUID keys, immutable sequence-backed references, foreign keys, checks, partial uniqueness, typed-value/category/audit triggers, updated timestamps and baseline indexes. `supabase/seed.sql` contains only repeatable India/Gujarat/service-district/unit/reference conversions. Applied and tested only in disposable local Supabase; never applied to production.
+Four ordered migrations implement all 49 approved application tables, 24 enums, UUID keys, immutable sequence-backed references, foreign keys, checks, partial uniqueness, typed-value/category/audit triggers, updated timestamps, baseline indexes and seven whitelisted public-safe views. `supabase/seed.sql` contains only repeatable India/Gujarat/service-district/unit/reference conversions. Applied and tested only in disposable local Supabase; never applied to production.
+
+### Server contracts
+
+Separate public/admin DTOs, typed Supabase view rows, public property/reference queries, a centralized public-location transformer, price/area helpers, seven executable state machines and shared Zod schemas for upcoming mutations are implemented. Browser, authenticated server, privileged server and test-actor Supabase helpers are separate; privileged helpers import `server-only`.
 
 ### RLS
 
@@ -234,17 +238,17 @@ docs/
     README.md                               runbook scope and production guardrails
 ```
 
-There is no `.openai/hosting.json`; no hosting/deployment is configured. The approved Living Space logo reference is present, while the old reference-app source is intentionally unavailable. Git is on `main`. The `.gitignore` excludes secrets, environment files, dependencies, generated output, local Supabase runtime and provider state. M0–M2 are complete; M3 server-contract work is the active scope.
+There is no `.openai/hosting.json`; no hosting/deployment is configured. The approved Living Space logo reference is present, while the old reference-app source is intentionally unavailable. Git is on `main`. The `.gitignore` excludes secrets, environment files, dependencies, generated output, local Supabase runtime and provider state. M0–M3 are complete; M4 authorization work is the active scope.
 
 ## 7. Database State
 
 | Item | Actual state |
 |---|---|
-| Migration files | `20260903030000_extensions_enums_utilities.sql`, `20260903030100_authoritative_schema.sql`, `20260903030200_integrity_triggers_indexes.sql` |
+| Migration files | M2's three migrations plus `20260903040000_public_safe_projections.sql` |
 | Tables created | 49 authoritative V1 application tables |
 | Enums created | 24; ADR-0001 eight-value `site_visit_status`, no `FOLLOW_UP_REQUIRED` |
 | Functions/triggers | Reference generators, immutable codes, `updated_at`, typed attributes/settings, category consistency, append-only audit |
-| Views/public projections | None; M3 scope |
+| Views/public projections | 7 security-invoker views: listings, details, public media, verification summaries, geography, area units and safe settings |
 | Indexes | Baseline publication/geography/offers/media/CRM/visit/verification/content/audit indexes |
 | Storage buckets | None |
 | RLS policies | None |
@@ -253,7 +257,7 @@ There is no `.openai/hosting.json`; no hosting/deployment is configured. The app
 | Development/staging application | Nothing applied |
 | Production | Nothing applied; no production operation authorized |
 
-The 49-table inventory, 24 enums and migration order are implemented and validated. Public-safe projection boundaries remain M3 scope.
+The 49-table inventory, 24 enums, four-migration order and seven explicit public-safe projections are implemented and validated. View grants remain closed until M4 policies are added.
 
 ## 8. RLS / Security State
 
@@ -281,11 +285,9 @@ The planned route inventory and route-specific data/authorization sources are in
 
 ## 10. Business State Machines
 
-No state machine is implemented. The architecture-defined publication, availability, lead, owner-submission, site-visit, verification and guide/content transitions are reconciled in the implementation ledger.
+Pure executable state machines now implement property publication, property availability, lead, owner-submission, site-visit, verification and guide/content transitions. Unit tests cover allowed and denied transitions; later milestone services remain responsible for authorization, locking, transactional side effects and audit.
 
-Implementation difference: none, because no implementation exists.
-
-Implemented architecture decision: ADR-0001 keeps `REQUESTED`, `CONTACTED`, `PROPOSED`, `CONFIRMED`, `COMPLETED`, `CANCELLED`, `NO_SHOW`, `RESCHEDULED` as the visit enum. `FOLLOW_UP_REQUIRED` is invalid as a visit state. Follow-up uses `leads.next_follow_up_at`, `FOLLOW_UP_SCHEDULED` lead activity and typed next-action context; the admin follow-up view is derived. No application state machine exists yet.
+ADR-0001 remains enforced in code: `REQUESTED`, `CONTACTED`, `PROPOSED`, `CONFIRMED`, `COMPLETED`, `CANCELLED`, `NO_SHOW`, `RESCHEDULED` are the visit states; `FOLLOW_UP_REQUIRED` is absent. Completed visits are terminal while CRM follow-up stays in `leads.next_follow_up_at` and activity/next-action context.
 
 ## 11. External Providers / Infrastructure
 
@@ -362,19 +364,22 @@ The environment schema and `.env.example` contain names only. Never store actual
 | `npm run check:server-boundaries` | PASS | 2026-09-03 | Dependency graph checked 2 client entries; no server-only path reachable |
 | `npm run check:secrets` | PASS | 2026-09-03 | 89 tracked/candidate files scanned; no credential-shaped value detected |
 | `npm run test:e2e -- --list` | PASS | 2026-09-03 | Two Chromium/axe foundation tests discovered; browser execution deferred |
-| Database/RLS/storage | NOT_RUN | — | Supabase/local database not configured |
+| M3 clean database rebuild | PASS | 2026-09-03 | All four migrations and repeatable safe seed applied from zero twice during M3 validation |
 | `npm run build` | PASS | 2026-09-03 | Next.js 16 webpack production build compiled `/`, `/_not-found` and `/admin` as static routes |
 | `supabase db reset` (twice) | PASS | 2026-09-03 | Recreated from zero, applied all migrations and repeated safe seed without error |
 | Database metadata inventory | PASS | 2026-09-03 | Exactly 49 public application tables and 24 public enums |
-| `supabase test db` | PASS | 2026-09-03 | 38 pgTAP checks cover identity, offers, privacy, typed values, FK/archive semantics, CRM/visits, audit and time zones |
+| `supabase test db` | PASS | 2026-09-03 | 61 total pgTAP checks: 38 M2 integrity checks plus 23 M3 view-shape, publication, privacy-marker and closed-grant assertions |
 | Property-code concurrency | PASS | 2026-09-03 | 24 parallel inserts produced 24 distinct canonical `UE-LS-######` codes and fixtures were removed |
 | `supabase db lint --level warning` | PASS | 2026-09-03 | No schema/function errors found |
+| M3 unit suite | PASS | 2026-09-03 | 6 files / 22 tests cover location privacy, DTO serialization, pricing, area conversion, state transitions, validation and safety |
+| M3 server-boundary check | PASS | 2026-09-03 | 3 client entry graphs checked; privileged/authenticated/test server modules are unreachable |
+| M3 production build | PASS | 2026-09-03 | Next.js webpack build remains clean with the typed Supabase boundary installed |
 
 ## 14. Known Issues
 
 ### Blocking
 
-None for M3.
+None for M4.
 
 ### Important
 
@@ -445,14 +450,14 @@ Do not invent production values or fabricate property/geography records to popul
 
 ## 19. Exact Next Actions
 
-1. Commit the validated M2 schema, seed, tests, CI integration and handoff evidence.
-2. Implement M3 typed public/admin DTO contracts and server-only Supabase client boundaries.
-3. Add explicit public-safe database projections and location-privacy transformation.
-4. Implement pure approved state machines and shared validation schemas.
-5. Run M3 leak, projection, transition, validation and boundary tests; mark M3 COMPLETE only when all pass.
+1. Commit the validated M3 contracts, projections, state machines, validations and handoff evidence.
+2. Enable RLS on every application table and establish deny-by-default grants.
+3. Implement the active-admin database predicate and architecture-approved admin/public policies.
+4. Implement a server-owned trusted audit writer while keeping audit history client-immutable.
+5. Run the complete anonymous/non-admin/inactive-admin/active-admin/service-role negative matrix and mark M4 COMPLETE only when every gate passes.
 
 ## 20. Resume Instructions For The Next Coding Agent
 
-> You are continuing an existing UrbanEdge Land Space implementation at M3. M0–M2 are complete. Read this file, `docs/architecture/IMPLEMENTATION-LEDGER.md`, ADR-0001, the M3 section of `12-IMPLEMENTATION-ROADMAP.md`, and documents `03`, `04` and `08`. The local database is disposable and isolated; production remains untouched. Continue with DTOs, projections, privacy, state machines and validation. Do not begin M4 until every M3 criterion passes.
+> You are continuing an existing UrbanEdge Land Space implementation at M4. M0–M3 are complete. Read this file, `docs/architecture/IMPLEMENTATION-LEDGER.md`, ADR-0001, the M4 section of `12-IMPLEMENTATION-ROADMAP.md`, and documents `03`, `04` and `08`. The local database is disposable and isolated; production remains untouched. Continue with grants, RLS, active-admin authorization, trusted audit and actor-matrix tests. Do not begin M5 until every M4 criterion passes.
 
 Special warning: owner submissions must never auto-publish, site-visit requests must never auto-confirm, and no public payload may contain owner PII, private documents/evidence/internal notes, unpublished inventory or exact coordinates for approximate/hidden listings.

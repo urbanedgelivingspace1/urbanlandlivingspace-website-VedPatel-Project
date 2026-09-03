@@ -1,4 +1,5 @@
-# Domain services
+# Server services
 
-State transitions and multi-write business operations will live here after their database and
-authorization contracts are implemented.
+Business mutations are added here only in their roadmap milestone. M3 provides executable pure
+transition definitions and validation contracts; later services must call those contracts rather
+than expose generic status CRUD.

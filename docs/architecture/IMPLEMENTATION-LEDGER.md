@@ -1,8 +1,8 @@
 # UrbanEdge Land Space V1 — Implementation Ledger
 
-**Ledger status:** M0–M2 COMPLETE; architecture is reconciled and the validated database schema is frozen for M3.
+**Ledger status:** M0–M3 COMPLETE; architecture, schema, typed server contracts and public-safe projections are reconciled and validated.
 
-**Last reconciled:** 3 September 2026 (M2: 49 tables, 24 enums, three ordered migrations, repeatable safe seed, integrity tests and concurrency validation pass)
+**Last reconciled:** 3 September 2026 (M3: separate public/admin DTOs, seven public-safe views, centralized location privacy, state machines, validations and canary leakage tests pass)
 
 This ledger is the single implementation-facing map required by `12-IMPLEMENTATION-ROADMAP.md`. It does not replace the source documents. When this ledger conflicts with a source, the source hierarchy in the owner's build brief applies.
 
@@ -652,3 +652,13 @@ No unresolved M0 blocker remains.
 | Single authoritative route/state/data map exists | PASS | Sections 3–13 |
 
 **M0 outcome: COMPLETE.** The owner-approved source limitation is documented, the design report and supplied logo satisfy the brand-reference inputs, the full architecture consistency review passes, ADR-0001 remains valid, all required schema concepts are approved or milestone-gated, and the authoritative route/state/data map is established. M1 may begin.
+
+## 18. Implementation checkpoints
+
+| Milestone | Status | Reconciled evidence |
+|---|---|---|
+| M1 | COMPLETE | Strict application/tooling foundation, safety guard, boundary/secret checks, tests and production build pass |
+| M2 | COMPLETE | 49 tables, 24 enums, ordered migrations, repeatable safe seed, 38 integrity tests and 24-way identifier concurrency test pass |
+| M3 | COMPLETE | Seven explicit public-safe views, separate public/admin DTOs, server-only privileged clients, centralized location transformer, executable state machines, validation schemas, 22 unit tests and 23 projection/canary tests pass |
+
+The schema freeze remains in force. M4 may add only the intended authorization functions, grants, RLS policies and trusted audit path unless an ADR/schema amendment approves a new persistent concept.
