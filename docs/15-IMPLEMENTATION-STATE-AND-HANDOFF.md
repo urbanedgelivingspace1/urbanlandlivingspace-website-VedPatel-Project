@@ -9,13 +9,13 @@ This is the live record of what has actually happened. Update it after every mea
 | Project | UrbanEdge Land Space |
 | Repository | `/Users/vedpatel/Desktop/UrbanLand_website` |
 | Current branch | `main` |
-| Latest relevant commit | M0 completion commit `1735db86bd6a9b32200c4ec79d6e3ef2246b9f6c`; M1 changes await commit |
-| Working tree | DIRTY with validated M1 foundation and this handoff update |
-| Current milestone | M2 — Database Schema, Migrations, Reference Data and Constraints |
+| Latest relevant commit | M1 completion commit `afa323e`; M2 changes await commit |
+| Working tree | DIRTY with validated M2 migrations/tests and this handoff update |
+| Current milestone | M3 — Server Data Contracts, State Machines and Public-Safe Projections |
 | Current milestone status | IN_PROGRESS |
-| Last completed milestone | M1 — Repository Foundation, Tooling and Test Bootstrap |
-| Next milestone | M3 — Server Data Contracts, State Machines and Public-Safe Projections |
-| Last updated | 2026-09-03 02:53:01 IST |
+| Last completed milestone | M2 — Database Schema, Migrations, Reference Data and Constraints |
+| Next milestone | M4 — RLS, Grants and Authorization Data Boundary |
+| Last updated | 2026-09-03 03:07:45 IST |
 | Last updating agent | Codex |
 
 ## 2. Source-of-Truth Documents
@@ -80,8 +80,8 @@ The design report governs Living Space brand/design reference only. It does not 
 |---|---|---|---|---|
 | M0 Architecture Lock and Implementation Ledger | COMPLETE | 2026-09-03 | 2026-09-03 | Master prompt and architecture reviewed; owner-designated design report and approved logo inspected; consistency checks pass; ADR-0001 reconfirmed; Git baseline established |
 | M1 Repository Foundation, Tooling and Test Bootstrap | COMPLETE | 2026-09-03 | 2026-09-03 | Clean install, lint, formatting, strict typecheck, unit/component tests, safety guard, boundary/secret checks and webpack production build pass; public/admin route shells compile |
-| M2 Database Schema, Migrations, Reference Data and Constraints | IN_PROGRESS | 2026-09-03 | — | M1 prerequisite complete; next work is the full migration-controlled schema and database validation suite |
-| M3 Server Data Contracts, State Machines and Public-Safe Projections | NOT_STARTED | — | — | — |
+| M2 Database Schema, Migrations, Reference Data and Constraints | COMPLETE | 2026-09-03 | 2026-09-03 | 49 tables, 24 enums, 3 ordered migrations, safe repeatable seed, 38 pgTAP tests, 24-way code concurrency test, two clean resets and database lint pass |
+| M3 Server Data Contracts, State Machines and Public-Safe Projections | IN_PROGRESS | 2026-09-03 | — | M2 schema-freeze prerequisite complete; public/private DTO, projection and state-machine implementation is next |
 | M4 RLS, Grants and Authorization Data Boundary | NOT_STARTED | — | — | — |
 | M5 Admin Authentication and Admin Shell | NOT_STARTED | — | — | — |
 | M6 Property Domain Services and Admin Property CRUD | NOT_STARTED | — | — | — |
@@ -101,15 +101,14 @@ The design report governs Living Space brand/design reference only. It does not 
 
 ## 4. Current Work
 
-Objective: implement M2's complete migration-controlled database schema, constraints, reference data and disposable-database validation without beginning M3 server contracts.
+Objective: implement M3's stable server-side DTO/query boundaries, explicit public-safe database projections, location privacy transformer, pure state machines and validation schemas.
 
 Relevant sources:
 
 - owner's implementation brief;
 - embedded master prompt and finalized architecture;
-- `12-IMPLEMENTATION-ROADMAP.md`, M2;
-- authoritative database contract `03-DATABASE-SCHEMA-ARCHITECTURE.md`;
-- related security, storage and testing requirements in documents `08`, `09` and `11`;
+- `12-IMPLEMENTATION-ROADMAP.md`, M3;
+- database/backend/security contracts in documents `03`, `04` and `08`;
 - ADR-0001's unchanged eight-value `site_visit_status` contract;
 - `docs/architecture/IMPLEMENTATION-LEDGER.md`.
 
@@ -123,9 +122,9 @@ Files involved:
 - `docs/runbooks/README.md`
 - this handoff file.
 
-Dependencies/blockers: M1 is complete. M2 requires a disposable local Supabase/PostgreSQL environment; no production database operation is authorized.
+Dependencies/blockers: M2 is complete against the isolated local Supabase stack on ports `55320`–`55327`. No production database operation is authorized.
 
-Required M2 checks: clean migration reset, all 49 tables/enums/constraints/indexes/triggers, invalid-row rejection, privacy-sensitive nullability/visibility constraints, canonical property-ID allocation and migration reproducibility.
+Required M3 checks: public DTO leak tests, location visibility tests, state-transition tests, validation tests, projection shape tests and privileged-client server-only enforcement.
 
 ## 5. Completed Implementation
 
@@ -135,7 +134,7 @@ Next.js 16 App Router, React 19, strict TypeScript, Tailwind 4, shadcn configura
 
 ### Database
 
-No application schema is implemented yet. `supabase/config.toml`, empty migration/seed source directories and guarded database-test helpers exist for M2.
+Three ordered migrations implement all 49 approved application tables, 24 enums, UUID keys, immutable sequence-backed references, foreign keys, checks, partial uniqueness, typed-value/category/audit triggers, updated timestamps and baseline indexes. `supabase/seed.sql` contains only repeatable India/Gujarat/service-district/unit/reference conversions. Applied and tested only in disposable local Supabase; never applied to production.
 
 ### RLS
 
@@ -235,32 +234,32 @@ docs/
     README.md                               runbook scope and production guardrails
 ```
 
-There is no `.openai/hosting.json`; no hosting/deployment is configured. The approved Living Space logo reference is present, while the old reference-app source is intentionally unavailable. Git is on `main`. The `.gitignore` excludes secrets, environment files, dependencies, generated output, local Supabase runtime and provider state. M1 is complete; M2 database work is the active scope.
+There is no `.openai/hosting.json`; no hosting/deployment is configured. The approved Living Space logo reference is present, while the old reference-app source is intentionally unavailable. Git is on `main`. The `.gitignore` excludes secrets, environment files, dependencies, generated output, local Supabase runtime and provider state. M0–M2 are complete; M3 server-contract work is the active scope.
 
 ## 7. Database State
 
 | Item | Actual state |
 |---|---|
-| Migration files | None |
-| Tables created | None |
-| Enums created | None |
-| Functions/triggers | None |
-| Views/public projections | None |
-| Indexes | None |
+| Migration files | `20260903030000_extensions_enums_utilities.sql`, `20260903030100_authoritative_schema.sql`, `20260903030200_integrity_triggers_indexes.sql` |
+| Tables created | 49 authoritative V1 application tables |
+| Enums created | 24; ADR-0001 eight-value `site_visit_status`, no `FOLLOW_UP_REQUIRED` |
+| Functions/triggers | Reference generators, immutable codes, `updated_at`, typed attributes/settings, category consistency, append-only audit |
+| Views/public projections | None; M3 scope |
+| Indexes | Baseline publication/geography/offers/media/CRM/visit/verification/content/audit indexes |
 | Storage buckets | None |
 | RLS policies | None |
-| Seed data | None |
-| Local database | Not configured |
+| Seed data | Safe repeatable India, Gujarat, Ahmedabad/Gandhinagar, 9 units and 5 non-local standard conversions |
+| Local database | Running isolated Supabase project `urbanedge-land-space-local` on `55320`–`55327` |
 | Development/staging application | Nothing applied |
 | Production | Nothing applied; no production operation authorized |
 
-The planned 49-table inventory, enums, migration order and projection boundaries are documented in the implementation ledger but are not implemented state.
+The 49-table inventory, 24 enums and migration order are implemented and validated. Public-safe projection boundaries remain M3 scope.
 
 ## 8. RLS / Security State
 
-Nothing is implemented or tested. The intended deny-by-default actor matrix and privacy boundaries are recorded in `docs/architecture/IMPLEMENTATION-LEDGER.md` only.
+Database integrity controls and server boundary checks are implemented and tested. RLS policies/grants are intentionally deferred to M4; the deny-by-default actor matrix and privacy boundaries remain recorded in `docs/architecture/IMPLEMENTATION-LEDGER.md`.
 
-Known current security limitation: there is no running application or database to validate. This is not a deployed exposure, but every RLS/privacy item remains `NOT TESTED`.
+Known current security limitation: the isolated local database has no RLS policies yet. This is not a deployed exposure; RLS/privacy actor-matrix enforcement remains `NOT TESTED` until M4.
 
 ## 9. Routes Implemented
 
@@ -292,7 +291,7 @@ Implemented architecture decision: ADR-0001 keeps `REQUESTED`, `CONTACTED`, `PRO
 
 | Provider/capability | State | Notes |
 |---|---|---|
-| Supabase | NOT_CONFIGURED | A new dedicated project is required; never share Living Space |
+| Supabase | LOCAL_ONLY | Isolated local project runs on `55320`–`55327`; a new dedicated remote project is still required and must never share Living Space |
 | Netlify | NOT_CONFIGURED | Free tier is architecture target; no site created |
 | Email / Resend | NOT_CONFIGURED | No key/domain/sending enabled |
 | Maps / OpenFreeMap + MapLibre | NOT_CONFIGURED | No provider or style configured |
@@ -300,7 +299,7 @@ Implemented architecture decision: ADR-0001 keeps `REQUESTED`, `CONTACTED`, `PRO
 | Cloudflare Turnstile | NOT_CONFIGURED | No widget/site key/secret |
 | Domain / Cloudflare DNS | NOT_CONFIGURED | No DNS changes performed |
 | Google Search Console | NOT_CONFIGURED | No property configured |
-| PostgreSQL search | NOT_CONFIGURED | No database exists |
+| PostgreSQL search | NOT_CONFIGURED | Database exists locally; search implementation begins at M11 |
 
 Provider terms, limits and pricing must be revalidated before activation because the architecture snapshot is dated 31 August 2026. No paid service, billing or auto-recharge has been activated.
 
@@ -365,17 +364,23 @@ The environment schema and `.env.example` contain names only. Never store actual
 | `npm run test:e2e -- --list` | PASS | 2026-09-03 | Two Chromium/axe foundation tests discovered; browser execution deferred |
 | Database/RLS/storage | NOT_RUN | — | Supabase/local database not configured |
 | `npm run build` | PASS | 2026-09-03 | Next.js 16 webpack production build compiled `/`, `/_not-found` and `/admin` as static routes |
+| `supabase db reset` (twice) | PASS | 2026-09-03 | Recreated from zero, applied all migrations and repeated safe seed without error |
+| Database metadata inventory | PASS | 2026-09-03 | Exactly 49 public application tables and 24 public enums |
+| `supabase test db` | PASS | 2026-09-03 | 38 pgTAP checks cover identity, offers, privacy, typed values, FK/archive semantics, CRM/visits, audit and time zones |
+| Property-code concurrency | PASS | 2026-09-03 | 24 parallel inserts produced 24 distinct canonical `UE-LS-######` codes and fixtures were removed |
+| `supabase db lint --level warning` | PASS | 2026-09-03 | No schema/function errors found |
 
 ## 14. Known Issues
 
 ### Blocking
 
-None for M1.
+None for M3.
 
 ### Important
 
 1. **Provider facts are dated.** Revalidate current terms/free limits before configuration or launch.
 2. **ESLint compatibility warning.** Clean install succeeds, but npm reports ESLint 9 as deprecated; Next 16's bundled lint plugins do not yet declare ESLint 10 peer compatibility. Upgrade when the dependency set supports it without overrides.
+3. **Supabase CLI update available.** Local validation used pinned CLI `2.104.0`; `2.116.0` is available. Upgrade only with a reviewed migration/reset regression run.
 
 ### Minor
 
@@ -440,14 +445,14 @@ Do not invent production values or fabricate property/geography records to popul
 
 ## 19. Exact Next Actions
 
-1. Commit the validated M1 foundation and handoff evidence.
-2. Read the complete M2 schema/migration/validation sections and map the authoritative table dependency order.
-3. Implement only M2 migrations, reference data and database validation helpers against disposable local Supabase/PostgreSQL.
-4. Reset from empty state and run the complete M2 constraint/trigger/index/privacy test suite.
-5. Update this handoff and mark M2 COMPLETE only when every documented M2 condition passes.
+1. Commit the validated M2 schema, seed, tests, CI integration and handoff evidence.
+2. Implement M3 typed public/admin DTO contracts and server-only Supabase client boundaries.
+3. Add explicit public-safe database projections and location-privacy transformation.
+4. Implement pure approved state machines and shared validation schemas.
+5. Run M3 leak, projection, transition, validation and boundary tests; mark M3 COMPLETE only when all pass.
 
 ## 20. Resume Instructions For The Next Coding Agent
 
-> You are continuing an existing UrbanEdge Land Space implementation at M2. M0 and M1 are complete. Read this file, `docs/architecture/IMPLEMENTATION-LEDGER.md`, ADR-0001, the complete M2 section of `12-IMPLEMENTATION-ROADMAP.md`, and the authoritative database/security/storage/testing contracts in documents `03`, `08`, `09` and `11`. Use only a disposable local/test database and preserve the production guard. Do not apply anything to production. Continue from the first incomplete M2 action and do not begin M3 until every M2 criterion passes.
+> You are continuing an existing UrbanEdge Land Space implementation at M3. M0–M2 are complete. Read this file, `docs/architecture/IMPLEMENTATION-LEDGER.md`, ADR-0001, the M3 section of `12-IMPLEMENTATION-ROADMAP.md`, and documents `03`, `04` and `08`. The local database is disposable and isolated; production remains untouched. Continue with DTOs, projections, privacy, state machines and validation. Do not begin M4 until every M3 criterion passes.
 
 Special warning: owner submissions must never auto-publish, site-visit requests must never auto-confirm, and no public payload may contain owner PII, private documents/evidence/internal notes, unpublished inventory or exact coordinates for approximate/hidden listings.

@@ -1,8 +1,8 @@
 # UrbanEdge Land Space V1 — Implementation Ledger
 
-**Ledger status:** M0 COMPLETE; implementation ledger, source hierarchy, consistency review, ADR-0001, approved brand reference and Git baseline are reconciled.
+**Ledger status:** M0–M2 COMPLETE; architecture is reconciled and the validated database schema is frozen for M3.
 
-**Last reconciled:** 3 September 2026 (owner designated the design report authoritative; approved logo inspected; all M0 completion conditions pass)
+**Last reconciled:** 3 September 2026 (M2: 49 tables, 24 enums, three ordered migrations, repeatable safe seed, integrity tests and concurrency validation pass)
 
 This ledger is the single implementation-facing map required by `12-IMPLEMENTATION-ROADMAP.md`. It does not replace the source documents. When this ledger conflicts with a source, the source hierarchy in the owner's build brief applies.
 
