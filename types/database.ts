@@ -140,7 +140,22 @@ type View<Row> = {
 
 export type Database = {
   public: {
-    Tables: Record<never, never>;
+    Tables: {
+      admin_profiles: {
+        Row: {
+          user_id: string;
+          display_name: string;
+          role: "SUPER_ADMIN" | "ADMIN" | "EDITOR" | "SALES" | "VERIFIER" | "CONTENT_EDITOR";
+          is_active: boolean;
+          last_seen_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+    };
     Views: {
       public_property_listings: View<PublicPropertyListingRow>;
       public_property_details: View<PublicPropertyDetailRow>;

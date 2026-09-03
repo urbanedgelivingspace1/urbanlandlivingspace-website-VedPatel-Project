@@ -9,13 +9,13 @@ This is the live record of what has actually happened. Update it after every mea
 | Project | UrbanEdge Land Space |
 | Repository | `/Users/vedpatel/Desktop/UrbanLand_website` |
 | Current branch | `main` |
-| Latest relevant commit | M3 completion commit `5acdfc6`; validated M4 changes await commit |
-| Working tree | DIRTY with validated M4 authorization migration/tests and this handoff update |
-| Current milestone | M5 — Admin Authentication and Admin Shell |
+| Latest relevant commit | M4 completion commit `2c9ad9e`; validated M5 changes await commit |
+| Working tree | DIRTY with validated M5 auth/shell/tests and this handoff update |
+| Current milestone | M6 — Property Domain Services and Admin Property CRUD |
 | Current milestone status | IN_PROGRESS |
-| Last completed milestone | M4 — RLS, Grants and Authorization Data Boundary |
-| Next milestone | M6 — Property Domain Services and Admin Property CRUD |
-| Last updated | 2026-09-03 11:35:30 IST |
+| Last completed milestone | M5 — Admin Authentication and Admin Shell |
+| Next milestone | M7 — Media, Public Storage and Private Document Storage |
+| Last updated | 2026-09-03 11:46:30 IST |
 | Last updating agent | Codex |
 
 ## 2. Source-of-Truth Documents
@@ -83,8 +83,8 @@ The design report governs Living Space brand/design reference only. It does not 
 | M2 Database Schema, Migrations, Reference Data and Constraints | COMPLETE | 2026-09-03 | 2026-09-03 | 49 tables, 24 enums, 3 ordered migrations, safe repeatable seed, 38 pgTAP tests, 24-way code concurrency test, two clean resets and database lint pass |
 | M3 Server Data Contracts, State Machines and Public-Safe Projections | COMPLETE | 2026-09-03 | 2026-09-03 | Seven public-safe views, separate public/admin DTOs, centralized location privacy, executable state machines, validation schemas, server-only privileged clients and canary tests pass |
 | M4 RLS, Grants and Authorization Data Boundary | COMPLETE | 2026-09-03 | 2026-09-03 | All 49 tables use RLS; 10 explicit public views, active-admin reads, server-privileged writes, trusted audit and 40 actor-matrix checks pass |
-| M5 Admin Authentication and Admin Shell | IN_PROGRESS | 2026-09-03 | — | M4 authorization prerequisite complete; login/session/active-admin shell is next |
-| M6 Property Domain Services and Admin Property CRUD | NOT_STARTED | — | — | — |
+| M5 Admin Authentication and Admin Shell | COMPLETE | 2026-09-03 | 2026-09-03 | Local Auth E2E, active/inactive/non-admin denial, reusable authorization, protected dashboard, logout/session clearing, mobile shell and accessibility pass |
+| M6 Property Domain Services and Admin Property CRUD | IN_PROGRESS | 2026-09-03 | — | M5 prerequisite complete; property services and admin draft CRUD are next |
 | M7 Media, Public Storage and Private Document Storage | NOT_STARTED | — | — | — |
 | M8 Verification Workflow and Verification Admin | NOT_STARTED | — | — | Evidence/professional-review persistence decisions tracked for this milestone |
 | M9 Publication Gate and Public Projection Freeze | NOT_STARTED | — | — | — |
@@ -101,13 +101,13 @@ The design report governs Living Space brand/design reference only. It does not 
 
 ## 4. Current Work
 
-Objective: implement M5 admin login/logout, server-side session validation, the reusable `requireActiveAdmin()` boundary, protected admin routes and accessible responsive admin shell.
+Objective: implement M6 controlled property draft services, shared/category-specific editing, offers/parcels/location, availability/archive transitions, audit and protected admin property routes while publication remains blocked.
 
 Relevant sources:
 
 - owner's implementation brief;
 - embedded master prompt and finalized architecture;
-- `12-IMPLEMENTATION-ROADMAP.md`, M5;
+- `12-IMPLEMENTATION-ROADMAP.md`, M6;
 - database/backend/security contracts in documents `03`, `04` and `08`;
 - ADR-0001's unchanged eight-value `site_visit_status` contract;
 - `docs/architecture/IMPLEMENTATION-LEDGER.md`.
@@ -122,9 +122,9 @@ Files involved:
 - `docs/runbooks/README.md`
 - this handoff file.
 
-Dependencies/blockers: M4 is complete against the isolated local Supabase stack on ports `55320`–`55327`. No production database operation is authorized.
+Dependencies/blockers: M5 is complete against the isolated local Supabase stack on ports `55320`–`55327`. No production database operation is authorized.
 
-Required M5 checks: unauthenticated redirect, invalid-login handling, active/inactive/non-admin authorization, sign-out, protected-route behavior, responsive shell and accessibility.
+Required M6 checks: draft CRUD for all categories/field groups, transition and archive behavior, audit, optimistic concurrency, invalid status rejection, incomplete draft support, blocked publication and anonymous mutation denial.
 
 ## 5. Completed Implementation
 
@@ -146,7 +146,7 @@ All 49 application tables have RLS. Authenticated browser identities receive dat
 
 ### Admin Authentication
 
-Not implemented.
+Supabase email/password login and logout are implemented with cookie refresh in `proxy.ts`. `requireActiveAdmin()` verifies the server session with `auth.getUser()` and matches it to an active database profile. `/admin/dashboard` is dynamically rendered, no-store, and inaccessible to anonymous, non-admin and inactive-admin actors. The responsive shell includes grouped navigation and account/session controls.
 
 ### Properties
 
@@ -276,8 +276,10 @@ Database integrity, server module boundaries, RLS, grants and privacy projection
 
 | Route | Status | Notes |
 |---|---|---|
-| `/admin` | SHELL_ONLY / TESTED | Explicit non-dashboard placeholder; authentication intentionally begins M5 |
-| Other canonical admin routes | NOT_STARTED | Implemented only after database/RLS/auth prerequisites |
+| `/admin` | REDIRECT / TESTED | Redirects into the protected dashboard boundary |
+| `/admin/login` | COMPLETE / TESTED | Generic validation/auth/authorization states; never reveals account existence |
+| `/admin/dashboard` | COMPLETE / TESTED | Active-admin-only dynamic route with responsive accessible shell |
+| Other canonical admin routes | NOT_STARTED | Implemented only in their domain milestones |
 
 The planned route inventory and route-specific data/authorization sources are in the implementation ledger.
 
@@ -376,12 +378,15 @@ The environment schema and `.env.example` contain names only. Never store actual
 | M4 actor matrix | PASS | 2026-09-03 | 40 checks cover all-table RLS, anon, non-admin, inactive admin, active admin, service role, guessed IDs, public projection and audit boundaries |
 | Aggregate database suite | PASS | 2026-09-03 | 3 files / 101 pgTAP checks pass after M4 |
 | M4 application QA | PASS | 2026-09-03 | Lint, format, strict typecheck, boundary/secret checks, 22 unit tests, component test and production build pass |
+| M5 unit/component suite | PASS | 2026-09-03 | 27 unit and 2 component tests cover authorization decisions, responsive shell/session controls and prior contracts |
+| Guarded local Auth E2E | PASS | 2026-09-03 | 7 Chromium scenarios cover active login/dashboard/logout, anonymous, non-admin, inactive admin, invalid credentials, session clearing, public-shell isolation, mobile shell and axe accessibility |
+| M5 production build | PASS | 2026-09-03 | `/admin/login` and no-store `/admin/dashboard` compile with the session-refresh proxy; secret/boundary scan remains green |
 
 ## 14. Known Issues
 
 ### Blocking
 
-None for M5.
+None for M6.
 
 ### Important
 
@@ -432,7 +437,7 @@ Future explicit approval gates (not currently requested):
 
 ## 18. Placeholder / Pre-Launch Data
 
-Three clearly labeled M1 placeholders are recorded in `docs/PRE-LAUNCH-PLACEHOLDERS.md`: the public foundation page, unauthenticated admin foundation notice and provisional text wordmark. No property imagery or inventory is shown. Every item must be replaced or explicitly approved before launch.
+The placeholder register records two open items (public foundation and provisional text wordmark) and one resolved M5 admin-foundation item. No property imagery or inventory is shown. Every open item must be replaced or explicitly approved before launch.
 
 The following real inputs remain unavailable/unconfigured:
 
@@ -452,14 +457,14 @@ Do not invent production values or fabricate property/geography records to popul
 
 ## 19. Exact Next Actions
 
-1. Commit the validated M4 grants, RLS policies, trusted audit path, actor tests and handoff evidence.
-2. Implement `/admin/login`, sign-in/sign-out and session refresh behavior.
-3. Implement one server-owned `requireActiveAdmin()` primitive and protect `/admin/...` routes.
-4. Build the responsive, accessible admin shell and explicit unauthorized/inactive states.
-5. Run M5 authentication, authorization, route, shell and accessibility tests; mark M5 COMPLETE only when every gate passes.
+1. Commit the validated M5 authentication, authorization, shell, CI and handoff evidence.
+2. Implement controlled property draft services with optimistic concurrency and audit.
+3. Implement category, geography, location, area, offer, parcel, party/source and availability/archive operations.
+4. Build protected property list/new/detail/edit admin routes while keeping publish blocked until M9.
+5. Run M6 service, integration, component and E2E tests; mark M6 COMPLETE only when every gate passes.
 
 ## 20. Resume Instructions For The Next Coding Agent
 
-> You are continuing an existing UrbanEdge Land Space implementation at M5. M0–M4 are complete. Read this file, `docs/architecture/IMPLEMENTATION-LEDGER.md`, ADR-0001, the M5 section of `12-IMPLEMENTATION-ROADMAP.md`, and documents `02`, `04`, `05` and `08`. The local database is disposable and isolated; production remains untouched. Continue with admin authentication, `requireActiveAdmin()`, route protection and the admin shell. Do not begin M6 until every M5 criterion passes.
+> You are continuing an existing UrbanEdge Land Space implementation at M6. M0–M5 are complete. Read this file, `docs/architecture/IMPLEMENTATION-LEDGER.md`, ADR-0001, the M6 section of `12-IMPLEMENTATION-ROADMAP.md`, and documents `03`, `04`, `05`, `08` and `11`. The local database is disposable and isolated; production remains untouched. Continue with property domain services and protected draft CRUD. Publication must remain blocked until M9. Do not begin M7 until every M6 criterion passes.
 
 Special warning: owner submissions must never auto-publish, site-visit requests must never auto-confirm, and no public payload may contain owner PII, private documents/evidence/internal notes, unpublished inventory or exact coordinates for approximate/hidden listings.

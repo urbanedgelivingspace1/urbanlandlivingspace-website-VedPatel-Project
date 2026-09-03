@@ -23,6 +23,7 @@
     "test:component": "vitest run tests/component",
     "test:integration": "vitest run --config vitest.integration.config.ts --passWithNoTests",
     "test:e2e": "playwright test",
+    "test:e2e:local": "node scripts/run-local-e2e.mjs",
     "test:safety": "vitest run tests/unit/environment-safety.test.ts",
     "check:server-boundaries": "node scripts/check-server-boundaries.mjs",
     "check:secrets": "node scripts/check-secrets.mjs",

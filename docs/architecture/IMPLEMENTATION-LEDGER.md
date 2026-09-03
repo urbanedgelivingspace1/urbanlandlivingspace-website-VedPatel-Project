@@ -1,8 +1,8 @@
 # UrbanEdge Land Space V1 — Implementation Ledger
 
-**Ledger status:** M0–M4 COMPLETE; architecture, schema, typed contracts, public projections and database authorization boundary are reconciled and validated.
+**Ledger status:** M0–M5 COMPLETE; architecture through the authenticated admin shell is reconciled and validated.
 
-**Last reconciled:** 3 September 2026 (M4: all 49 tables use RLS; projection-owner, active-admin, closed browser-write and trusted-audit actor matrix passes)
+**Last reconciled:** 3 September 2026 (M5: local Supabase Auth, reusable server authorization, protected routes, session clearing and responsive accessible admin shell pass E2E)
 
 This ledger is the single implementation-facing map required by `12-IMPLEMENTATION-ROADMAP.md`. It does not replace the source documents. When this ledger conflicts with a source, the source hierarchy in the owner's build brief applies.
 
@@ -661,5 +661,6 @@ No unresolved M0 blocker remains.
 | M2 | COMPLETE | 49 tables, 24 enums, ordered migrations, repeatable safe seed, 38 integrity tests and 24-way identifier concurrency test pass |
 | M3 | COMPLETE | Seven explicit public-safe views, separate public/admin DTOs, server-only privileged clients, centralized location transformer, executable state machines, validation schemas, 22 unit tests and 23 projection/canary tests pass |
 | M4 | COMPLETE | RLS enabled on all 49 tables; 10 public views use a NOLOGIN/NOBYPASSRLS projection owner; active-admin reads, server-owned writes, trusted audit and 40 actor-matrix checks pass |
+| M5 | COMPLETE | Login/logout, refresh proxy, `requireActiveAdmin()`, protected dashboard, generic denial states and responsive shell pass a seven-scenario local browser suite |
 
-The schema freeze remains in force. M5 may add authentication/session and admin-shell application code but no new persistent business concept unless an ADR/schema amendment approves it.
+The schema freeze remains in force. M6 may implement approved property services and admin CRUD but no new persistent business concept or publication bypass.
