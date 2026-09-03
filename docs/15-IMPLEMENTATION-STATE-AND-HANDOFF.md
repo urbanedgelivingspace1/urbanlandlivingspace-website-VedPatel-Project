@@ -9,13 +9,13 @@ This is the live record of what has actually happened. Update it after every mea
 | Project | UrbanEdge Land Space |
 | Repository | `/Users/vedpatel/Desktop/UrbanLand_website` |
 | Current branch | `main` |
-| Latest relevant commit | M5 completion commit `5f1827c`; this handoff record is the following `HEAD` commit |
-| Working tree | CLEAN after the handoff-state commit |
+| Latest relevant commit | Pending M6 checkpoint commit; replace this entry immediately after the implementation commit |
+| Working tree | DIRTY while final M6 reconciliation is being committed; must be CLEAN at handoff |
 | Current milestone | M6 — Property Domain Services and Admin Property CRUD |
-| Current milestone status | IN_PROGRESS |
-| Last completed milestone | M5 — Admin Authentication and Admin Shell |
+| Current milestone status | COMPLETE |
+| Last completed milestone | M6 — Property Domain Services and Admin Property CRUD |
 | Next milestone | M7 — Media, Public Storage and Private Document Storage |
-| Last updated | 2026-09-03 11:49:00 IST |
+| Last updated | 2026-09-03 16:55:00 IST |
 | Last updating agent | Codex |
 
 ## 2. Source-of-Truth Documents
@@ -84,7 +84,7 @@ The design report governs Living Space brand/design reference only. It does not 
 | M3 Server Data Contracts, State Machines and Public-Safe Projections | COMPLETE | 2026-09-03 | 2026-09-03 | Seven public-safe views, separate public/admin DTOs, centralized location privacy, executable state machines, validation schemas, server-only privileged clients and canary tests pass |
 | M4 RLS, Grants and Authorization Data Boundary | COMPLETE | 2026-09-03 | 2026-09-03 | All 49 tables use RLS; 10 explicit public views, active-admin reads, server-privileged writes, trusted audit and 40 actor-matrix checks pass |
 | M5 Admin Authentication and Admin Shell | COMPLETE | 2026-09-03 | 2026-09-03 | Local Auth E2E, active/inactive/non-admin denial, reusable authorization, protected dashboard, logout/session clearing, mobile shell and accessibility pass |
-| M6 Property Domain Services and Admin Property CRUD | IN_PROGRESS | 2026-09-03 | — | M5 prerequisite complete; property services and admin draft CRUD are next |
+| M6 Property Domain Services and Admin Property CRUD | COMPLETE | 2026-09-03 | 2026-09-03 | Transactional draft services and protected list/detail/create/edit UX pass all database, unit, integration, component, E2E, security and build checks; publication remains blocked |
 | M7 Media, Public Storage and Private Document Storage | NOT_STARTED | — | — | — |
 | M8 Verification Workflow and Verification Admin | NOT_STARTED | — | — | Evidence/professional-review persistence decisions tracked for this milestone |
 | M9 Publication Gate and Public Projection Freeze | NOT_STARTED | — | — | — |
@@ -101,7 +101,7 @@ The design report governs Living Space brand/design reference only. It does not 
 
 ## 4. Current Work
 
-Objective: implement M6 controlled property draft services, shared/category-specific editing, offers/parcels/location, availability/archive transitions, audit and protected admin property routes while publication remains blocked.
+Objective: preserve the completed M6 checkpoint. M7 has not begun. The next task may start M7 only after reading this handoff and the M7 roadmap/security/storage sources.
 
 Relevant sources:
 
@@ -112,17 +112,18 @@ Relevant sources:
 - ADR-0001's unchanged eight-value `site_visit_status` contract;
 - `docs/architecture/IMPLEMENTATION-LEDGER.md`.
 
-Files involved:
+Principal M6 files:
 
+- `supabase/migrations/20260903060000_property_draft_services.sql`
+- `server/services/property-drafts.ts`
+- `features/properties/domain/admin-property-draft.ts`
+- `components/admin/property-draft-form.tsx`
+- `app/(admin)/admin/(protected)/properties/*`
+- M6 database, unit, integration, component and E2E test files
 - `docs/architecture/IMPLEMENTATION-LEDGER.md`
-- `docs/architecture/SOURCE-MANIFEST.md`
-- `docs/REQUIREMENTS.md`
-- `docs/DECISIONS.md`
-- `docs/adr/README.md`
-- `docs/runbooks/README.md`
 - this handoff file.
 
-Dependencies/blockers: M5 is complete against the isolated local Supabase stack on ports `55320`–`55327`. No production database operation is authorized.
+Dependencies/blockers: M6 is complete against the isolated local Supabase stack on ports `55320`–`55327`. No production database operation is authorized. M7 remains NOT_STARTED.
 
 Required M6 checks: draft CRUD for all categories/field groups, transition and archive behavior, audit, optimistic concurrency, invalid status rejection, incomplete draft support, blocked publication and anonymous mutation denial.
 
@@ -134,7 +135,7 @@ Next.js 16 App Router, React 19, strict TypeScript, Tailwind 4, shadcn configura
 
 ### Database
 
-Four ordered migrations implement all 49 approved application tables, 24 enums, UUID keys, immutable sequence-backed references, foreign keys, checks, partial uniqueness, typed-value/category/audit triggers, updated timestamps, baseline indexes and seven whitelisted public-safe views. `supabase/seed.sql` contains only repeatable India/Gujarat/service-district/unit/reference conversions. Applied and tested only in disposable local Supabase; never applied to production.
+Six ordered migrations implement all 49 approved application tables, 24 enum types plus the additive `EXACT_LOCATION_ACCESS` audit value, UUID keys, immutable sequence-backed references, foreign keys, checks, partial uniqueness, typed-value/category/audit triggers, updated timestamps, public-safe views, RLS/grants and M6 draft/lifecycle transactions. `supabase/seed.sql` contains only repeatable India/Gujarat/service-district/unit/reference conversions. Applied and tested only in disposable local Supabase; never applied to production.
 
 ### Server contracts
 
@@ -142,7 +143,7 @@ Separate public/admin DTOs, typed Supabase view rows, public property/reference 
 
 ### RLS
 
-All 49 application tables have RLS. Authenticated browser identities receive database-profile-gated read access only; business writes remain server-owned. Ten explicit public views are owned by a `NOLOGIN`, `NOBYPASSRLS` projection role and granted to anonymous/authenticated actors. Anonymous direct business-table writes and all client audit mutation are denied. `write_audit_log` is the only trusted audit writer.
+All 49 application tables have RLS. Authenticated browser identities receive database-profile-gated read access only; business writes remain server-owned. Ten explicit public views are owned by a `NOLOGIN`, `NOBYPASSRLS` projection role and granted to anonymous/authenticated actors. Anonymous direct business-table writes and all client audit mutation are denied. `write_audit_log` and M6's service-role-only transactions are the trusted audit-writing paths.
 
 ### Admin Authentication
 
@@ -150,7 +151,11 @@ Supabase email/password login and logout are implemented with cookie refresh in 
 
 ### Properties
 
-Not implemented.
+M6 property administration is implemented. A narrow service-role-only database transaction creates or updates Draft properties after every calling Server Action passes `requireActiveAdmin()`. It persists the shared core, generated slug, one category-correct Agricultural/NA/Industrial extension, structured primary offer, separated private/public location, parcel and normalized source identifier, planning context, existing-party relationship and source provenance. The immutable sequence-backed Property ID is never accepted from the client and remains unchanged across edits and category changes.
+
+`/admin/properties`, `/admin/properties/new`, `/admin/properties/[id]` and `/admin/properties/[id]/edit` provide searchable/filterable inventory, draft creation/editing, status/media/verification summaries, controlled availability transitions and archive/restore. Draft validation enforces only the approved database-minimum fields; title, media and verification are not required to save. Publish is a disabled M9 placeholder and no publish action/RPC exists.
+
+Important writes use `updated_at` optimistic concurrency. Availability, archive and restore are dedicated transactions rather than arbitrary status writes. Draft save, availability, archive and restore audits are actor-attributed and omit private coordinates/notes. Exact coordinates are excluded from ordinary detail data and loaded only by the explicit protected edit route with an `EXACT_LOCATION_ACCESS` audit.
 
 ### Media
 
@@ -190,7 +195,7 @@ M1 foundation security is implemented: server environment access is marked `serv
 
 ### Testing
 
-Vitest unit/component and guarded integration foundations exist; Playwright plus axe accessibility tests are scaffolded and discovered. Nine default tests and one guarded integration smoke test pass. Full browser execution is deferred to later route/E2E milestones.
+The complete current local suite passes: 136 pgTAP assertions, the 24-worker Property ID concurrency test, 36 Vitest unit tests, 3 component tests, 6 guarded application integration tests and 13 guarded Chromium E2E scenarios. Lint, Prettier verification, strict typecheck, server-boundary scan, secret scan and the webpack production build also pass. M6 coverage includes every category draft, shared group updates, category consistency, related persistence, stale writes, invalid client status/identity fields, controlled availability, archive/restore, audit privacy, public draft exclusion, retained validation input and anonymous denial.
 
 ### Deployment Preparation
 
@@ -238,16 +243,16 @@ docs/
     README.md                               runbook scope and production guardrails
 ```
 
-There is no `.openai/hosting.json`; no hosting/deployment is configured. The approved Living Space logo reference is present, while the old reference-app source is intentionally unavailable. Git is on `main`. The `.gitignore` excludes secrets, environment files, dependencies, generated output, local Supabase runtime and provider state. M0–M3 are complete; M4 authorization work is the active scope.
+There is no `.openai/hosting.json`; no hosting/deployment is configured. The approved Living Space logo reference is present, while the old reference-app source is intentionally unavailable. Git is on `main`. The `.gitignore` excludes secrets, environment files, dependencies, generated output, local Supabase runtime and provider state. M0–M6 are complete; M7 has not begun.
 
 ## 7. Database State
 
 | Item | Actual state |
 |---|---|
-| Migration files | M2's three migrations plus `20260903040000_public_safe_projections.sql` |
+| Migration files | Six ordered migrations through `20260903060000_property_draft_services.sql` |
 | Tables created | 49 authoritative V1 application tables |
-| Enums created | 24; ADR-0001 eight-value `site_visit_status`, no `FOLLOW_UP_REQUIRED` |
-| Functions/triggers | Reference generators, immutable codes, `updated_at`, typed attributes/settings, category consistency, append-only audit |
+| Enums created | 24 enum types; ADR-0001 eight-value `site_visit_status`, no `FOLLOW_UP_REQUIRED`; audit action extended with `EXACT_LOCATION_ACCESS` |
+| Functions/triggers | Reference generators, immutable codes, `updated_at`, typed attributes/settings, category consistency, append-only audit, atomic draft save, controlled availability and archive/restore |
 | Views/public projections | 10 whitelisted views: property listing/detail/media/verifications, geography, area units, settings, guide categories/guides and SEO pages |
 | Indexes | Baseline publication/geography/offers/media/CRM/visit/verification/content/audit indexes |
 | Storage buckets | None |
@@ -257,11 +262,11 @@ There is no `.openai/hosting.json`; no hosting/deployment is configured. The app
 | Development/staging application | Nothing applied |
 | Production | Nothing applied; no production operation authorized |
 
-The 49-table inventory, 24 enums, four-migration order and seven explicit public-safe projections are implemented and validated. View grants remain closed until M4 policies are added.
+The 49-table inventory, 24 enum types, six-migration order, ten explicit public-safe projections, RLS grants and M6 service transactions are implemented and validated locally.
 
 ## 8. RLS / Security State
 
-Database integrity, server module boundaries, RLS, grants and privacy projections are implemented and tested locally. Browser roles cannot write business tables. An active admin browser can read protected rows only when `auth.uid()` matches an active database profile; non-admin and inactive identities see none. Trusted server services retain privileged writes and audit RPC access.
+Database integrity, server module boundaries, RLS, grants and privacy projections are implemented and tested locally. Browser roles cannot write business tables or execute M6 mutation RPCs. Every property Server Action reauthorizes with `requireActiveAdmin()` before a privileged transaction. An active admin browser can read protected rows only when `auth.uid()` matches an active database profile; non-admin and inactive identities see none. Exact coordinates remain outside public projections and ordinary admin detail payloads; explicit edit access is audited.
 
 ## 9. Routes Implemented
 
@@ -279,6 +284,10 @@ Database integrity, server module boundaries, RLS, grants and privacy projection
 | `/admin` | REDIRECT / TESTED | Redirects into the protected dashboard boundary |
 | `/admin/login` | COMPLETE / TESTED | Generic validation/auth/authorization states; never reveals account existence |
 | `/admin/dashboard` | COMPLETE / TESTED | Active-admin-only dynamic route with responsive accessible shell |
+| `/admin/properties` | COMPLETE / TESTED | Protected searchable/filterable inventory with operational summaries |
+| `/admin/properties/new` | COMPLETE / TESTED | Three-category draft creation and retained validation state |
+| `/admin/properties/[id]` | COMPLETE / TESTED | Protected detail, M9 publication placeholder and controlled state actions |
+| `/admin/properties/[id]/edit` | COMPLETE / TESTED | Shared/category-specific edit with optimistic concurrency and audited exact-location access |
 | Other canonical admin routes | NOT_STARTED | Implemented only in their domain milestones |
 
 The planned route inventory and route-specific data/authorization sources are in the implementation ledger.
@@ -381,12 +390,18 @@ The environment schema and `.env.example` contain names only. Never store actual
 | M5 unit/component suite | PASS | 2026-09-03 | 27 unit and 2 component tests cover authorization decisions, responsive shell/session controls and prior contracts |
 | Guarded local Auth E2E | PASS | 2026-09-03 | 7 Chromium scenarios cover active login/dashboard/logout, anonymous, non-admin, inactive admin, invalid credentials, session clearing, public-shell isolation, mobile shell and axe accessibility |
 | M5 production build | PASS | 2026-09-03 | `/admin/login` and no-store `/admin/dashboard` compile with the session-refresh proxy; secret/boundary scan remains green |
+| M6 clean database rebuild | PASS | 2026-09-03 | All six migrations and repeatable safe seed apply from zero in isolated local Supabase |
+| M6 database/RLS suite | PASS | 2026-09-03 | 4 files / 136 pgTAP assertions cover prior schema/projections/RLS plus category drafts, related persistence, audit privacy, stale writes, controlled status and public exclusion |
+| M6 guarded integration suite | PASS | 2026-09-03 | 2 files / 6 tests create Agricultural, NA and Industrial drafts through the application adapter and verify edit/conflict/audit behavior |
+| M6 unit/component suite | PASS | 2026-09-03 | 36 unit and 3 component tests cover prior contracts plus draft/category/offer/slug/publication-blocker validation and the stable admin form sections |
+| Complete guarded local E2E | PASS | 2026-09-03 | 13 Chromium scenarios cover all prior auth/accessibility behavior plus three category drafts, edit, retained validation input, blocked publication and anonymous denial |
+| M6 production build | PASS | 2026-09-03 | Next.js 16 webpack build compiles all four dynamic property-admin routes; strict typecheck succeeds |
 
 ## 14. Known Issues
 
 ### Blocking
 
-None for M6.
+None. M6 completion criteria pass; M7 has not begun.
 
 ### Important
 
@@ -409,6 +424,8 @@ None for M6.
 | ADR | Decision | Reason | Affected Areas |
 |---|---|---|---|
 | `ADR-0001` | Keep site-visit lifecycle separate from CRM follow-up; do not add `FOLLOW_UP_REQUIRED` to `site_visit_status` | A completed visit can simultaneously require follow-up; visit outcome and operational work are independent | Database enum, visit service, CRM follow-up, admin derived views, tests |
+
+No M6 ADR was required. Adding `EXACT_LOCATION_ACCESS` to the existing audit enum directly implements document `08`'s recommended explicit event for protected exact-coordinate reads; it does not change a business/domain decision. M6 also adopts the documented narrow-RPC option so related draft writes, stale-token checking and their audit record commit atomically while browser roles retain no write/execute grant.
 
 The non-ADR M0 reconciliation decisions are recorded in `docs/DECISIONS.md`: later finalized documents refine master examples where the master describes them as recommendations/high-level guidance; the owner-designated design report is the authoritative Living Space brand/design reference; the approved Living Space logo is a reference asset rather than an automatically relabeled Land Space logo; missing photography may use only clearly marked development placeholders tracked for replacement.
 
@@ -457,14 +474,12 @@ Do not invent production values or fabricate property/geography records to popul
 
 ## 19. Exact Next Actions
 
-1. Commit the validated M5 authentication, authorization, shell, CI and handoff evidence.
-2. Implement controlled property draft services with optimistic concurrency and audit.
-3. Implement category, geography, location, area, offer, parcel, party/source and availability/archive operations.
-4. Build protected property list/new/detail/edit admin routes while keeping publish blocked until M9.
-5. Run M6 service, integration, component and E2E tests; mark M6 COMPLETE only when every gate passes.
+1. Preserve the clean M6 checkpoint and do not reopen publication in M7.
+2. Before M7, read the M7 roadmap section plus documents `08` and `09` in full for storage/private-document gates.
+3. Start M7 only in a subsequent task; no M7 storage bucket, media action or document behavior has been implemented here.
 
 ## 20. Resume Instructions For The Next Coding Agent
 
-> You are continuing an existing UrbanEdge Land Space implementation at M6. M0–M5 are complete. Read this file, `docs/architecture/IMPLEMENTATION-LEDGER.md`, ADR-0001, the M6 section of `12-IMPLEMENTATION-ROADMAP.md`, and documents `03`, `04`, `05`, `08` and `11`. The local database is disposable and isolated; production remains untouched. Continue with property domain services and protected draft CRUD. Publication must remain blocked until M9. Do not begin M7 until every M6 criterion passes.
+> You are continuing an existing UrbanEdge Land Space implementation after M6. M0–M6 are complete and M7 has not begun. Read this file, `docs/architecture/IMPLEMENTATION-LEDGER.md`, ADR-0001, the M7 section of `12-IMPLEMENTATION-ROADMAP.md`, and documents `08`, `09`, `11` and `13` before any M7 work. The local database is disposable and isolated; production remains untouched. Preserve the service-role-only property write boundary and keep publication blocked until M9.
 
 Special warning: owner submissions must never auto-publish, site-visit requests must never auto-confirm, and no public payload may contain owner PII, private documents/evidence/internal notes, unpublished inventory or exact coordinates for approximate/hidden listings.

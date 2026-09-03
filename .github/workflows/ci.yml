@@ -106,5 +106,8 @@ jobs:
           supabase start
           npm run db:reset
 
-      - name: Guarded admin authentication E2E
+      - name: Guarded application integration tests
+        run: npm run test:integration:local
+
+      - name: Guarded admin authentication and property CRUD E2E
         run: npm run test:e2e:local

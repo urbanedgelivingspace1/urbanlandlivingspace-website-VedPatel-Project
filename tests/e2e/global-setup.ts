@@ -63,7 +63,18 @@ export default async function globalSetup() {
   process.env.E2E_ADMIN_PASSWORD = password;
 
   return async () => {
-    await client.from("admin_profiles").delete().in("user_id", createdUserIds);
-    await Promise.all(createdUserIds.map((id) => client.auth.admin.deleteUser(id)));
+    // Append-only M6 audit rows intentionally retain their actor FK. Clean actors
+    // that produced no audit history; the guarded local suite is followed by a
+    // database reset, which removes the remaining synthetic actor with its audit.
+    const { data: auditActors } = await client
+      .from("audit_logs")
+      .select("actor_admin_id")
+      .in("actor_admin_id", createdUserIds);
+    const retained = new Set((auditActors ?? []).map((row) => row.actor_admin_id));
+    const removable = createdUserIds.filter((id) => !retained.has(id));
+    if (removable.length > 0) {
+      await client.from("admin_profiles").delete().in("user_id", removable);
+      await Promise.all(removable.map((id) => client.auth.admin.deleteUser(id)));
+    }
   };
 }

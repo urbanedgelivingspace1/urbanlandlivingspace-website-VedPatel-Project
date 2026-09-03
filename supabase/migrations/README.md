@@ -1,3 +1,6 @@
 # Migrations
 
-M2 will add ordered, forward-only PostgreSQL migrations here. No schema exists during M1.
+Ordered, forward-only local migrations currently cover M2–M6: authoritative schema,
+integrity/indexes, public projections, RLS/grants/authorization and transactional
+property-draft services. They have been exercised only against the isolated local
+Supabase project; no production migration is authorized or recorded.

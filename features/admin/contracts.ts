@@ -17,6 +17,30 @@ export type AdminPropertyDetailDto = Readonly<{
   internalNotes: readonly string[];
 }>;
 
+export type AdminPropertyListItemDto = Readonly<{
+  id: string;
+  propertyCode: string;
+  title: string | null;
+  category: LandCategory;
+  transactionType: TransactionType;
+  districtName: string;
+  areaValue: number;
+  areaUnit: string;
+  priceMode: "PRICE_ON_REQUEST" | "EXACT_TOTAL" | "PRICE_RANGE" | "PER_UNIT";
+  priceAmount: number | null;
+  availabilityStatus: AvailabilityStatus;
+  publicationStatus: "DRAFT" | "UNDER_REVIEW" | "PUBLISHED" | "UNPUBLISHED" | "ARCHIVED";
+  verificationCount: number;
+  mediaCount: number;
+  updatedAt: string;
+}>;
+
+export type AdminPropertyReferenceData = Readonly<{
+  districts: readonly Readonly<{ id: string; name: string }>[];
+  areaUnits: readonly Readonly<{ id: string; code: string; name: string; symbol: string | null }>[];
+  parties: readonly Readonly<{ id: string; displayName: string; partyType: string }>[];
+}>;
+
 export type AdminLeadDto = Readonly<{
   id: string;
   leadReference: string;

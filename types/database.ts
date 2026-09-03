@@ -19,6 +19,7 @@ export type AuditAction =
   | "LOGOUT"
   | "EXPORT"
   | "DOCUMENT_ACCESS"
+  | "EXACT_LOCATION_ACCESS"
   | "VERIFICATION_CHANGE"
   | "STATUS_CHANGE";
 

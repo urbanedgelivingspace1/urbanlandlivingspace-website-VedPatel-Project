@@ -1,8 +1,8 @@
 # UrbanEdge Land Space V1 — Implementation Ledger
 
-**Ledger status:** M0–M5 COMPLETE; architecture through the authenticated admin shell is reconciled and validated.
+**Ledger status:** M0–M6 COMPLETE; controlled property drafts and protected admin property CRUD are reconciled and validated.
 
-**Last reconciled:** 3 September 2026 (M5: local Supabase Auth, reusable server authorization, protected routes, session clearing and responsive accessible admin shell pass E2E)
+**Last reconciled:** 3 September 2026 (M6: transactional three-category draft persistence, protected CRUD UX, optimistic concurrency, audit, archive/restore and availability controls pass the complete local regression suite)
 
 This ledger is the single implementation-facing map required by `12-IMPLEMENTATION-ROADMAP.md`. It does not replace the source documents. When this ledger conflicts with a source, the source hierarchy in the owner's build brief applies.
 
@@ -235,7 +235,7 @@ Canonical public property identity is a sequence-backed, immutable, never-reused
 | `attribute_value_type` | `TEXT`, `LONG_TEXT`, `INTEGER`, `DECIMAL`, `BOOLEAN`, `DATE`, `TIMESTAMP`, `SINGLE_OPTION`, `MULTI_OPTION` |
 | `seo_page_status` | `DRAFT`, `REVIEW`, `PUBLISHED`, `NOINDEX`, `ARCHIVED` |
 | `setting_value_type` | `TEXT`, `INTEGER`, `DECIMAL`, `BOOLEAN`, `URL`, `JSON` |
-| `audit_action` | `CREATE`, `UPDATE`, `PUBLISH`, `UNPUBLISH`, `ARCHIVE`, `RESTORE`, `DELETE`, `LOGIN`, `LOGOUT`, `EXPORT`, `DOCUMENT_ACCESS`, `VERIFICATION_CHANGE`, `STATUS_CHANGE` |
+| `audit_action` | `CREATE`, `UPDATE`, `PUBLISH`, `UNPUBLISH`, `ARCHIVE`, `RESTORE`, `DELETE`, `LOGIN`, `LOGOUT`, `EXPORT`, `DOCUMENT_ACCESS`, `EXACT_LOCATION_ACCESS`, `VERIFICATION_CHANGE`, `STATUS_CHANGE`; the M6 addition is the explicit audit event recommended by document `08` for private-coordinate access |
 
 Additional controlled values:
 
@@ -662,5 +662,6 @@ No unresolved M0 blocker remains.
 | M3 | COMPLETE | Seven explicit public-safe views, separate public/admin DTOs, server-only privileged clients, centralized location transformer, executable state machines, validation schemas, 22 unit tests and 23 projection/canary tests pass |
 | M4 | COMPLETE | RLS enabled on all 49 tables; 10 public views use a NOLOGIN/NOBYPASSRLS projection owner; active-admin reads, server-owned writes, trusted audit and 40 actor-matrix checks pass |
 | M5 | COMPLETE | Login/logout, refresh proxy, `requireActiveAdmin()`, protected dashboard, generic denial states and responsive shell pass a seven-scenario local browser suite |
+| M6 | COMPLETE | Service-role-only transactional draft RPCs, three-category extension consistency, offers/parcels/location/planning/party/source persistence, protected list/detail/create/edit routes, stale-write protection, controlled availability, archive/restore, public-projection exclusion and sensitive audit behavior pass 136 pgTAP, 36 unit, 3 component, 6 integration and 13 E2E assertions/scenarios |
 
-The schema freeze remains in force. M6 may implement approved property services and admin CRUD but no new persistent business concept or publication bypass.
+M6 introduced no duplicate business field or new table. The only schema catalogue extension is `EXACT_LOCATION_ACCESS`, explicitly contemplated by document `08`; no ADR was required because it implements rather than changes that security contract. Publication remains blocked, M7 has not begun, and the next milestone may start only in a later task after this checkpoint is accepted.

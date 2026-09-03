@@ -24,7 +24,7 @@ export async function signInAdmin(formData: FormData): Promise<never> {
   try {
     await requireActiveAdmin();
   } catch (authorizationError) {
-    await client.auth.signOut();
+    await client.auth.signOut({ scope: "local" });
     const reason =
       authorizationError instanceof AdminAuthorizationError
         ? authorizationError.reason.toLowerCase()
@@ -37,6 +37,6 @@ export async function signInAdmin(formData: FormData): Promise<never> {
 
 export async function signOutAdmin(): Promise<never> {
   const client = await createAuthenticatedServerClient();
-  await client.auth.signOut();
+  await client.auth.signOut({ scope: "local" });
   redirect("/admin/login?reason=signed_out");
 }
