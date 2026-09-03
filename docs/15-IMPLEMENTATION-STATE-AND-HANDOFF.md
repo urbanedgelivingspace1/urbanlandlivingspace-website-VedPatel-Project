@@ -9,13 +9,13 @@ This is the live record of what has actually happened. Update it after every mea
 | Project | UrbanEdge Land Space |
 | Repository | `/Users/vedpatel/Desktop/UrbanLand_website` |
 | Current branch | `main` |
-| Latest relevant commit | Pending M6 checkpoint commit; replace this entry immediately after the implementation commit |
-| Working tree | DIRTY while final M6 reconciliation is being committed; must be CLEAN at handoff |
+| Latest relevant commit | M6 completion commit `75cb00728810c6a20374cc7805bbaf917273d717`; this handoff record is the following `HEAD` commit |
+| Working tree | CLEAN after the handoff-state commit |
 | Current milestone | M6 — Property Domain Services and Admin Property CRUD |
 | Current milestone status | COMPLETE |
 | Last completed milestone | M6 — Property Domain Services and Admin Property CRUD |
 | Next milestone | M7 — Media, Public Storage and Private Document Storage |
-| Last updated | 2026-09-03 16:55:00 IST |
+| Last updated | 2026-09-03 17:03:00 IST |
 | Last updating agent | Codex |
 
 ## 2. Source-of-Truth Documents
