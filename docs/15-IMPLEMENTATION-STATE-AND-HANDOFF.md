@@ -9,13 +9,13 @@ This is the live record of what has actually happened. Update it after every mea
 | Project | UrbanEdge Land Space |
 | Repository | `/Users/vedpatel/Desktop/UrbanLand_website` |
 | Current branch | `main` |
-| Latest relevant commit | M2 completion commit `e027d6b2b1b994b93ab89477f6b3e89a1259e6f3`; validated M3 changes await commit |
-| Working tree | DIRTY with validated M3 contracts/projections/tests and this handoff update |
-| Current milestone | M4 — RLS, Grants and Authorization Data Boundary |
+| Latest relevant commit | M3 completion commit `5acdfc6`; validated M4 changes await commit |
+| Working tree | DIRTY with validated M4 authorization migration/tests and this handoff update |
+| Current milestone | M5 — Admin Authentication and Admin Shell |
 | Current milestone status | IN_PROGRESS |
-| Last completed milestone | M3 — Server Data Contracts, State Machines and Public-Safe Projections |
-| Next milestone | M5 — Admin Authentication and Admin Shell |
-| Last updated | 2026-09-03 11:25:51 IST |
+| Last completed milestone | M4 — RLS, Grants and Authorization Data Boundary |
+| Next milestone | M6 — Property Domain Services and Admin Property CRUD |
+| Last updated | 2026-09-03 11:35:30 IST |
 | Last updating agent | Codex |
 
 ## 2. Source-of-Truth Documents
@@ -82,8 +82,8 @@ The design report governs Living Space brand/design reference only. It does not 
 | M1 Repository Foundation, Tooling and Test Bootstrap | COMPLETE | 2026-09-03 | 2026-09-03 | Clean install, lint, formatting, strict typecheck, unit/component tests, safety guard, boundary/secret checks and webpack production build pass; public/admin route shells compile |
 | M2 Database Schema, Migrations, Reference Data and Constraints | COMPLETE | 2026-09-03 | 2026-09-03 | 49 tables, 24 enums, 3 ordered migrations, safe repeatable seed, 38 pgTAP tests, 24-way code concurrency test, two clean resets and database lint pass |
 | M3 Server Data Contracts, State Machines and Public-Safe Projections | COMPLETE | 2026-09-03 | 2026-09-03 | Seven public-safe views, separate public/admin DTOs, centralized location privacy, executable state machines, validation schemas, server-only privileged clients and canary tests pass |
-| M4 RLS, Grants and Authorization Data Boundary | IN_PROGRESS | 2026-09-03 | — | M3 contract prerequisite passes; actor-matrix RLS/grant and trusted audit boundary is next |
-| M5 Admin Authentication and Admin Shell | NOT_STARTED | — | — | — |
+| M4 RLS, Grants and Authorization Data Boundary | COMPLETE | 2026-09-03 | 2026-09-03 | All 49 tables use RLS; 10 explicit public views, active-admin reads, server-privileged writes, trusted audit and 40 actor-matrix checks pass |
+| M5 Admin Authentication and Admin Shell | IN_PROGRESS | 2026-09-03 | — | M4 authorization prerequisite complete; login/session/active-admin shell is next |
 | M6 Property Domain Services and Admin Property CRUD | NOT_STARTED | — | — | — |
 | M7 Media, Public Storage and Private Document Storage | NOT_STARTED | — | — | — |
 | M8 Verification Workflow and Verification Admin | NOT_STARTED | — | — | Evidence/professional-review persistence decisions tracked for this milestone |
@@ -101,13 +101,13 @@ The design report governs Living Space brand/design reference only. It does not 
 
 ## 4. Current Work
 
-Objective: implement M4's deny-by-default grants, RLS policies, active-admin authorization predicate, trusted audit writer and full actor-matrix tests.
+Objective: implement M5 admin login/logout, server-side session validation, the reusable `requireActiveAdmin()` boundary, protected admin routes and accessible responsive admin shell.
 
 Relevant sources:
 
 - owner's implementation brief;
 - embedded master prompt and finalized architecture;
-- `12-IMPLEMENTATION-ROADMAP.md`, M4;
+- `12-IMPLEMENTATION-ROADMAP.md`, M5;
 - database/backend/security contracts in documents `03`, `04` and `08`;
 - ADR-0001's unchanged eight-value `site_visit_status` contract;
 - `docs/architecture/IMPLEMENTATION-LEDGER.md`.
@@ -122,9 +122,9 @@ Files involved:
 - `docs/runbooks/README.md`
 - this handoff file.
 
-Dependencies/blockers: M3 is complete against the isolated local Supabase stack on ports `55320`–`55327`. No production database operation is authorized.
+Dependencies/blockers: M4 is complete against the isolated local Supabase stack on ports `55320`–`55327`. No production database operation is authorized.
 
-Required M4 checks: every-table RLS posture, actor-matrix reads/writes, guessed-ID denial, inactive/non-admin denial, direct publication/audit mutation denial and public projection regression tests.
+Required M5 checks: unauthenticated redirect, invalid-login handling, active/inactive/non-admin authorization, sign-out, protected-route behavior, responsive shell and accessibility.
 
 ## 5. Completed Implementation
 
@@ -142,7 +142,7 @@ Separate public/admin DTOs, typed Supabase view rows, public property/reference 
 
 ### RLS
 
-Not implemented.
+All 49 application tables have RLS. Authenticated browser identities receive database-profile-gated read access only; business writes remain server-owned. Ten explicit public views are owned by a `NOLOGIN`, `NOBYPASSRLS` projection role and granted to anonymous/authenticated actors. Anonymous direct business-table writes and all client audit mutation are denied. `write_audit_log` is the only trusted audit writer.
 
 ### Admin Authentication
 
@@ -248,10 +248,10 @@ There is no `.openai/hosting.json`; no hosting/deployment is configured. The app
 | Tables created | 49 authoritative V1 application tables |
 | Enums created | 24; ADR-0001 eight-value `site_visit_status`, no `FOLLOW_UP_REQUIRED` |
 | Functions/triggers | Reference generators, immutable codes, `updated_at`, typed attributes/settings, category consistency, append-only audit |
-| Views/public projections | 7 security-invoker views: listings, details, public media, verification summaries, geography, area units and safe settings |
+| Views/public projections | 10 whitelisted views: property listing/detail/media/verifications, geography, area units, settings, guide categories/guides and SEO pages |
 | Indexes | Baseline publication/geography/offers/media/CRM/visit/verification/content/audit indexes |
 | Storage buckets | None |
-| RLS policies | None |
+| RLS policies | Enabled on all 49 tables; active-admin read policy on each plus narrowly scoped projection-owner policies |
 | Seed data | Safe repeatable India, Gujarat, Ahmedabad/Gandhinagar, 9 units and 5 non-local standard conversions |
 | Local database | Running isolated Supabase project `urbanedge-land-space-local` on `55320`–`55327` |
 | Development/staging application | Nothing applied |
@@ -261,9 +261,7 @@ The 49-table inventory, 24 enums, four-migration order and seven explicit public
 
 ## 8. RLS / Security State
 
-Database integrity controls and server boundary checks are implemented and tested. RLS policies/grants are intentionally deferred to M4; the deny-by-default actor matrix and privacy boundaries remain recorded in `docs/architecture/IMPLEMENTATION-LEDGER.md`.
-
-Known current security limitation: the isolated local database has no RLS policies yet. This is not a deployed exposure; RLS/privacy actor-matrix enforcement remains `NOT TESTED` until M4.
+Database integrity, server module boundaries, RLS, grants and privacy projections are implemented and tested locally. Browser roles cannot write business tables. An active admin browser can read protected rows only when `auth.uid()` matches an active database profile; non-admin and inactive identities see none. Trusted server services retain privileged writes and audit RPC access.
 
 ## 9. Routes Implemented
 
@@ -374,12 +372,16 @@ The environment schema and `.env.example` contain names only. Never store actual
 | M3 unit suite | PASS | 2026-09-03 | 6 files / 22 tests cover location privacy, DTO serialization, pricing, area conversion, state transitions, validation and safety |
 | M3 server-boundary check | PASS | 2026-09-03 | 3 client entry graphs checked; privileged/authenticated/test server modules are unreachable |
 | M3 production build | PASS | 2026-09-03 | Next.js webpack build remains clean with the typed Supabase boundary installed |
+| M4 clean database rebuild | PASS | 2026-09-03 | Fifth migration applies all grants, functions, view ownership and RLS policies from zero |
+| M4 actor matrix | PASS | 2026-09-03 | 40 checks cover all-table RLS, anon, non-admin, inactive admin, active admin, service role, guessed IDs, public projection and audit boundaries |
+| Aggregate database suite | PASS | 2026-09-03 | 3 files / 101 pgTAP checks pass after M4 |
+| M4 application QA | PASS | 2026-09-03 | Lint, format, strict typecheck, boundary/secret checks, 22 unit tests, component test and production build pass |
 
 ## 14. Known Issues
 
 ### Blocking
 
-None for M4.
+None for M5.
 
 ### Important
 
@@ -450,14 +452,14 @@ Do not invent production values or fabricate property/geography records to popul
 
 ## 19. Exact Next Actions
 
-1. Commit the validated M3 contracts, projections, state machines, validations and handoff evidence.
-2. Enable RLS on every application table and establish deny-by-default grants.
-3. Implement the active-admin database predicate and architecture-approved admin/public policies.
-4. Implement a server-owned trusted audit writer while keeping audit history client-immutable.
-5. Run the complete anonymous/non-admin/inactive-admin/active-admin/service-role negative matrix and mark M4 COMPLETE only when every gate passes.
+1. Commit the validated M4 grants, RLS policies, trusted audit path, actor tests and handoff evidence.
+2. Implement `/admin/login`, sign-in/sign-out and session refresh behavior.
+3. Implement one server-owned `requireActiveAdmin()` primitive and protect `/admin/...` routes.
+4. Build the responsive, accessible admin shell and explicit unauthorized/inactive states.
+5. Run M5 authentication, authorization, route, shell and accessibility tests; mark M5 COMPLETE only when every gate passes.
 
 ## 20. Resume Instructions For The Next Coding Agent
 
-> You are continuing an existing UrbanEdge Land Space implementation at M4. M0–M3 are complete. Read this file, `docs/architecture/IMPLEMENTATION-LEDGER.md`, ADR-0001, the M4 section of `12-IMPLEMENTATION-ROADMAP.md`, and documents `03`, `04` and `08`. The local database is disposable and isolated; production remains untouched. Continue with grants, RLS, active-admin authorization, trusted audit and actor-matrix tests. Do not begin M5 until every M4 criterion passes.
+> You are continuing an existing UrbanEdge Land Space implementation at M5. M0–M4 are complete. Read this file, `docs/architecture/IMPLEMENTATION-LEDGER.md`, ADR-0001, the M5 section of `12-IMPLEMENTATION-ROADMAP.md`, and documents `02`, `04`, `05` and `08`. The local database is disposable and isolated; production remains untouched. Continue with admin authentication, `requireActiveAdmin()`, route protection and the admin shell. Do not begin M6 until every M5 criterion passes.
 
 Special warning: owner submissions must never auto-publish, site-visit requests must never auto-confirm, and no public payload may contain owner PII, private documents/evidence/internal notes, unpublished inventory or exact coordinates for approximate/hidden listings.

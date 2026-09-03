@@ -1,8 +1,8 @@
 # UrbanEdge Land Space V1 — Implementation Ledger
 
-**Ledger status:** M0–M3 COMPLETE; architecture, schema, typed server contracts and public-safe projections are reconciled and validated.
+**Ledger status:** M0–M4 COMPLETE; architecture, schema, typed contracts, public projections and database authorization boundary are reconciled and validated.
 
-**Last reconciled:** 3 September 2026 (M3: separate public/admin DTOs, seven public-safe views, centralized location privacy, state machines, validations and canary leakage tests pass)
+**Last reconciled:** 3 September 2026 (M4: all 49 tables use RLS; projection-owner, active-admin, closed browser-write and trusted-audit actor matrix passes)
 
 This ledger is the single implementation-facing map required by `12-IMPLEMENTATION-ROADMAP.md`. It does not replace the source documents. When this ledger conflicts with a source, the source hierarchy in the owner's build brief applies.
 
@@ -660,5 +660,6 @@ No unresolved M0 blocker remains.
 | M1 | COMPLETE | Strict application/tooling foundation, safety guard, boundary/secret checks, tests and production build pass |
 | M2 | COMPLETE | 49 tables, 24 enums, ordered migrations, repeatable safe seed, 38 integrity tests and 24-way identifier concurrency test pass |
 | M3 | COMPLETE | Seven explicit public-safe views, separate public/admin DTOs, server-only privileged clients, centralized location transformer, executable state machines, validation schemas, 22 unit tests and 23 projection/canary tests pass |
+| M4 | COMPLETE | RLS enabled on all 49 tables; 10 public views use a NOLOGIN/NOBYPASSRLS projection owner; active-admin reads, server-owned writes, trusted audit and 40 actor-matrix checks pass |
 
-The schema freeze remains in force. M4 may add only the intended authorization functions, grants, RLS policies and trusted audit path unless an ADR/schema amendment approves a new persistent concept.
+The schema freeze remains in force. M5 may add authentication/session and admin-shell application code but no new persistent business concept unless an ADR/schema amendment approves it.

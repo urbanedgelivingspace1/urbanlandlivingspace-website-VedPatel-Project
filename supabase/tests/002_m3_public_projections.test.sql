@@ -175,8 +175,8 @@ select ok(
 );
 select is((select count(distinct district_id)::integer from public.public_geography_options), 2, 'service geography exposes both approved districts');
 select is((select count(*)::integer from public.public_area_units), 9, 'public area unit projection exposes approved units');
-select ok(not has_table_privilege('anon', 'public.public_property_listings', 'select'), 'anonymous view access remains closed until M4');
-select ok(not has_table_privilege('authenticated', 'public.public_property_listings', 'select'), 'authenticated view access remains closed until M4');
+select ok(has_table_privilege('anon', 'public.public_property_listings', 'select'), 'M4 grants anonymous access to the approved listing view');
+select ok(has_table_privilege('authenticated', 'public.public_property_listings', 'select'), 'M4 grants authenticated access to the approved listing view');
 
 select * from finish();
 rollback;

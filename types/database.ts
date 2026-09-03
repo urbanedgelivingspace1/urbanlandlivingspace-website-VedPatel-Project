@@ -7,6 +7,20 @@ export type AvailabilityStatus =
   "AVAILABLE" | "UNDER_NEGOTIATION" | "SOLD" | "RENTED" | "LEASED" | "OFF_MARKET";
 export type PriceMode = "PRICE_ON_REQUEST" | "EXACT_TOTAL" | "PRICE_RANGE" | "PER_UNIT";
 export type VerificationStatus = "PASSED" | "PASSED_WITH_NOTE";
+export type AuditAction =
+  | "CREATE"
+  | "UPDATE"
+  | "PUBLISH"
+  | "UNPUBLISH"
+  | "ARCHIVE"
+  | "RESTORE"
+  | "DELETE"
+  | "LOGIN"
+  | "LOGOUT"
+  | "EXPORT"
+  | "DOCUMENT_ACCESS"
+  | "VERIFICATION_CHANGE"
+  | "STATUS_CHANGE";
 
 export type PublicPropertyListingRow = Readonly<{
   id: string;
@@ -136,7 +150,20 @@ export type Database = {
       public_area_units: View<PublicAreaUnitRow>;
       public_app_settings: View<PublicAppSettingRow>;
     };
-    Functions: Record<never, never>;
+    Functions: {
+      write_audit_log: {
+        Args: {
+          requested_action: AuditAction;
+          requested_entity_type: string;
+          requested_entity_id?: string | null;
+          requested_changed_fields?: string[] | null;
+          requested_before_state?: Json;
+          requested_after_state?: Json;
+          requested_reason?: string | null;
+        };
+        Returns: string;
+      };
+    };
     Enums: {
       land_category: LandCategory;
       transaction_type: TransactionType;
