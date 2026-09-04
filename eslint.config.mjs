@@ -17,6 +17,7 @@ export default defineConfig([
     "dist/**",
     "out/**",
     "playwright-report/**",
+    "public/maplibre/**",
     "test-results/**",
   ]),
 ]);

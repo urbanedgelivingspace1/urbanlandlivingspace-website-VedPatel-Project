@@ -2,9 +2,12 @@
 
 import { describe, expect, it } from "vitest";
 
-import { projectPublicPropertyCard } from "@/features/properties/queries/public-property-projector";
+import {
+  projectPublicPropertyCard,
+  projectPublicPropertyDetail,
+} from "@/features/properties/queries/public-property-projector";
 import { convertArea, formatPublicPrice } from "@/lib/formatting/property-values";
-import type { PublicPropertyListingRow } from "@/types/database";
+import type { PublicPropertyDetailRow, PublicPropertyListingRow } from "@/types/database";
 
 const row: PublicPropertyListingRow = {
   id: "20000000-0000-4000-8000-000000000001",
@@ -70,5 +73,55 @@ describe("public property projection", () => {
     const card = projectPublicPropertyCard(row);
     expect(card.price && formatPublicPrice(card.price)).toMatch(/1,00,00,000/);
     expect(convertArea(1, 4046.8564224)).toBeCloseTo(4046.8564224);
+  });
+
+  it.each([
+    ["AGRICULTURAL", "tenureType", "OLD_TENURE"],
+    ["NA", "status", "APPROVED"],
+    ["INDUSTRIAL", "subtype", "GIDC"],
+  ] as const)("projects the %s category through its public DTO", (category, field, expected) => {
+    const detailRow = {
+      ...row,
+      land_category: category,
+      description: "Synthetic detail",
+      seo_title: null,
+      seo_description: null,
+      canonical_path: null,
+      agricultural_tenure_type: category === "AGRICULTURAL" ? expected : null,
+      na_status: category === "NA" ? expected : null,
+      industrial_subtype: category === "INDUSTRIAL" ? expected : null,
+      planning_authority_name: "Synthetic authority",
+      development_plan_zone_name: "Synthetic zone",
+      use_classification: "Synthetic use",
+      tp_scheme_number: null,
+      tp_plot_type: null,
+      tp_plot_number: null,
+      planning_notes_public: null,
+    } as unknown as PublicPropertyDetailRow;
+
+    const detail = projectPublicPropertyDetail(
+      detailRow,
+      [],
+      [],
+      [
+        {
+          property_id: row.id,
+          identifier_type: "SURVEY_NUMBER",
+          identifier_value: "PUBLIC-42",
+          is_primary: true,
+          sequence_no: 1,
+        },
+      ],
+    );
+
+    expect(detail.categoryDetails.category).toBe(category);
+    expect(detail.categoryDetails).toHaveProperty(field, expected);
+    expect(detail.planning.authorityName).toBe("Synthetic authority");
+    expect(detail.parcelIdentifiers[0]).toEqual({
+      type: "SURVEY_NUMBER",
+      value: "PUBLIC-42",
+      primary: true,
+      parcelSequence: 1,
+    });
   });
 });

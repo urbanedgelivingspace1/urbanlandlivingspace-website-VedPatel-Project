@@ -4818,39 +4818,88 @@ export type Database = {
       };
       public_property_details: {
         Row: {
+          agricultural_electricity_status: string | null;
+          agricultural_road_touch: boolean | null;
+          agricultural_road_width_m: number | null;
+          agricultural_structure_present: boolean | null;
+          agricultural_tenure_type: string | null;
+          agricultural_use_status: string | null;
+          allotment_status: string | null;
           availability_status: Database["public"]["Enums"]["property_availability_status"] | null;
+          borewell_count: number | null;
+          boundary_summary_public: string | null;
+          canal_access_status: string | null;
           canonical_path: string | null;
+          cetp_status: string | null;
+          connectivity_summary: string | null;
           cover_alt_text: string | null;
           cover_height_px: number | null;
           cover_media_id: string | null;
           cover_object_path: string | null;
           cover_width_px: number | null;
           currency_code: string | null;
+          current_cultivation_status: string | null;
           description: string | null;
+          development_permission_status: string | null;
+          development_plan_zone_name: string | null;
           display_area_unit_code: string | null;
           display_area_unit_name: string | null;
           display_area_unit_symbol: string | null;
           display_area_value: number | null;
           district_id: string | null;
           district_name: string | null;
+          etp_status: string | null;
+          existing_shed_present: boolean | null;
           featured: boolean | null;
+          fencing_status: string | null;
+          gas_status: string | null;
+          gidc_estate_name: string | null;
+          gidc_plot_number: string | null;
+          gidc_shed_number: string | null;
           id: string | null;
+          industrial_authority_name: string | null;
+          industrial_drainage_status: string | null;
+          industrial_road_width_m: number | null;
+          industrial_subtype: string | null;
+          industrial_tenure: string | null;
+          industrial_water_status: string | null;
+          irrigation_status: string | null;
           is_negotiable: boolean | null;
           land_category: Database["public"]["Enums"]["land_category"] | null;
+          land_shape: string | null;
           landmark_text: string | null;
+          layout_approval_status: string | null;
           listing_title: string | null;
           locality_id: string | null;
           locality_name: string | null;
           location_visibility: Database["public"]["Enums"]["location_visibility"] | null;
+          na_corner_plot: boolean | null;
+          na_drainage_status: string | null;
+          na_electricity_status: string | null;
+          na_frontage_m: number | null;
+          na_order_date: string | null;
+          na_order_reference: string | null;
+          na_purpose: string | null;
+          na_road_width_m: number | null;
+          na_status: string | null;
+          na_water_status: string | null;
           offer_transaction_type: Database["public"]["Enums"]["transaction_type"] | null;
+          open_area_unit_code: string | null;
+          open_area_value: number | null;
+          permitted_industrial_use: string | null;
           place_id: string | null;
           place_name: string | null;
+          planning_authority_name: string | null;
+          planning_notes_public: string | null;
+          possession_status: string | null;
+          power_status: string | null;
           price_amount: number | null;
           price_max: number | null;
           price_min: number | null;
           price_mode: Database["public"]["Enums"]["price_mode"] | null;
           price_per_unit: number | null;
           price_unit_code: string | null;
+          primary_irrigation_source: string | null;
           primary_transaction_type: Database["public"]["Enums"]["transaction_type"] | null;
           property_code: string | null;
           public_accuracy_m: number | null;
@@ -4859,11 +4908,23 @@ export type Database = {
           public_longitude: number | null;
           public_slug: string | null;
           published_at: string | null;
+          sanctioned_load_kw: number | null;
           seo_description: string | null;
           seo_title: string | null;
+          shed_area_unit_code: string | null;
+          shed_area_value: number | null;
           short_description: string | null;
           subdistrict_id: string | null;
           subdistrict_name: string | null;
+          topography: string | null;
+          tp_plot_number: string | null;
+          tp_plot_type: string | null;
+          tp_scheme_number: string | null;
+          transfer_status: string | null;
+          transformer_status: string | null;
+          truck_loading_access: string | null;
+          use_classification: string | null;
+          well_count: number | null;
         };
         Relationships: [
           {
@@ -5101,6 +5162,45 @@ export type Database = {
           },
           {
             foreignKeyName: "media_assets_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "public_property_listings";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      public_property_parcel_identifiers: {
+        Row: {
+          identifier_type: string | null;
+          identifier_value: string | null;
+          is_primary: boolean | null;
+          property_id: string | null;
+          sequence_no: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "property_parcels_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "properties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "property_parcels_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "public_property_details";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "property_parcels_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "public_property_indexability";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "property_parcels_property_id_fkey";
             columns: ["property_id"];
             isOneToOne: false;
             referencedRelation: "public_property_listings";

@@ -7,7 +7,7 @@ test("public foundation renders without automatically detectable accessibility v
   await page.goto("/");
 
   await expect(
-    page.getByRole("heading", { name: "Land deserves a more considered search." }),
+    page.getByRole("heading", { name: "Land opportunities, curated by UrbanEdge." }),
   ).toBeVisible();
 
   const accessibility = await new AxeBuilder({ page }).analyze();

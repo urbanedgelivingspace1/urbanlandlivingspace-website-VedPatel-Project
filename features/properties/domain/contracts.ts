@@ -30,10 +30,96 @@ export type PublicMediaDto = Readonly<{
   objectPath: string | null;
   externalUrl?: string | null;
   externalProvider?: string | null;
+  externalMediaId?: string | null;
   mediaSubtype?: string | null;
   altText: string | null;
+  caption?: string | null;
   width: number | null;
   height: number | null;
+}>;
+
+export type PublicAgriculturalDetailsDto = Readonly<{
+  category: "AGRICULTURAL";
+  tenureType: string | null;
+  agriculturalUseStatus: string | null;
+  irrigationStatus: string | null;
+  primaryIrrigationSource: string | null;
+  borewellCount: number | null;
+  wellCount: number | null;
+  canalAccessStatus: string | null;
+  electricityStatus: string | null;
+  fencingStatus: string | null;
+  topography: string | null;
+  landShape: string | null;
+  structurePresent: boolean | null;
+  roadTouch: boolean | null;
+  roadWidthMetres: number | null;
+  boundarySummary: string | null;
+  currentCultivationStatus: string | null;
+}>;
+
+export type PublicNaDetailsDto = Readonly<{
+  category: "NA";
+  status: string | null;
+  purpose: string | null;
+  orderReference: string | null;
+  orderDate: string | null;
+  developmentPermissionStatus: string | null;
+  layoutApprovalStatus: string | null;
+  roadWidthMetres: number | null;
+  frontageMetres: number | null;
+  cornerPlot: boolean | null;
+  waterStatus: string | null;
+  electricityStatus: string | null;
+  drainageStatus: string | null;
+}>;
+
+export type PublicIndustrialDetailsDto = Readonly<{
+  category: "INDUSTRIAL";
+  subtype: string | null;
+  authorityName: string | null;
+  tenure: string | null;
+  gidcEstateName: string | null;
+  gidcPlotNumber: string | null;
+  gidcShedNumber: string | null;
+  allotmentStatus: string | null;
+  possessionStatus: string | null;
+  transferStatus: string | null;
+  permittedUse: string | null;
+  existingShedPresent: boolean | null;
+  shedArea: Readonly<{ value: number; unitCode: string | null }> | null;
+  openArea: Readonly<{ value: number; unitCode: string | null }> | null;
+  roadWidthMetres: number | null;
+  truckLoadingAccess: string | null;
+  powerStatus: string | null;
+  sanctionedLoadKw: number | null;
+  transformerStatus: string | null;
+  waterStatus: string | null;
+  drainageStatus: string | null;
+  cetpStatus: string | null;
+  etpStatus: string | null;
+  gasStatus: string | null;
+  connectivitySummary: string | null;
+}>;
+
+export type PublicCategoryDetailsDto =
+  PublicAgriculturalDetailsDto | PublicNaDetailsDto | PublicIndustrialDetailsDto;
+
+export type PublicPlanningDetailsDto = Readonly<{
+  authorityName: string | null;
+  zoneName: string | null;
+  useClassification: string | null;
+  tpSchemeNumber: string | null;
+  tpPlotType: string | null;
+  tpPlotNumber: string | null;
+  publicNotes: string | null;
+}>;
+
+export type PublicParcelIdentifierDto = Readonly<{
+  type: string;
+  value: string;
+  primary: boolean;
+  parcelSequence: number;
 }>;
 
 export type PublicPropertyCardDto = Readonly<{
@@ -79,4 +165,7 @@ export type PublicPropertyDetailDto = PublicPropertyCardDto &
     }>;
     media: readonly PublicMediaDto[];
     verifications: readonly PublicVerificationSummaryDto[];
+    categoryDetails: PublicCategoryDetailsDto;
+    planning: PublicPlanningDetailsDto;
+    parcelIdentifiers: readonly PublicParcelIdentifierDto[];
   }>;

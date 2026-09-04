@@ -4,6 +4,7 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { AdminPropertyDraftInput } from "@/features/properties/domain/admin-property-draft";
 import type { Database } from "@/types/database.generated";
+import type { Database as PublicDatabase } from "@/types/database";
 
 vi.mock("server-only", () => ({}));
 
@@ -52,6 +53,7 @@ const draft: AdminPropertyDraftInput = {
   },
   sourceLink: { sourceType: "SYNTHETIC_INTEGRATION", sourceName: "M9 fixture" },
 };
+const draftPublicSlug = draft.publicSlug as string;
 
 function currentClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -127,6 +129,13 @@ describe.sequential("M9 controlled publication service integration", () => {
       .eq("id", propertyId)
       .single();
     expect(row.data?.publication_status).toBe("DRAFT");
+    const { getPublicPropertyDetail } = await import("@/server/queries/public-properties");
+    expect(
+      await getPublicPropertyDetail(
+        anonymousClient as unknown as SupabaseClient<PublicDatabase>,
+        draftPublicSlug,
+      ),
+    ).toBeNull();
   });
 
   it("completes public media and only the required scoped verification checks", async () => {
@@ -258,6 +267,70 @@ describe.sequential("M9 controlled publication service integration", () => {
       .eq("id", propertyId)
       .single();
     expect(indexable.error).toBeNull();
+
+    const { getPublicPropertyDetail } = await import("@/server/queries/public-properties");
+    const detail = await getPublicPropertyDetail(
+      anonymousClient as unknown as SupabaseClient<PublicDatabase>,
+      draftPublicSlug,
+    );
+    expect(detail).toMatchObject({
+      id: propertyId,
+      slug: draftPublicSlug,
+      category: "AGRICULTURAL",
+      location: { visibility: "HIDDEN", point: null },
+      categoryDetails: { category: "AGRICULTURAL", tenureType: "Recorded tenure" },
+    });
+    expect(JSON.stringify(detail)).not.toMatch(/PRIVATE_M9|owner|notesInternal|privateLatitude/);
+  });
+
+  it("projects EXACT, APPROXIMATE, and HIDDEN location modes without reconstructing private data", async () => {
+    const { getPublicPropertyDetail } = await import("@/server/queries/public-properties");
+    const client = anonymousClient as unknown as SupabaseClient<PublicDatabase>;
+    const setLocation = async (
+      visibility: "EXACT" | "APPROXIMATE" | "HIDDEN",
+      publicLatitude: number | null,
+      publicLongitude: number | null,
+    ) => {
+      const [property, location] = await Promise.all([
+        database
+          .from("properties")
+          .update({ location_visibility: visibility })
+          .eq("id", propertyId),
+        database
+          .from("property_locations")
+          .update({
+            location_visibility: visibility,
+            public_latitude: publicLatitude,
+            public_longitude: publicLongitude,
+            public_accuracy_m: visibility === "APPROXIMATE" ? 2_000 : null,
+          })
+          .eq("property_id", propertyId),
+      ]);
+      if (property.error) throw property.error;
+      if (location.error) throw location.error;
+      return getPublicPropertyDetail(client, draftPublicSlug);
+    };
+
+    const exact = await setLocation("EXACT", 23.022505, 72.571365);
+    expect(exact?.location).toMatchObject({
+      visibility: "EXACT",
+      point: { latitude: 23.022505, longitude: 72.571365 },
+    });
+
+    const approximate = await setLocation("APPROXIMATE", 22.99, 72.38);
+    expect(approximate?.location).toMatchObject({
+      visibility: "APPROXIMATE",
+      point: { latitude: 22.99, longitude: 72.38, accuracyMetres: 2_000 },
+    });
+    expect(JSON.stringify(approximate)).not.toContain("23.022505");
+    expect(JSON.stringify(approximate)).not.toContain("72.571365");
+
+    const hidden = await setLocation("HIDDEN", null, null);
+    expect(hidden?.location).toEqual({
+      visibility: "HIDDEN",
+      label: "Ahmedabad",
+      point: null,
+    });
   });
 
   it("updates closed availability without changing publication state", async () => {

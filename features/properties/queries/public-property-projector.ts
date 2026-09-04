@@ -1,5 +1,7 @@
 import type {
   PublicMediaDto,
+  PublicCategoryDetailsDto,
+  PublicParcelIdentifierDto,
   PublicPropertyCardDto,
   PublicPropertyDetailDto,
   PublicVerificationSummaryDto,
@@ -8,6 +10,7 @@ import { projectPublicLocation } from "@/lib/privacy/public-location";
 import { assertSafePublicVerificationCopy } from "@/features/verification/domain/verification-policy";
 import type {
   PublicMediaRow,
+  PublicParcelIdentifierRow,
   PublicPropertyDetailRow,
   PublicPropertyListingRow,
   PublicVerificationSummaryRow,
@@ -25,6 +28,91 @@ function projectPrice(row: PublicPropertyListingRow): PublicPropertyCardDto["pri
     perUnit: row.price_per_unit,
     unitCode: row.price_unit_code,
     negotiable: row.is_negotiable ?? false,
+  };
+}
+
+function projectCategoryDetails(row: PublicPropertyDetailRow): PublicCategoryDetailsDto {
+  if (row.land_category === "AGRICULTURAL") {
+    return {
+      category: "AGRICULTURAL",
+      tenureType: row.agricultural_tenure_type,
+      agriculturalUseStatus: row.agricultural_use_status,
+      irrigationStatus: row.irrigation_status,
+      primaryIrrigationSource: row.primary_irrigation_source,
+      borewellCount: row.borewell_count,
+      wellCount: row.well_count,
+      canalAccessStatus: row.canal_access_status,
+      electricityStatus: row.agricultural_electricity_status,
+      fencingStatus: row.fencing_status,
+      topography: row.topography,
+      landShape: row.land_shape,
+      structurePresent: row.agricultural_structure_present,
+      roadTouch: row.agricultural_road_touch,
+      roadWidthMetres: row.agricultural_road_width_m,
+      boundarySummary: row.boundary_summary_public,
+      currentCultivationStatus: row.current_cultivation_status,
+    };
+  }
+  if (row.land_category === "NA") {
+    return {
+      category: "NA",
+      status: row.na_status,
+      purpose: row.na_purpose,
+      orderReference: row.na_order_reference,
+      orderDate: row.na_order_date,
+      developmentPermissionStatus: row.development_permission_status,
+      layoutApprovalStatus: row.layout_approval_status,
+      roadWidthMetres: row.na_road_width_m,
+      frontageMetres: row.na_frontage_m,
+      cornerPlot: row.na_corner_plot,
+      waterStatus: row.na_water_status,
+      electricityStatus: row.na_electricity_status,
+      drainageStatus: row.na_drainage_status,
+    };
+  }
+  return {
+    category: "INDUSTRIAL",
+    subtype: row.industrial_subtype,
+    authorityName: row.industrial_authority_name,
+    tenure: row.industrial_tenure,
+    gidcEstateName: row.gidc_estate_name,
+    gidcPlotNumber: row.gidc_plot_number,
+    gidcShedNumber: row.gidc_shed_number,
+    allotmentStatus: row.allotment_status,
+    possessionStatus: row.possession_status,
+    transferStatus: row.transfer_status,
+    permittedUse: row.permitted_industrial_use,
+    existingShedPresent: row.existing_shed_present,
+    shedArea:
+      row.shed_area_value === null
+        ? null
+        : { value: row.shed_area_value, unitCode: row.shed_area_unit_code },
+    openArea:
+      row.open_area_value === null
+        ? null
+        : { value: row.open_area_value, unitCode: row.open_area_unit_code },
+    roadWidthMetres: row.industrial_road_width_m,
+    truckLoadingAccess: row.truck_loading_access,
+    powerStatus: row.power_status,
+    sanctionedLoadKw: row.sanctioned_load_kw,
+    transformerStatus: row.transformer_status,
+    waterStatus: row.industrial_water_status,
+    drainageStatus: row.industrial_drainage_status,
+    cetpStatus: row.cetp_status,
+    etpStatus: row.etp_status,
+    gasStatus: row.gas_status,
+    connectivitySummary: row.connectivity_summary,
+  };
+}
+
+export function projectPublicParcelIdentifier(
+  row: PublicParcelIdentifierRow,
+): PublicParcelIdentifierDto {
+  return {
+    type: row.identifier_type,
+    value: row.identifier_value,
+    primary: row.is_primary,
+    parcelSequence: row.sequence_no,
   };
 }
 
@@ -87,8 +175,10 @@ export function projectPublicMedia(row: PublicMediaRow): PublicMediaDto {
     objectPath: row.object_path,
     externalUrl: row.external_url,
     externalProvider: row.external_provider,
+    externalMediaId: row.external_media_id,
     mediaSubtype: row.media_subtype,
     altText: row.alt_text,
+    caption: row.caption,
     width: row.width_px,
     height: row.height_px,
   };
@@ -124,6 +214,7 @@ export function projectPublicPropertyDetail(
   row: PublicPropertyDetailRow,
   media: readonly PublicMediaRow[],
   verifications: readonly PublicVerificationSummaryRow[],
+  identifiers: readonly PublicParcelIdentifierRow[] = [],
 ): PublicPropertyDetailDto {
   return {
     ...projectPublicPropertyCard(row),
@@ -135,5 +226,16 @@ export function projectPublicPropertyDetail(
     },
     media: media.map(projectPublicMedia),
     verifications: verifications.map(projectPublicVerification),
+    categoryDetails: projectCategoryDetails(row),
+    planning: {
+      authorityName: row.planning_authority_name,
+      zoneName: row.development_plan_zone_name,
+      useClassification: row.use_classification,
+      tpSchemeNumber: row.tp_scheme_number,
+      tpPlotType: row.tp_plot_type,
+      tpPlotNumber: row.tp_plot_number,
+      publicNotes: row.planning_notes_public,
+    },
+    parcelIdentifiers: identifiers.map(projectPublicParcelIdentifier),
   };
 }

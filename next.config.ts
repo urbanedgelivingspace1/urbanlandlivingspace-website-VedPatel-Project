@@ -1,11 +1,47 @@
 import type { NextConfig } from "next";
 
+function remotePatternFor(rawUrl: string | undefined) {
+  if (!rawUrl) return null;
+
+  try {
+    const url = new URL(rawUrl);
+    return {
+      protocol: url.protocol.slice(0, -1) as "http" | "https",
+      hostname: url.hostname,
+      port: url.port,
+      pathname: "/storage/v1/object/public/property-media-public/**",
+      search: "",
+    };
+  } catch {
+    return null;
+  }
+}
+
+function originFor(rawUrl: string | undefined) {
+  if (!rawUrl) return null;
+
+  try {
+    return new URL(rawUrl).origin;
+  } catch {
+    return null;
+  }
+}
+
+const mediaPattern = remotePatternFor(process.env.NEXT_PUBLIC_SUPABASE_URL);
+const connectOrigins = [
+  originFor(process.env.NEXT_PUBLIC_SUPABASE_URL),
+  originFor(process.env.NEXT_PUBLIC_MAP_STYLE_URL),
+].filter((value): value is string => Boolean(value));
+const isLocalBuild = ["local", "test"].includes(process.env.APP_ENV ?? "");
+
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
   poweredByHeader: false,
   reactStrictMode: true,
   images: {
     formats: ["image/avif", "image/webp"],
+    remotePatterns: mediaPattern ? [mediaPattern] : [],
+    dangerouslyAllowLocalIP: isLocalBuild,
   },
   experimental: {
     serverActions: {
@@ -19,8 +55,14 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: "Content-Security-Policy",
-            value:
-              "frame-src 'self' https://www.youtube-nocookie.com https://player.vimeo.com https://my.matterport.com; object-src 'none'; base-uri 'self'",
+            value: [
+              "base-uri 'self'",
+              `connect-src 'self' ${connectOrigins.join(" ")}`.trim(),
+              "frame-src 'self' https://www.youtube-nocookie.com https://player.vimeo.com https://my.matterport.com",
+              `img-src 'self' data: blob: ${connectOrigins.join(" ")}`.trim(),
+              "object-src 'none'",
+              "worker-src 'self' blob:",
+            ].join("; "),
           },
         ],
       },

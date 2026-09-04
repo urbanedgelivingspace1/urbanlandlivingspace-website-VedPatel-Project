@@ -16,6 +16,7 @@ build/
 .turbo/
 *.tsbuildinfo
 next-env.d.ts
+public/maplibre/
 
 # Tests, coverage and browser artifacts
 coverage/
