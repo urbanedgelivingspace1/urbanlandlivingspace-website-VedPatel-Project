@@ -1925,6 +1925,92 @@ export type Database = {
           },
         ];
       };
+      professional_reviews: {
+        Row: {
+          completed_by: string | null;
+          created_at: string;
+          evidence_reference: string | null;
+          id: string;
+          limitations: string | null;
+          outcome_summary: string | null;
+          professional_name: string | null;
+          professional_reference: string | null;
+          professional_type: string;
+          property_verification_id: string;
+          requested_by: string;
+          review_date: string | null;
+          scope_statement: string;
+          status: Database["public"]["Enums"]["professional_review_status"];
+          superseded_at: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          completed_by?: string | null;
+          created_at?: string;
+          evidence_reference?: string | null;
+          id?: string;
+          limitations?: string | null;
+          outcome_summary?: string | null;
+          professional_name?: string | null;
+          professional_reference?: string | null;
+          professional_type: string;
+          property_verification_id: string;
+          requested_by: string;
+          review_date?: string | null;
+          scope_statement: string;
+          status?: Database["public"]["Enums"]["professional_review_status"];
+          superseded_at?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          completed_by?: string | null;
+          created_at?: string;
+          evidence_reference?: string | null;
+          id?: string;
+          limitations?: string | null;
+          outcome_summary?: string | null;
+          professional_name?: string | null;
+          professional_reference?: string | null;
+          professional_type?: string;
+          property_verification_id?: string;
+          requested_by?: string;
+          review_date?: string | null;
+          scope_statement?: string;
+          status?: Database["public"]["Enums"]["professional_review_status"];
+          superseded_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "professional_reviews_completed_by_fkey";
+            columns: ["completed_by"];
+            isOneToOne: false;
+            referencedRelation: "admin_profiles";
+            referencedColumns: ["user_id"];
+          },
+          {
+            foreignKeyName: "professional_reviews_property_verification_id_fkey";
+            columns: ["property_verification_id"];
+            isOneToOne: false;
+            referencedRelation: "property_verifications";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "professional_reviews_property_verification_id_fkey";
+            columns: ["property_verification_id"];
+            isOneToOne: false;
+            referencedRelation: "public_property_verification_summaries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "professional_reviews_requested_by_fkey";
+            columns: ["requested_by"];
+            isOneToOne: false;
+            referencedRelation: "admin_profiles";
+            referencedColumns: ["user_id"];
+          },
+        ];
+      };
       properties: {
         Row: {
           archived_at: string | null;
@@ -3404,16 +3490,24 @@ export type Database = {
       };
       property_verifications: {
         Row: {
+          applicability: Database["public"]["Enums"]["verification_applicability"];
+          applicability_reason: string | null;
+          check_date: string | null;
           check_definition_id: string;
           created_at: string;
           id: string;
+          limitations: string | null;
           property_id: string;
+          public_copy_policy_id: string | null;
+          public_disclosure_eligible: boolean;
           public_explanation: string | null;
           public_label: string | null;
+          public_limitation: string | null;
           public_visible: boolean;
           recheck_at: string | null;
           referral_required: boolean;
           referral_type: string | null;
+          review_iteration: number;
           reviewed_at: string | null;
           reviewed_by: string | null;
           reviewer_notes_internal: string | null;
@@ -3421,19 +3515,28 @@ export type Database = {
           scope_statement: string | null;
           source_reference_id: string | null;
           status: Database["public"]["Enums"]["verification_status"];
+          unresolved_exceptions_summary: string | null;
           updated_at: string;
         };
         Insert: {
+          applicability?: Database["public"]["Enums"]["verification_applicability"];
+          applicability_reason?: string | null;
+          check_date?: string | null;
           check_definition_id: string;
           created_at?: string;
           id?: string;
+          limitations?: string | null;
           property_id: string;
+          public_copy_policy_id?: string | null;
+          public_disclosure_eligible?: boolean;
           public_explanation?: string | null;
           public_label?: string | null;
+          public_limitation?: string | null;
           public_visible?: boolean;
           recheck_at?: string | null;
           referral_required?: boolean;
           referral_type?: string | null;
+          review_iteration?: number;
           reviewed_at?: string | null;
           reviewed_by?: string | null;
           reviewer_notes_internal?: string | null;
@@ -3441,19 +3544,28 @@ export type Database = {
           scope_statement?: string | null;
           source_reference_id?: string | null;
           status?: Database["public"]["Enums"]["verification_status"];
+          unresolved_exceptions_summary?: string | null;
           updated_at?: string;
         };
         Update: {
+          applicability?: Database["public"]["Enums"]["verification_applicability"];
+          applicability_reason?: string | null;
+          check_date?: string | null;
           check_definition_id?: string;
           created_at?: string;
           id?: string;
+          limitations?: string | null;
           property_id?: string;
+          public_copy_policy_id?: string | null;
+          public_disclosure_eligible?: boolean;
           public_explanation?: string | null;
           public_label?: string | null;
+          public_limitation?: string | null;
           public_visible?: boolean;
           recheck_at?: string | null;
           referral_required?: boolean;
           referral_type?: string | null;
+          review_iteration?: number;
           reviewed_at?: string | null;
           reviewed_by?: string | null;
           reviewer_notes_internal?: string | null;
@@ -3461,6 +3573,7 @@ export type Database = {
           scope_statement?: string | null;
           source_reference_id?: string | null;
           status?: Database["public"]["Enums"]["verification_status"];
+          unresolved_exceptions_summary?: string | null;
           updated_at?: string;
         };
         Relationships: [
@@ -3490,6 +3603,13 @@ export type Database = {
             columns: ["property_id"];
             isOneToOne: false;
             referencedRelation: "public_property_listings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "property_verifications_public_copy_policy_id_fkey";
+            columns: ["public_copy_policy_id"];
+            isOneToOne: false;
+            referencedRelation: "verification_public_copy_policies";
             referencedColumns: ["id"];
           },
           {
@@ -3746,46 +3866,64 @@ export type Database = {
         Row: {
           accessed_at: string | null;
           authority_name: string;
+          certification_type: string | null;
           created_at: string;
           document_date: string | null;
           document_or_service_name: string;
           id: string;
           last_known_update_date: string | null;
           notes: string | null;
+          record_identifier: string | null;
           reference_number: string | null;
+          retrieval_method: string | null;
+          snapshot_reference: string | null;
+          source_class: Database["public"]["Enums"]["verification_source_class"] | null;
           source_classification: string;
           source_system: string;
           source_url: string | null;
+          source_version: string | null;
           updated_at: string;
         };
         Insert: {
           accessed_at?: string | null;
           authority_name: string;
+          certification_type?: string | null;
           created_at?: string;
           document_date?: string | null;
           document_or_service_name: string;
           id?: string;
           last_known_update_date?: string | null;
           notes?: string | null;
+          record_identifier?: string | null;
           reference_number?: string | null;
+          retrieval_method?: string | null;
+          snapshot_reference?: string | null;
+          source_class?: Database["public"]["Enums"]["verification_source_class"] | null;
           source_classification: string;
           source_system: string;
           source_url?: string | null;
+          source_version?: string | null;
           updated_at?: string;
         };
         Update: {
           accessed_at?: string | null;
           authority_name?: string;
+          certification_type?: string | null;
           created_at?: string;
           document_date?: string | null;
           document_or_service_name?: string;
           id?: string;
           last_known_update_date?: string | null;
           notes?: string | null;
+          record_identifier?: string | null;
           reference_number?: string | null;
+          retrieval_method?: string | null;
+          snapshot_reference?: string | null;
+          source_class?: Database["public"]["Enums"]["verification_source_class"] | null;
           source_classification?: string;
           source_system?: string;
           source_url?: string | null;
+          source_version?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -4002,58 +4140,79 @@ export type Database = {
       verification_check_definitions: {
         Row: {
           applies_to_transaction: Database["public"]["Enums"]["transaction_type"] | null;
+          blocked_if_stale: boolean;
           category_scope: Database["public"]["Enums"]["land_category"] | null;
           code: string;
           created_at: string;
           default_required_for_publish: boolean;
           description_internal: string | null;
+          evidence_types: string[];
           id: string;
           is_active: boolean;
           lawyer_review_required_by_default: boolean;
+          minimum_provenance: Database["public"]["Enums"]["evidence_provenance_state"];
           name: string;
+          policy_version: number;
           public_explanation_template: string | null;
           public_label_default: string | null;
           recheck_days_default: number | null;
+          required_evidence: boolean;
+          requires_exception_resolution: boolean;
           risk_if_failed: Database["public"]["Enums"]["risk_level"];
           sort_order: number;
+          source_class: Database["public"]["Enums"]["verification_source_class"];
           surveyor_review_required_by_default: boolean;
           updated_at: string;
         };
         Insert: {
           applies_to_transaction?: Database["public"]["Enums"]["transaction_type"] | null;
+          blocked_if_stale?: boolean;
           category_scope?: Database["public"]["Enums"]["land_category"] | null;
           code: string;
           created_at?: string;
           default_required_for_publish?: boolean;
           description_internal?: string | null;
+          evidence_types?: string[];
           id?: string;
           is_active?: boolean;
           lawyer_review_required_by_default?: boolean;
+          minimum_provenance?: Database["public"]["Enums"]["evidence_provenance_state"];
           name: string;
+          policy_version?: number;
           public_explanation_template?: string | null;
           public_label_default?: string | null;
           recheck_days_default?: number | null;
+          required_evidence?: boolean;
+          requires_exception_resolution?: boolean;
           risk_if_failed?: Database["public"]["Enums"]["risk_level"];
           sort_order?: number;
+          source_class?: Database["public"]["Enums"]["verification_source_class"];
           surveyor_review_required_by_default?: boolean;
           updated_at?: string;
         };
         Update: {
           applies_to_transaction?: Database["public"]["Enums"]["transaction_type"] | null;
+          blocked_if_stale?: boolean;
           category_scope?: Database["public"]["Enums"]["land_category"] | null;
           code?: string;
           created_at?: string;
           default_required_for_publish?: boolean;
           description_internal?: string | null;
+          evidence_types?: string[];
           id?: string;
           is_active?: boolean;
           lawyer_review_required_by_default?: boolean;
+          minimum_provenance?: Database["public"]["Enums"]["evidence_provenance_state"];
           name?: string;
+          policy_version?: number;
           public_explanation_template?: string | null;
           public_label_default?: string | null;
           recheck_days_default?: number | null;
+          required_evidence?: boolean;
+          requires_exception_resolution?: boolean;
           risk_if_failed?: Database["public"]["Enums"]["risk_level"];
           sort_order?: number;
+          source_class?: Database["public"]["Enums"]["verification_source_class"];
           surveyor_review_required_by_default?: boolean;
           updated_at?: string;
         };
@@ -4069,9 +4228,21 @@ export type Database = {
           id: string;
           observed_date: string | null;
           private_document_id: string | null;
+          professional_review_id: string | null;
           property_verification_id: string;
+          provenance_state: Database["public"]["Enums"]["evidence_provenance_state"];
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          revoked_at: string | null;
+          revoked_by: string | null;
+          source_class: Database["public"]["Enums"]["verification_source_class"];
           source_reference_id: string | null;
+          source_verified_at: string | null;
+          source_verified_by: string | null;
+          superseded_at: string | null;
+          superseded_by_id: string | null;
           supports_check: boolean;
+          updated_at: string;
         };
         Insert: {
           created_at?: string;
@@ -4082,9 +4253,21 @@ export type Database = {
           id?: string;
           observed_date?: string | null;
           private_document_id?: string | null;
+          professional_review_id?: string | null;
           property_verification_id: string;
+          provenance_state?: Database["public"]["Enums"]["evidence_provenance_state"];
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          source_class?: Database["public"]["Enums"]["verification_source_class"];
           source_reference_id?: string | null;
+          source_verified_at?: string | null;
+          source_verified_by?: string | null;
+          superseded_at?: string | null;
+          superseded_by_id?: string | null;
           supports_check?: boolean;
+          updated_at?: string;
         };
         Update: {
           created_at?: string;
@@ -4095,9 +4278,21 @@ export type Database = {
           id?: string;
           observed_date?: string | null;
           private_document_id?: string | null;
+          professional_review_id?: string | null;
           property_verification_id?: string;
+          provenance_state?: Database["public"]["Enums"]["evidence_provenance_state"];
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          source_class?: Database["public"]["Enums"]["verification_source_class"];
           source_reference_id?: string | null;
+          source_verified_at?: string | null;
+          source_verified_by?: string | null;
+          superseded_at?: string | null;
+          superseded_by_id?: string | null;
           supports_check?: boolean;
+          updated_at?: string;
         };
         Relationships: [
           {
@@ -4115,6 +4310,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "verification_evidence_professional_review_id_fkey";
+            columns: ["professional_review_id"];
+            isOneToOne: false;
+            referencedRelation: "professional_reviews";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "verification_evidence_property_verification_id_fkey";
             columns: ["property_verification_id"];
             isOneToOne: false;
@@ -4129,11 +4331,241 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "verification_evidence_reviewed_by_fkey";
+            columns: ["reviewed_by"];
+            isOneToOne: false;
+            referencedRelation: "admin_profiles";
+            referencedColumns: ["user_id"];
+          },
+          {
+            foreignKeyName: "verification_evidence_revoked_by_fkey";
+            columns: ["revoked_by"];
+            isOneToOne: false;
+            referencedRelation: "admin_profiles";
+            referencedColumns: ["user_id"];
+          },
+          {
             foreignKeyName: "verification_evidence_source_reference_id_fkey";
             columns: ["source_reference_id"];
             isOneToOne: false;
             referencedRelation: "source_references";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "verification_evidence_source_verified_by_fkey";
+            columns: ["source_verified_by"];
+            isOneToOne: false;
+            referencedRelation: "admin_profiles";
+            referencedColumns: ["user_id"];
+          },
+          {
+            foreignKeyName: "verification_evidence_superseded_by_id_fkey";
+            columns: ["superseded_by_id"];
+            isOneToOne: false;
+            referencedRelation: "verification_evidence";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      verification_exceptions: {
+        Row: {
+          blocks_public_disclosure: boolean;
+          created_at: string;
+          created_by: string;
+          id: string;
+          limitation: string | null;
+          professional_referral_required: boolean;
+          property_verification_id: string;
+          resolution_summary: string | null;
+          resolved_at: string | null;
+          resolved_by: string | null;
+          severity: Database["public"]["Enums"]["risk_level"];
+          status: Database["public"]["Enums"]["verification_exception_status"];
+          summary: string;
+        };
+        Insert: {
+          blocks_public_disclosure?: boolean;
+          created_at?: string;
+          created_by: string;
+          id?: string;
+          limitation?: string | null;
+          professional_referral_required?: boolean;
+          property_verification_id: string;
+          resolution_summary?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          severity: Database["public"]["Enums"]["risk_level"];
+          status?: Database["public"]["Enums"]["verification_exception_status"];
+          summary: string;
+        };
+        Update: {
+          blocks_public_disclosure?: boolean;
+          created_at?: string;
+          created_by?: string;
+          id?: string;
+          limitation?: string | null;
+          professional_referral_required?: boolean;
+          property_verification_id?: string;
+          resolution_summary?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          severity?: Database["public"]["Enums"]["risk_level"];
+          status?: Database["public"]["Enums"]["verification_exception_status"];
+          summary?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "verification_exceptions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "admin_profiles";
+            referencedColumns: ["user_id"];
+          },
+          {
+            foreignKeyName: "verification_exceptions_property_verification_id_fkey";
+            columns: ["property_verification_id"];
+            isOneToOne: false;
+            referencedRelation: "property_verifications";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "verification_exceptions_property_verification_id_fkey";
+            columns: ["property_verification_id"];
+            isOneToOne: false;
+            referencedRelation: "public_property_verification_summaries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "verification_exceptions_resolved_by_fkey";
+            columns: ["resolved_by"];
+            isOneToOne: false;
+            referencedRelation: "admin_profiles";
+            referencedColumns: ["user_id"];
+          },
+        ];
+      };
+      verification_history: {
+        Row: {
+          actor_admin_id: string;
+          event_type: string;
+          from_status: Database["public"]["Enums"]["verification_status"] | null;
+          id: number;
+          occurred_at: string;
+          property_verification_id: string;
+          reason: string | null;
+          review_iteration: number;
+          to_status: Database["public"]["Enums"]["verification_status"] | null;
+        };
+        Insert: {
+          actor_admin_id: string;
+          event_type: string;
+          from_status?: Database["public"]["Enums"]["verification_status"] | null;
+          id?: never;
+          occurred_at?: string;
+          property_verification_id: string;
+          reason?: string | null;
+          review_iteration: number;
+          to_status?: Database["public"]["Enums"]["verification_status"] | null;
+        };
+        Update: {
+          actor_admin_id?: string;
+          event_type?: string;
+          from_status?: Database["public"]["Enums"]["verification_status"] | null;
+          id?: never;
+          occurred_at?: string;
+          property_verification_id?: string;
+          reason?: string | null;
+          review_iteration?: number;
+          to_status?: Database["public"]["Enums"]["verification_status"] | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "verification_history_actor_admin_id_fkey";
+            columns: ["actor_admin_id"];
+            isOneToOne: false;
+            referencedRelation: "admin_profiles";
+            referencedColumns: ["user_id"];
+          },
+          {
+            foreignKeyName: "verification_history_property_verification_id_fkey";
+            columns: ["property_verification_id"];
+            isOneToOne: false;
+            referencedRelation: "property_verifications";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "verification_history_property_verification_id_fkey";
+            columns: ["property_verification_id"];
+            isOneToOne: false;
+            referencedRelation: "public_property_verification_summaries";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      verification_public_copy_policies: {
+        Row: {
+          approval_status: Database["public"]["Enums"]["public_copy_approval_status"];
+          approved_at: string | null;
+          approved_by: string | null;
+          check_definition_id: string;
+          created_at: string;
+          created_by: string | null;
+          explanation_template: string;
+          id: string;
+          label: string;
+          limitation_template: string;
+          retired_at: string | null;
+          version: number;
+        };
+        Insert: {
+          approval_status?: Database["public"]["Enums"]["public_copy_approval_status"];
+          approved_at?: string | null;
+          approved_by?: string | null;
+          check_definition_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          explanation_template: string;
+          id?: string;
+          label: string;
+          limitation_template: string;
+          retired_at?: string | null;
+          version: number;
+        };
+        Update: {
+          approval_status?: Database["public"]["Enums"]["public_copy_approval_status"];
+          approved_at?: string | null;
+          approved_by?: string | null;
+          check_definition_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          explanation_template?: string;
+          id?: string;
+          label?: string;
+          limitation_template?: string;
+          retired_at?: string | null;
+          version?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "verification_public_copy_policies_approved_by_fkey";
+            columns: ["approved_by"];
+            isOneToOne: false;
+            referencedRelation: "admin_profiles";
+            referencedColumns: ["user_id"];
+          },
+          {
+            foreignKeyName: "verification_public_copy_policies_check_definition_id_fkey";
+            columns: ["check_definition_id"];
+            isOneToOne: false;
+            referencedRelation: "verification_check_definitions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "verification_public_copy_policies_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "admin_profiles";
+            referencedColumns: ["user_id"];
           },
         ];
       };
@@ -4516,13 +4948,16 @@ export type Database = {
       public_property_verification_summaries: {
         Row: {
           check_code: string | null;
+          check_date: string | null;
           explanation: string | null;
           id: string | null;
           label: string | null;
+          limitation: string | null;
           property_id: string | null;
-          recheck_at: string | null;
+          public_status: string | null;
           reviewed_at: string | null;
-          status: Database["public"]["Enums"]["verification_status"] | null;
+          scope: string | null;
+          source_class: Database["public"]["Enums"]["verification_source_class"] | null;
         };
         Relationships: [
           {
@@ -4630,6 +5065,15 @@ export type Database = {
       };
     };
     Functions: {
+      advance_verification_evidence: {
+        Args: {
+          requested_actor_id: string;
+          requested_evidence_id: string;
+          requested_professional_review_id?: string;
+          requested_state: Database["public"]["Enums"]["evidence_provenance_state"];
+        };
+        Returns: undefined;
+      };
       approve_property_media: {
         Args: {
           requested_actor_id: string;
@@ -4664,7 +5108,23 @@ export type Database = {
         };
         Returns: string;
       };
+      create_verification_source_reference: {
+        Args: { requested_actor_id: string; requested_payload: Json };
+        Returns: string;
+      };
+      initialize_property_verifications: {
+        Args: { requested_actor_id: string; requested_property_id: string };
+        Returns: number;
+      };
       is_active_admin: { Args: never; Returns: boolean };
+      link_verification_evidence: {
+        Args: {
+          requested_actor_id: string;
+          requested_payload: Json;
+          requested_verification_id: string;
+        };
+        Returns: string;
+      };
       next_lead_reference: { Args: never; Returns: string };
       next_owner_submission_reference: { Args: never; Returns: string };
       next_property_code: { Args: never; Returns: string };
@@ -4674,6 +5134,14 @@ export type Database = {
           requested_actor_id: string;
           requested_document_id: string;
           requested_purpose: string;
+        };
+        Returns: string;
+      };
+      record_verification_exception: {
+        Args: {
+          requested_actor_id: string;
+          requested_payload: Json;
+          requested_verification_id: string;
         };
         Returns: string;
       };
@@ -4693,6 +5161,24 @@ export type Database = {
         };
         Returns: string;
       };
+      request_professional_review: {
+        Args: {
+          requested_actor_id: string;
+          requested_scope: string;
+          requested_type: string;
+          requested_verification_id: string;
+        };
+        Returns: string;
+      };
+      resolve_verification_exception: {
+        Args: {
+          requested_actor_id: string;
+          requested_exception_id: string;
+          requested_resolution: string;
+          requested_status: Database["public"]["Enums"]["verification_exception_status"];
+        };
+        Returns: undefined;
+      };
       restore_property_draft: {
         Args: {
           requested_actor_id: string;
@@ -4704,6 +5190,16 @@ export type Database = {
       restore_property_media: {
         Args: { requested_actor_id: string; requested_media_id: string };
         Returns: string;
+      };
+      retire_verification_evidence: {
+        Args: {
+          requested_actor_id: string;
+          requested_evidence_id: string;
+          requested_reason?: string;
+          requested_replacement_id?: string;
+          requested_state: Database["public"]["Enums"]["evidence_provenance_state"];
+        };
+        Returns: undefined;
       };
       save_property_draft: {
         Args: {
@@ -4722,6 +5218,42 @@ export type Database = {
         };
         Returns: string;
       };
+      set_verification_applicability: {
+        Args: {
+          requested_actor_id: string;
+          requested_applicability: Database["public"]["Enums"]["verification_applicability"];
+          requested_reason: string;
+          requested_verification_id: string;
+        };
+        Returns: undefined;
+      };
+      set_verification_public_disclosure: {
+        Args: {
+          requested_actor_id: string;
+          requested_policy_id: string;
+          requested_verification_id: string;
+          requested_visible: boolean;
+        };
+        Returns: undefined;
+      };
+      transition_property_verification: {
+        Args: {
+          requested_actor_id: string;
+          requested_payload?: Json;
+          requested_target: Database["public"]["Enums"]["verification_status"];
+          requested_verification_id: string;
+        };
+        Returns: undefined;
+      };
+      update_professional_review: {
+        Args: {
+          requested_actor_id: string;
+          requested_payload?: Json;
+          requested_review_id: string;
+          requested_target: Database["public"]["Enums"]["professional_review_status"];
+        };
+        Returns: undefined;
+      };
       update_property_media_metadata: {
         Args: {
           requested_actor_id: string;
@@ -4730,6 +5262,12 @@ export type Database = {
           requested_media_id: string;
         };
         Returns: string;
+      };
+      verification_provenance_rank: {
+        Args: {
+          value: Database["public"]["Enums"]["evidence_provenance_state"];
+        };
+        Returns: number;
       };
       write_audit_log: {
         Args: {
@@ -4783,6 +5321,13 @@ export type Database = {
         | "BROKER"
         | "OTHER";
       document_scan_status: "PENDING" | "CLEAN" | "INFECTED" | "FAILED";
+      evidence_provenance_state:
+        | "RECEIVED"
+        | "REVIEWED"
+        | "SOURCE_VERIFIED"
+        | "PROFESSIONALLY_REVIEWED"
+        | "SUPERSEDED"
+        | "REVOKED";
       guide_status: "DRAFT" | "REVIEW" | "PUBLISHED" | "UNPUBLISHED" | "ARCHIVED";
       land_category: "AGRICULTURAL" | "NA" | "INDUSTRIAL";
       lead_activity_type:
@@ -4848,6 +5393,16 @@ export type Database = {
       party_type:
         "INDIVIDUAL" | "COMPANY" | "PARTNERSHIP" | "TRUST" | "SOCIETY" | "GOVERNMENT" | "OTHER";
       price_mode: "PRICE_ON_REQUEST" | "EXACT_TOTAL" | "PRICE_RANGE" | "PER_UNIT";
+      professional_review_status:
+        | "NOT_REQUIRED"
+        | "REQUESTED"
+        | "MATERIALS_PENDING"
+        | "IN_REVIEW"
+        | "COMPLETED"
+        | "PARTIALLY_COMPLETED"
+        | "REQUIRES_MORE_INFORMATION"
+        | "SUPERSEDED"
+        | "REQUIRES_REVIEW";
       property_availability_status:
         "AVAILABLE" | "UNDER_NEGOTIATION" | "SOLD" | "RENTED" | "LEASED" | "OFF_MARKET";
       property_party_role:
@@ -4861,6 +5416,7 @@ export type Database = {
         | "OTHER";
       property_publication_status:
         "DRAFT" | "UNDER_REVIEW" | "PUBLISHED" | "UNPUBLISHED" | "ARCHIVED";
+      public_copy_approval_status: "DRAFT" | "APPROVED" | "RETIRED";
       record_visibility: "PUBLIC" | "ADMIN_ONLY" | "PRIVATE";
       risk_level: "NONE" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
       seo_page_status: "DRAFT" | "REVIEW" | "PUBLISHED" | "NOINDEX" | "ARCHIVED";
@@ -4875,6 +5431,13 @@ export type Database = {
         | "NO_SHOW"
         | "RESCHEDULED";
       transaction_type: "BUY" | "RENT" | "LEASE";
+      verification_applicability: "UNDETERMINED" | "APPLICABLE" | "NOT_APPLICABLE";
+      verification_exception_status: "OPEN" | "RESOLVED" | "ACCEPTED_LIMITATION";
+      verification_source_class:
+        | "LEGAL_OFFICIAL_REQUIREMENT"
+        | "OFFICIAL_ADMINISTRATIVE_PRACTICE"
+        | "PROFESSIONAL_DUE_DILIGENCE"
+        | "URBANEDGE_OPERATIONAL_POLICY";
       verification_status:
         | "NOT_STARTED"
         | "IN_REVIEW"
@@ -5048,6 +5611,14 @@ export const Constants = {
         "OTHER",
       ],
       document_scan_status: ["PENDING", "CLEAN", "INFECTED", "FAILED"],
+      evidence_provenance_state: [
+        "RECEIVED",
+        "REVIEWED",
+        "SOURCE_VERIFIED",
+        "PROFESSIONALLY_REVIEWED",
+        "SUPERSEDED",
+        "REVOKED",
+      ],
       guide_status: ["DRAFT", "REVIEW", "PUBLISHED", "UNPUBLISHED", "ARCHIVED"],
       land_category: ["AGRICULTURAL", "NA", "INDUSTRIAL"],
       lead_activity_type: [
@@ -5125,6 +5696,17 @@ export const Constants = {
         "OTHER",
       ],
       price_mode: ["PRICE_ON_REQUEST", "EXACT_TOTAL", "PRICE_RANGE", "PER_UNIT"],
+      professional_review_status: [
+        "NOT_REQUIRED",
+        "REQUESTED",
+        "MATERIALS_PENDING",
+        "IN_REVIEW",
+        "COMPLETED",
+        "PARTIALLY_COMPLETED",
+        "REQUIRES_MORE_INFORMATION",
+        "SUPERSEDED",
+        "REQUIRES_REVIEW",
+      ],
       property_availability_status: [
         "AVAILABLE",
         "UNDER_NEGOTIATION",
@@ -5150,6 +5732,7 @@ export const Constants = {
         "UNPUBLISHED",
         "ARCHIVED",
       ],
+      public_copy_approval_status: ["DRAFT", "APPROVED", "RETIRED"],
       record_visibility: ["PUBLIC", "ADMIN_ONLY", "PRIVATE"],
       risk_level: ["NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL"],
       seo_page_status: ["DRAFT", "REVIEW", "PUBLISHED", "NOINDEX", "ARCHIVED"],
@@ -5165,6 +5748,14 @@ export const Constants = {
         "RESCHEDULED",
       ],
       transaction_type: ["BUY", "RENT", "LEASE"],
+      verification_applicability: ["UNDETERMINED", "APPLICABLE", "NOT_APPLICABLE"],
+      verification_exception_status: ["OPEN", "RESOLVED", "ACCEPTED_LIMITATION"],
+      verification_source_class: [
+        "LEGAL_OFFICIAL_REQUIREMENT",
+        "OFFICIAL_ADMINISTRATIVE_PRACTICE",
+        "PROFESSIONAL_DUE_DILIGENCE",
+        "URBANEDGE_OPERATIONAL_POLICY",
+      ],
       verification_status: [
         "NOT_STARTED",
         "IN_REVIEW",

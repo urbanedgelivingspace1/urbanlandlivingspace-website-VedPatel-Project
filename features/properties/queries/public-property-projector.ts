@@ -5,6 +5,7 @@ import type {
   PublicVerificationSummaryDto,
 } from "@/features/properties/domain/contracts";
 import { projectPublicLocation } from "@/lib/privacy/public-location";
+import { assertSafePublicVerificationCopy } from "@/features/verification/domain/verification-policy";
 import type {
   PublicMediaRow,
   PublicPropertyDetailRow,
@@ -96,14 +97,26 @@ export function projectPublicMedia(row: PublicMediaRow): PublicMediaDto {
 export function projectPublicVerification(
   row: PublicVerificationSummaryRow,
 ): PublicVerificationSummaryDto {
-  if (!row.label) throw new Error("A public verification requires an approved label.");
+  if (!row.label || !row.public_status || !row.scope || !row.limitation) {
+    throw new Error("A public verification requires approved, scoped, limited copy.");
+  }
+  const safe = assertSafePublicVerificationCopy({
+    label: row.label,
+    explanation: row.explanation ?? "",
+    scope: row.scope,
+    limitation: row.limitation,
+    sourceClass: row.source_class,
+  });
   return {
     code: row.check_code,
-    label: row.label,
-    explanation: row.explanation,
-    status: row.status,
+    label: safe.label,
+    explanation: safe.explanation,
+    status: row.public_status,
     reviewedAt: row.reviewed_at,
-    recheckAt: row.recheck_at,
+    checkDate: row.check_date,
+    scope: safe.scope,
+    limitation: safe.limitation,
+    sourceClass: safe.sourceClass,
   };
 }
 

@@ -95,7 +95,7 @@ insert into public.verification_evidence (
 ) values (
   '48000000-0000-4000-8000-000000000001',
   '47000000-0000-4000-8000-000000000001',
-  '45000000-0000-4000-8000-000000000001', 'SYNTHETIC_TEST', 'INTERNAL_NOTE_CANARY'
+  '45000000-0000-4000-8000-000000000001', 'OTHER_RECORDED_OBSERVATION', 'INTERNAL_NOTE_CANARY'
 );
 insert into public.app_settings (
   id, key, label, value_type, text_value, is_public, is_secret_reference
@@ -111,8 +111,8 @@ insert into public.app_settings (
 
 select is(
   (select count(*)::integer from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r' and c.relrowsecurity),
-  49,
-  'RLS is enabled on all 49 application tables'
+  53,
+  'RLS is enabled on all 53 M8 application tables'
 );
 select ok(not (select rolcanlogin from pg_roles where rolname = 'urbanedge_public_projection'), 'projection owner cannot log in');
 select ok(not (select rolbypassrls from pg_roles where rolname = 'urbanedge_public_projection'), 'projection owner cannot bypass RLS');
@@ -189,8 +189,8 @@ reset role;
 
 select is(
   (select count(distinct tablename)::integer from pg_policies where schemaname = 'public' and policyname = 'active_admin_select'),
-  49,
-  'every application table has the active-admin read policy'
+  53,
+  'every M8 application table has the active-admin read policy'
 );
 
 select * from finish();

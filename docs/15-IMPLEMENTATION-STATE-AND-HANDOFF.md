@@ -9,13 +9,13 @@ This is the live record of what has actually happened. Update it after every mea
 | Project | UrbanEdge Land Space |
 | Repository | `/Users/vedpatel/Desktop/UrbanLand_website` |
 | Current branch | `main` |
-| Latest relevant commit | M7 completion commit `3a96f731122c613f01ee1128db5b737d1f2b2c6b`; this handoff metadata is the following `HEAD` commit |
-| Working tree | CLEAN after the handoff metadata commit |
-| Current milestone | M7 — Media, Public Storage and Private Document Storage |
+| Latest relevant commit | M8 completion commit recorded by the following handoff metadata commit |
+| Working tree | CLEAN after the M8 handoff metadata commit |
+| Current milestone | M8 — Verification Workflow and Verification Admin |
 | Current milestone status | COMPLETE |
-| Last completed milestone | M7 — Media, Public Storage and Private Document Storage |
-| Next milestone | M8 — Verification Workflow and Verification Admin (not begun) |
-| Last updated | 2026-09-03 22:10:00 IST |
+| Last completed milestone | M8 — Verification Workflow and Verification Admin |
+| Next milestone | M9 — Publication Gate and Public Projection Freeze (not begun) |
+| Last updated | 2026-09-04 IST |
 | Last updating agent | Codex |
 
 ## 2. Source-of-Truth Documents
@@ -66,6 +66,7 @@ Accepted ADR:
 - `docs/adr/0001-separate-site-visit-lifecycle-from-follow-up.md` supersedes document `05` only where it treats `FOLLOW_UP_REQUIRED` as a visit status. It retains document `03`'s eight visit states and uses CRM follow-up state instead.
 - Full master-prompt review confirms ADR-0001 remains compatible: the master contains no `FOLLOW_UP_REQUIRED` visit state and uses `SCHEDULED` as a high-level lifecycle phase, which document `03` refines into `PROPOSED`, `CONFIRMED` and `RESCHEDULED`.
 - `docs/adr/0002-hosted-and-external-media-locators.md` is accepted for M7. It preserves one `media_assets` registry while resolving hosted-object requirements versus mandatory external video/drone/360 locators through mutually exclusive constrained fields.
+- `docs/adr/0003-verification-provenance-and-professional-review.md` is accepted for M8. It persists evidence provenance, professional review, exceptions, applicability, history and lawyer-approved public copy as separate typed concepts.
 
 Resolved source limitation:
 
@@ -87,7 +88,7 @@ The design report governs Living Space brand/design reference only. It does not 
 | M5 Admin Authentication and Admin Shell | COMPLETE | 2026-09-03 | 2026-09-03 | Local Auth E2E, active/inactive/non-admin denial, reusable authorization, protected dashboard, logout/session clearing, mobile shell and accessibility pass |
 | M6 Property Domain Services and Admin Property CRUD | COMPLETE | 2026-09-03 | 2026-09-03 | Transactional draft services and protected list/detail/create/edit UX pass all database, unit, integration, component, E2E, security and build checks; publication remains blocked |
 | M7 Media, Public Storage and Private Document Storage | COMPLETE | 2026-09-03 | 2026-09-03 | Five-bucket boundary, normalized/approved media, private documents, signed access, audits, quota controls and protected admin UX pass complete local qualification |
-| M8 Verification Workflow and Verification Admin | NOT_STARTED | — | — | Evidence/professional-review persistence decisions tracked for this milestone |
+| M8 Verification Workflow and Verification Admin | COMPLETE | 2026-09-04 | 2026-09-04 | Configurable scoped checks, typed provenance, professional referrals, exceptions, history, public-safe disclosure gate and protected admin workflow pass complete local qualification |
 | M9 Publication Gate and Public Projection Freeze | NOT_STARTED | — | — | — |
 | M10 Public Property Experience | NOT_STARTED | — | — | — |
 | M11 PostgreSQL Search and URL-State Discovery | NOT_STARTED | — | — | — |
@@ -102,32 +103,32 @@ The design report governs Living Space brand/design reference only. It does not 
 
 ## 4. Current Work
 
-Objective: preserve the completed M7 checkpoint. M8 has not begun. The next task may start M8 only after reading this handoff and resolving the two existing M8 verification persistence decision gates.
+Objective: preserve the completed M8 checkpoint. M9 has not begun. Publication remains disabled and no public verification wording is approved.
 
 Relevant sources:
 
 - owner's implementation brief;
 - embedded master prompt and finalized architecture;
-- `12-IMPLEMENTATION-ROADMAP.md`, M7;
-- database/backend/security/media contracts in documents `03`, `04`, `08` and `09`;
-- ADR-0002's mutually exclusive hosted/external media locator contract;
+- `12-IMPLEMENTATION-ROADMAP.md`, M8;
+- database/backend/verification/security contracts in documents `03`, `04`, `06`, `08`, `11` and `13`;
+- ADR-0003's typed provenance and professional-review contract;
 - ADR-0001's unchanged eight-value `site_visit_status` contract;
 - `docs/architecture/IMPLEMENTATION-LEDGER.md`.
 
-Principal M7 files:
+Principal M8 files:
 
-- `supabase/migrations/20260903070000_media_private_storage.sql`
-- `server/services/property-media.ts` and `server/storage/*`
-- `features/media/domain/contracts.ts`
-- `components/admin/property-media-manager.tsx` and `components/media/safe-external-media.tsx`
-- `/admin/properties/[id]/media`, `/admin/media` and the private-document download handler
-- M7 database, unit, integration, component and E2E test files
+- `supabase/migrations/20260903080000_verification_workflow.sql`
+- `server/services/verifications.ts`
+- `features/verification/domain/*`
+- `components/admin/verification-workspace.tsx`
+- `/admin/verification`, `/admin/verification/queue`, `/admin/verification/[propertyId]` and the property-detail verification alias
+- M8 database, unit, integration, component and E2E test files
 - `docs/architecture/IMPLEMENTATION-LEDGER.md`
 - this handoff file.
 
-Dependencies/blockers: M7 is complete against the isolated local Supabase stack on ports `55320`–`55327`. No production database/storage operation is authorized. M8 remains NOT_STARTED; its evidence-provenance and professional-review persistence decisions remain the next architecture gates.
+Dependencies/blockers: M8 is complete against the isolated local Supabase stack on ports `55320`–`55327`. No production database/storage operation is authorized. M9 remains NOT_STARTED. Lawyer approval for any public verification copy remains an explicit owner gate; the seed approves none.
 
-Required M7 checks: bucket separation, server-owned validation/paths, explicit immutable promotion, ordering/cover/archive, private authorization and short-lived signing, EXIF/PII/path isolation, provider allowlists, duplicate/count/quota controls, audit and public projection exclusion. All pass locally.
+Required M8 checks: category/transaction-aware initialization, applicability, evidence provenance and currentness, professional referrals, exception resolution, rechecks, actor attribution, public-copy safety, private-data exclusion, RLS/RPC denial and continued publication blocking. All pass locally.
 
 ## 5. Completed Implementation
 
@@ -137,7 +138,7 @@ Next.js 16 App Router, React 19, strict TypeScript, Tailwind 4, shadcn configura
 
 ### Database
 
-Seven ordered migrations implement all 49 approved application tables, 26 enum types including M7 processing/scan states, UUID keys, immutable sequence-backed references, foreign keys, checks, partial uniqueness, typed-value/category/audit triggers, updated timestamps, public-safe views, RLS/grants, M6 draft transactions and M7 media/document transactions. `supabase/seed.sql` contains only repeatable India/Gujarat/service-district/unit/reference conversions. Applied and tested only in disposable local Supabase; never applied to production.
+Eight ordered migrations implement 53 application tables and 32 enum types, including the M8 verification policy, provenance, applicability, professional-review, exception and public-copy states. The schema retains UUID keys, immutable sequence-backed references, foreign keys, checks, partial uniqueness, typed-value/category/audit triggers, updated timestamps, public-safe views and service-role-only domain transactions. `supabase/seed.sql` contains only repeatable India/Gujarat/service-district/unit/reference conversions. Applied and tested only in disposable local Supabase; never applied to production.
 
 ### Server contracts
 
@@ -145,7 +146,7 @@ Separate public/admin DTOs, typed Supabase view rows, public property/reference 
 
 ### RLS
 
-All 49 application tables have RLS. Authenticated browser identities receive database-profile-gated read access only; business writes remain server-owned. Ten explicit public views are owned by a `NOLOGIN`, `NOBYPASSRLS` projection role and granted to anonymous/authenticated actors. Anonymous direct business-table writes and all client audit mutation are denied. `write_audit_log` and M6's service-role-only transactions are the trusted audit-writing paths.
+All 53 application tables have RLS. Authenticated browser identities receive database-profile-gated read access only; business writes remain server-owned. Ten explicit public views are owned by a `NOLOGIN`, `NOBYPASSRLS` projection role and granted to anonymous/authenticated actors. Anonymous direct business-table writes and all client audit mutation are denied. `write_audit_log` and service-role-only domain transactions are the trusted mutation/audit paths.
 
 ### Admin Authentication
 
@@ -169,7 +170,11 @@ YouTube/Vimeo video, drone video and Matterport 360 use canonical allowlisted HT
 
 ### Verification
 
-Not implemented.
+M8 verification is complete. Twenty-seven configurable definitions cover ten common, six Agricultural, five NA and six Industrial/GIDC checks, with category/transaction applicability and required/conditional policy. Per-property rows preserve applicability separately from review status and support explicit scope, limitation, risk, recheck and disclosure eligibility.
+
+Evidence links carry typed source class and provenance from `RECEIVED` through review/source/professional verification, plus supersession/revocation. Clean private-file handling is necessary but never treated as authenticity. Open exceptions and required professional referrals block completion or disclosure until resolved. Professional reviews preserve type, scope, reviewer attribution, materials, dates and outcome; every material transition appends history and an actor-attributed verification audit.
+
+The protected queue/workspace supports initialization, applicability decisions, source/evidence linking, provenance advancement, exceptions, lawyer/surveyor referrals, status transitions, rechecks and disclosure review. Public output exposes only scoped, limited, current, eligible passed results backed by approved copy. No public copy is approved by seed, no universal verified score/flag exists, and publication remains unavailable until M9.
 
 ### Public Website
 
@@ -201,7 +206,7 @@ M1 foundation security is implemented: server environment access is marked `serv
 
 ### Testing
 
-The complete current local suite passes: 187 pgTAP assertions, the 24-worker Property ID concurrency test, 46 Vitest unit tests, 7 component tests, 12 guarded application integration tests and 15 guarded Chromium E2E scenarios. Lint, Prettier verification, strict typecheck, server-boundary scan, secret scan, database lint and the webpack production build also pass. M7 coverage includes file signatures/spoofing/size, EXIF and contact/location leakage, immutable paths and promotion, duplicate/count constraints, cover/order/archive, hosted/external projections, private actor/path/bucket mutation denial, signed authorization/path swap/expiry, scan states, audit privacy and blocked publication.
+The complete current local suite passes: 238 pgTAP assertions, the 24-worker Property ID concurrency test, 62 Vitest unit tests, 9 component tests, 16 guarded application integration tests and 17 guarded Chromium E2E scenarios. Lint, Prettier verification, strict typecheck, six-client server-boundary scan, secret scan, database lint and the Next.js 16 webpack production build also pass. M8 coverage includes definition/category selection, applicability, evidence provenance/currentness, invalid transitions, professional-review and exception gates, history/audit attribution, public-copy safety and privacy, anonymous/non-admin denial, and continued publication blocking.
 
 ### Deployment Preparation
 
@@ -247,34 +252,36 @@ docs/
                                             accepted site-visit/CRM decision
     0002-hosted-and-external-media-locators.md
                                             accepted hosted/external media decision
+    0003-verification-provenance-and-professional-review.md
+                                            accepted scoped verification persistence decision
   runbooks/
     README.md                               runbook scope and production guardrails
 ```
 
-There is no `.openai/hosting.json`; no hosting/deployment is configured. The approved Living Space logo reference is present, while the old reference-app source is intentionally unavailable. Git is on `main`. The `.gitignore` excludes secrets, environment files, dependencies, generated output, local Supabase runtime and provider state. M0–M7 are complete; M8 has not begun.
+There is no `.openai/hosting.json`; no hosting/deployment is configured. The approved Living Space logo reference is present, while the old reference-app source is intentionally unavailable. Git is on `main`. The `.gitignore` excludes secrets, environment files, dependencies, generated output, local Supabase runtime and provider state. M0–M8 are complete; M9 has not begun.
 
 ## 7. Database State
 
 | Item | Actual state |
 |---|---|
-| Migration files | Seven ordered migrations through `20260903070000_media_private_storage.sql` |
-| Tables created | 49 authoritative V1 application tables |
-| Enums created | 26 enum types; ADR-0001 eight-value `site_visit_status`, no `FOLLOW_UP_REQUIRED`; `media_processing_status` and `document_scan_status` added by M7 |
-| Functions/triggers | Prior generators/integrity/draft functions plus service-only media register/metadata/reorder/cover/approve/archive/restore and private-document register/archive/access-audit functions |
+| Migration files | Eight ordered migrations through `20260903080000_verification_workflow.sql` |
+| Tables created | 53 application tables: the authoritative 49 plus four typed M8 workflow/policy tables approved by ADR-0003 |
+| Enums created | 32 enum types; six M8 types cover source class, provenance, applicability, professional review, exceptions and public-copy approval |
+| Functions/triggers | Prior generators/integrity/draft/media functions plus service-only verification initialization, applicability, evidence, transition, exception, professional-review, source and disclosure functions |
 | Views/public projections | 10 whitelisted views: property listing/detail/media/verifications, geography, area units, settings, guide categories/guides and SEO pages |
 | Indexes | Baseline publication/geography/offers/media/CRM/visit/verification/content/audit indexes |
 | Storage buckets | Five local migration-controlled buckets: two intentional public buckets and three private buckets; no browser object mutation/list policies |
-| RLS policies | Enabled on all 49 tables; active-admin read policy on each plus narrowly scoped projection-owner policies |
+| RLS policies | Enabled on all 53 tables; active-admin read policy on each plus narrowly scoped projection-owner policies |
 | Seed data | Safe repeatable India, Gujarat, Ahmedabad/Gandhinagar, 9 units and 5 non-local standard conversions |
 | Local database | Running isolated Supabase project `urbanedge-land-space-local` on `55320`–`55327` |
 | Development/staging application | Nothing applied |
 | Production | Nothing applied; no production operation authorized |
 
-The 49-table inventory, 26 enum types, seven-migration order, ten explicit public-safe projections, five-bucket boundary, RLS grants and M6/M7 service transactions are implemented and validated locally.
+The 53-table inventory, 32 enum types, eight-migration order, ten explicit public-safe projections, five-bucket boundary, RLS grants and M6–M8 service transactions are implemented and validated locally.
 
 ## 8. RLS / Security State
 
-Database integrity, server module boundaries, RLS, grants and privacy projections are implemented and tested locally. Browser roles cannot write business tables, execute M6/M7 mutation RPCs, list private objects, upload to any controlled bucket or change bucket visibility. Every property/media Server Action reauthorizes with `requireActiveAdmin()` before privileged work. Private signing additionally checks the active, clean, non-archived document and active property, then audits the resource ID/purpose without paths or URL. Anonymous/non-admin path guesses fail; unpublished media, private documents, exact coordinates, EXIF and owner contact data remain outside public outputs.
+Database integrity, server module boundaries, RLS, grants and privacy projections are implemented and tested locally. Browser roles cannot write business tables, execute M6–M8 mutation RPCs, list private objects, upload to any controlled bucket or change bucket visibility. Every property, media and verification Server Action reauthorizes with `requireActiveAdmin()` before privileged work. Verification RPCs repeat the active-admin check and are executable only by `service_role`. Private signing additionally checks the active, clean, non-archived document and active property, then audits the resource ID/purpose without paths or URL. Anonymous/non-admin path guesses fail; unpublished media, private evidence/documents, source details, exact coordinates, EXIF and owner contact data remain outside public outputs.
 
 ## 9. Routes Implemented
 
@@ -297,6 +304,10 @@ Database integrity, server module boundaries, RLS, grants and privacy projection
 | `/admin/properties/[id]` | COMPLETE / TESTED | Protected detail, M9 publication placeholder and controlled state actions |
 | `/admin/properties/[id]/edit` | COMPLETE / TESTED | Shared/category-specific edit with optimistic concurrency and audited exact-location access |
 | `/admin/properties/[id]/media` | COMPLETE / TESTED | Protected staging, media metadata/order/cover/approval/archive and private-document workflow |
+| `/admin/properties/[id]/verification` | COMPLETE / TESTED | Protected alias into the property verification workspace |
+| `/admin/verification` | COMPLETE / TESTED | Protected verification overview and queue entry point |
+| `/admin/verification/queue` | COMPLETE / TESTED | Protected risk/review/recheck work queue |
+| `/admin/verification/[propertyId]` | COMPLETE / TESTED | Protected scoped-check, evidence, exception, referral, history and disclosure workflow |
 | `/admin/media` | COMPLETE / TESTED | Protected global registry, failed/unused candidates and configured storage-budget status |
 | `/api/admin/private-documents/[id]/download` | COMPLETE / TESTED | Active-admin-only late-bound temporary signed redirect; generic denial and no-store response |
 | Other canonical admin routes | NOT_STARTED | Implemented only in their domain milestones |
@@ -422,12 +433,20 @@ The environment schema and `.env.example` contain names only. Never store actual
 | Complete guarded local E2E | PASS | 2026-09-03 | 15 Chromium scenarios cover all prior auth/property behavior plus M7 staged/public media, EXIF upload, private evidence/access, anonymous denial and continued draft status |
 | M7 application QA/build | PASS | 2026-09-03 | Lint, Prettier, strict typecheck, five-client boundary scan, 177-file secret scan and Next.js 16 webpack production build all pass; M7 routes compile dynamically |
 | Property-code concurrency regression | PASS | 2026-09-03 | 24 parallel inserts still produce 24 distinct immutable canonical Property IDs after M7 |
+| M8 clean database rebuild | PASS | 2026-09-04 | All eight migrations and repeatable seed apply from zero in isolated local Supabase |
+| M8 database/RLS suite | PASS | 2026-09-04 | 6 files / 238 pgTAP assertions cover prior contracts plus typed verification workflow, transitions, evidence, referrals, exceptions, history, public projection and actor denial |
+| M8 database lint | PASS | 2026-09-04 | `supabase db lint --level warning` reports no schema errors or warnings |
+| M8 guarded integration suite | PASS | 2026-09-04 | 4 files / 16 tests cover real service initialization, evidence/provenance, invalid transitions, review gates, disclosure and prior storage/property behavior |
+| M8 unit/component suite | PASS | 2026-09-04 | 11 files / 62 unit tests and 6 files / 9 component tests cover selection policy, evidence eligibility, safe copy, DTO isolation and protected workspace states |
+| Complete guarded local E2E | PASS | 2026-09-04 | 17 Chromium scenarios cover all prior workflows plus M8 initialization, scoped evidence/review flow, invalid transition, anonymous/non-admin denial and continued draft status |
+| M8 application QA/build | PASS | 2026-09-04 | Lint, Prettier, strict typecheck, six-client boundary scan, secret scan and Next.js 16 webpack production build pass; all verification routes compile dynamically |
+| Property-code concurrency regression | PASS | 2026-09-04 | 24 parallel inserts still produce 24 distinct immutable canonical Property IDs after M8 |
 
 ## 14. Known Issues
 
 ### Blocking
 
-None. Every M7 completion criterion passes locally; M8 has not begun.
+None. Every M8 completion criterion passes locally; M9 has not begun.
 
 ### Important
 
@@ -442,8 +461,6 @@ None. Every M7 completion criterion passes locally; M8 has not begun.
 ### Deferred / Future
 
 1. Persistent SEO redirect history decision in M16.
-2. Verification evidence-provenance persistence decision in M8.
-3. Professional-review lifecycle persistence decision in M8.
 
 ## 15. Architecture Decisions Made During Coding
 
@@ -451,8 +468,9 @@ None. Every M7 completion criterion passes locally; M8 has not begun.
 |---|---|---|---|
 | `ADR-0001` | Keep site-visit lifecycle separate from CRM follow-up; do not add `FOLLOW_UP_REQUIRED` to `site_visit_status` | A completed visit can simultaneously require follow-up; visit outcome and operational work are independent | Database enum, visit service, CRM follow-up, admin derived views, tests |
 | `ADR-0002` | Keep one media registry with mutually exclusive hosted-object and canonical external-provider locators | Required video/drone/360 URLs cannot truthfully satisfy document `03`'s non-null Storage columns; fake objects or duplicate tables would violate the media architecture | `media_assets`, migration, public DTO/projection, storage service, safe embeds, tests |
+| `ADR-0003` | Persist evidence provenance, applicability, exceptions, professional review, history and public-copy approval as separate typed verification concepts | Notes and generic pass counts cannot preserve scope, currentness, attribution or safe public-claim gates | Verification schema/RPCs, service, admin workflow, public projection and tests |
 
-No M6 ADR was required. M7 required ADR-0002; its additive migration preserves the existing registry and introduces no duplicate business model. Production migration, bucket creation and malware-provider activation remain unperformed approval gates.
+M8 required ADR-0003; its additive migration resolves both deferred verification persistence gates without a property-level verified flag or universal score. Production migration, bucket creation, malware-provider activation, lawyer copy approval and publication remain unperformed approval gates.
 
 The non-ADR M0 reconciliation decisions are recorded in `docs/DECISIONS.md`: later finalized documents refine master examples where the master describes them as recommendations/high-level guidance; the owner-designated design report is the authoritative Living Space brand/design reference; the approved Living Space logo is a reference asset rather than an automatically relabeled Land Space logo; missing photography may use only clearly marked development placeholders tracked for replacement.
 
@@ -501,13 +519,13 @@ Do not invent production values or fabricate property/geography records to popul
 
 ## 19. Exact Next Actions
 
-1. Preserve the clean M7 checkpoint and do not add publication behavior before M9.
-2. Before M8, read the M8 roadmap section and verification documents `03`, `04`, `06`, `08`, `11` and `13` in full.
-3. Resolve the existing evidence-provenance and professional-review persistence gates through explicit ADR(s) before dependent verification behavior.
+1. Preserve the clean M8 checkpoint and do not add publication behavior outside M9's explicit gate.
+2. Before M9, read the M9 roadmap and publication/public-projection requirements, plus ADR-0003's disclosure restrictions.
+3. Keep all verification public copy disabled until wording receives the recorded lawyer approval required by its policy row.
 4. Configure and validate an approved malware-scanning provider before any preview/production private upload is trusted; current remote behavior fails closed as `PENDING` when none is configured.
 
 ## 20. Resume Instructions For The Next Coding Agent
 
-> You are continuing an existing UrbanEdge Land Space implementation after M7. M0–M7 are complete and M8 has not begun. Read this file, `docs/architecture/IMPLEMENTATION-LEDGER.md`, ADR-0001, ADR-0002, the M8 section of `12-IMPLEMENTATION-ROADMAP.md`, and documents `03`, `04`, `06`, `08`, `11` and `13` before any M8 work. The local database is disposable and isolated; production remains untouched. Preserve the server-owned media/private-document boundary and keep publication blocked until M9.
+> You are continuing an existing UrbanEdge Land Space implementation after M8. M0–M8 are complete and M9 has not begun. Read this file, `docs/architecture/IMPLEMENTATION-LEDGER.md`, ADR-0001 through ADR-0003 and the M9 publication/public-projection sources before any M9 work. The local database is disposable and isolated; production remains untouched. Preserve the server-owned media/private-document/verification boundary, the scoped public-copy gate and the disabled publication state until M9 is deliberately implemented.
 
 Special warning: owner submissions must never auto-publish, site-visit requests must never auto-confirm, and no public payload may contain owner PII, private documents/evidence/internal notes, unpublished inventory or exact coordinates for approximate/hidden listings.

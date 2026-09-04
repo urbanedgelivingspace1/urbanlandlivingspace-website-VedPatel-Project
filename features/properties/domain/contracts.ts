@@ -4,7 +4,6 @@ import type {
   LocationVisibility,
   PriceMode,
   TransactionType,
-  VerificationStatus,
 } from "@/types/database";
 
 export type PublicLocationDto = Readonly<{
@@ -58,9 +57,16 @@ export type PublicVerificationSummaryDto = Readonly<{
   code: string;
   label: string;
   explanation: string | null;
-  status: VerificationStatus;
+  status: "COMPLETED" | "COMPLETED_WITH_NOTE";
   reviewedAt: string | null;
-  recheckAt: string | null;
+  checkDate: string | null;
+  scope: string;
+  limitation: string;
+  sourceClass:
+    | "LEGAL_OFFICIAL_REQUIREMENT"
+    | "OFFICIAL_ADMINISTRATIVE_PRACTICE"
+    | "PROFESSIONAL_DUE_DILIGENCE"
+    | "URBANEDGE_OPERATIONAL_POLICY";
 }>;
 
 export type PublicPropertyDetailDto = PublicPropertyCardDto &

@@ -43,6 +43,12 @@ export default async function AdminPropertyDetailPage({
           >
             Manage media
           </Link>
+          <Link
+            href={`/admin/properties/${id}/verification`}
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold"
+          >
+            Verification
+          </Link>
           {row.publication_status === "DRAFT" ? (
             <Link
               href={`/admin/properties/${id}/edit`}
@@ -71,7 +77,9 @@ export default async function AdminPropertyDetailPage({
         <Metric
           label="Verification"
           value={
-            property.verificationCount ? `${property.verificationCount} checks` : "Not started (M8)"
+            property.verificationCount
+              ? `${property.verificationCount} scoped checks`
+              : "Not started"
           }
         />
       </section>

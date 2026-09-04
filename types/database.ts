@@ -6,7 +6,7 @@ export type LocationVisibility = "EXACT" | "APPROXIMATE" | "HIDDEN";
 export type AvailabilityStatus =
   "AVAILABLE" | "UNDER_NEGOTIATION" | "SOLD" | "RENTED" | "LEASED" | "OFF_MARKET";
 export type PriceMode = "PRICE_ON_REQUEST" | "EXACT_TOTAL" | "PRICE_RANGE" | "PER_UNIT";
-export type VerificationStatus = "PASSED" | "PASSED_WITH_NOTE";
+export type PublicVerificationStatus = "COMPLETED" | "COMPLETED_WITH_NOTE";
 export type AuditAction =
   | "CREATE"
   | "UPDATE"
@@ -102,9 +102,16 @@ export type PublicVerificationSummaryRow = Readonly<{
   check_code: string;
   label: string | null;
   explanation: string | null;
-  status: VerificationStatus;
+  public_status: PublicVerificationStatus | null;
   reviewed_at: string | null;
-  recheck_at: string | null;
+  check_date: string | null;
+  scope: string | null;
+  limitation: string | null;
+  source_class:
+    | "LEGAL_OFFICIAL_REQUIREMENT"
+    | "OFFICIAL_ADMINISTRATIVE_PRACTICE"
+    | "PROFESSIONAL_DUE_DILIGENCE"
+    | "URBANEDGE_OPERATIONAL_POLICY";
 }>;
 
 export type PublicGeographyOptionRow = Readonly<{

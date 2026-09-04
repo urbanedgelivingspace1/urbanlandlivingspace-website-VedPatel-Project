@@ -7,13 +7,13 @@ select plan(38);
 
 select is(
   (select count(*)::integer from pg_tables where schemaname = 'public'),
-  49,
-  'authoritative public table inventory contains 49 tables'
+  53,
+  'authoritative public table inventory contains 49 base plus 4 M8 workflow tables'
 );
 select is(
   (select count(*)::integer from pg_type t join pg_namespace n on n.oid = t.typnamespace where n.nspname = 'public' and t.typtype = 'e'),
-  26,
-  'authoritative enum inventory contains 24 base plus 2 M7 workflow enums'
+  32,
+  'authoritative enum inventory contains 24 base plus 2 M7 and 6 M8 workflow enums'
 );
 select is(
   (select count(*)::integer from pg_enum e join pg_type t on t.oid = e.enumtypid where t.typname = 'site_visit_status' and e.enumlabel = 'FOLLOW_UP_REQUIRED'),

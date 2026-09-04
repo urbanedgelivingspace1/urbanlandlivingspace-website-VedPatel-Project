@@ -28,6 +28,17 @@ select is(
   'property projections expose no forbidden private/admin columns'
 );
 
+insert into auth.users (
+  id, instance_id, aud, role, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+) values (
+  '39000000-0000-4000-8000-000000000001', '00000000-0000-0000-0000-000000000000',
+  'authenticated', 'authenticated', 'm3-projection-reviewer@example.invalid', '', now(),
+  '{"provider":"email","providers":["email"]}', '{}', now(), now()
+);
+insert into public.admin_profiles(user_id,display_name,is_active)
+values ('39000000-0000-4000-8000-000000000001','Synthetic projection reviewer',true);
+
 insert into public.properties (
   id, public_slug, land_category, primary_transaction_type, publication_status,
   listing_title, short_description, description, district_id, display_area_value,
@@ -64,12 +75,12 @@ values (
   '31000000-0000-4000-8000-000000000001', 'OWNER', true, 'INTERNAL_NOTE_CANARY'
 );
 insert into public.private_documents (
-  id, property_id, party_id, document_type, storage_bucket, object_path, mime_type, notes_internal
+  id, property_id, party_id, document_type, storage_bucket, object_path, mime_type, notes_internal, scan_status
 ) values (
   '32000000-0000-4000-8000-000000000001',
   '30000000-0000-4000-8000-000000000001',
   '31000000-0000-4000-8000-000000000001', 'SYNTHETIC_TEST', 'verification-documents-private',
-  'PRIVATE_DOC_PATH_CANARY', 'application/pdf', 'INTERNAL_NOTE_CANARY'
+  'PRIVATE_DOC_PATH_CANARY', 'application/pdf', 'INTERNAL_NOTE_CANARY', 'CLEAN'
 );
 
 insert into public.property_offers (
@@ -103,19 +114,33 @@ insert into public.verification_check_definitions (
 );
 insert into public.property_verifications (
   id, property_id, check_definition_id, status, public_visible, reviewed_at,
-  reviewer_notes_internal
+  reviewer_notes_internal, applicability, scope_statement, reviewed_by, check_date,
+  public_disclosure_eligible
 ) values (
   '35000000-0000-4000-8000-000000000001',
   '30000000-0000-4000-8000-000000000001',
   '34000000-0000-4000-8000-000000000001', 'PASSED', true, now(),
-  'INTERNAL_NOTE_CANARY'
+  'INTERNAL_NOTE_CANARY', 'APPLICABLE',
+  'Synthetic parcel reference checked for the public projection regression fixture.',
+  '39000000-0000-4000-8000-000000000001', current_date, true
 );
 insert into public.verification_evidence (
   property_verification_id, private_document_id, evidence_type, evidence_notes_internal
 ) values (
   '35000000-0000-4000-8000-000000000001',
-  '32000000-0000-4000-8000-000000000001', 'SYNTHETIC_TEST', 'INTERNAL_NOTE_CANARY'
+  '32000000-0000-4000-8000-000000000001', 'OTHER_RECORDED_OBSERVATION', 'INTERNAL_NOTE_CANARY'
 );
+insert into public.verification_public_copy_policies(
+  id,check_definition_id,version,label,explanation_template,limitation_template,
+  approval_status,approved_by,approved_at,created_by
+) values (
+  '38000000-0000-4000-8000-000000000001','34000000-0000-4000-8000-000000000001',1,
+  'Information reviewed','The named synthetic reference was checked for the recorded scope.',
+  'This is not a title, boundary, permission, or legal-clearance conclusion.','APPROVED',
+  '39000000-0000-4000-8000-000000000001',now(),'39000000-0000-4000-8000-000000000001'
+);
+update public.property_verifications set public_copy_policy_id='38000000-0000-4000-8000-000000000001'
+where id='35000000-0000-4000-8000-000000000001';
 
 insert into public.app_settings (
   id, key, label, value_type, text_value, is_public, is_secret_reference

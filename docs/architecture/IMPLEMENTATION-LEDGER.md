@@ -1,8 +1,8 @@
 # UrbanEdge Land Space V1 — Implementation Ledger
 
-**Ledger status:** M0–M7 COMPLETE; controlled media, public Storage promotion and private-document access are reconciled and validated.
+**Ledger status:** M0–M8 COMPLETE; scoped verification, evidence provenance, professional review and safe disclosure are reconciled and validated.
 
-**Last reconciled:** 3 September 2026 (M7: five-bucket Storage boundary, validated/normalized media, immutable public promotion, private signed access, audit and protected admin UX pass the complete local regression suite)
+**Last reconciled:** 4 September 2026 (M8: configurable category workflows, evidence/currentness, professional referrals, exceptions, history, RLS, safe public projection and protected admin UX pass the complete local regression suite)
 
 This ledger is the single implementation-facing map required by `12-IMPLEMENTATION-ROADMAP.md`. It does not replace the source documents. When this ledger conflicts with a source, the source hierarchy in the owner's build brief applies.
 
@@ -54,6 +54,7 @@ Accepted implementation decision:
 - `docs/adr/0001-separate-site-visit-lifecycle-from-follow-up.md` supersedes only document `05`'s treatment of `FOLLOW_UP_REQUIRED` as a visit lifecycle state. It preserves document `03`'s eight-value database enum and represents follow-up in CRM.
 - ADR-0001 remains compatible with the master prompt: the prompt uses the simplified lifecycle labels `REQUESTED`, `CONTACTED`, `SCHEDULED`, `COMPLETED`, `CANCELLED`, `NO_SHOW`, does not define `FOLLOW_UP_REQUIRED`, and leaves detailed scheduling persistence to the later finalized architecture. Document `03` refines the conceptual `SCHEDULED` phase into `PROPOSED`, `CONFIRMED` and `RESCHEDULED` without changing the decision that follow-up belongs to CRM.
 - `docs/adr/0002-hosted-and-external-media-locators.md` resolves document `03`'s required hosted-object columns versus document `09` and the owner brief's required external video/drone/360 model. `media_assets` remains the one registry, with mutually exclusive constrained hosted and canonical external locators; no fake Storage objects or duplicate tables are introduced.
+- `docs/adr/0003-verification-provenance-and-professional-review.md` resolves the M8 persistence gaps with typed applicability, evidence provenance, exceptions, professional reviews, append-only history and lawyer-gated public copy. It expressly rejects a universal verified flag or score.
 
 ## 2. V1 boundary
 
@@ -189,7 +190,7 @@ Every `/admin/*` route except `/admin/login` requires server-side session verifi
 
 ## 4. Authoritative table inventory
 
-The 49 V1 application tables from `03-DATABASE-SCHEMA-ARCHITECTURE.md` are:
+The 49 V1 application tables from `03-DATABASE-SCHEMA-ARCHITECTURE.md`, plus four additive M8 workflow tables approved by ADR-0003, are:
 
 | Domain | Tables |
 |---|---|
@@ -200,7 +201,7 @@ The 49 V1 application tables from `03-DATABASE-SCHEMA-ARCHITECTURE.md` are:
 | Flexible attributes | `property_attribute_definitions`, `property_attribute_options`, `property_attribute_values` |
 | Parties/sourcing | `parties`, `property_parties`, `property_source_links` |
 | Media/documents | `media_assets`, `private_documents`, `owner_submission_documents` |
-| Verification | `verification_check_definitions`, `property_verifications`, `verification_evidence` |
+| Verification | `verification_check_definitions`, `property_verifications`, `verification_evidence`, `verification_public_copy_policies`, `professional_reviews`, `verification_exceptions`, `verification_history` |
 | Owner intake | `owner_submissions` |
 | CRM | `leads`, `lead_requirements`, `lead_properties`, `lead_activities`, `site_visits` |
 | Content/SEO | `guide_categories`, `guides`, `seo_pages` |
@@ -225,6 +226,12 @@ Canonical public property identity is a sequence-backed, immutable, never-reused
 | `media_type` | `IMAGE`, `VIDEO`, `PANORAMA_360`, `BROCHURE`, `DOCUMENT_PREVIEW`, `MAP_IMAGE`, `OTHER` |
 | `record_visibility` | `PUBLIC`, `ADMIN_ONLY`, `PRIVATE` |
 | `verification_status` | `NOT_STARTED`, `IN_REVIEW`, `PASSED`, `PASSED_WITH_NOTE`, `FAILED`, `REQUIRES_REVIEW`, `EXPIRED` |
+| `verification_source_class` | `LEGAL_OFFICIAL_REQUIREMENT`, `OFFICIAL_ADMINISTRATIVE_PRACTICE`, `PROFESSIONAL_DUE_DILIGENCE`, `URBANEDGE_OPERATIONAL_POLICY` |
+| `evidence_provenance_state` | `RECEIVED`, `REVIEWED`, `SOURCE_VERIFIED`, `PROFESSIONALLY_REVIEWED`, `SUPERSEDED`, `REVOKED` |
+| `verification_applicability` | `UNDETERMINED`, `APPLICABLE`, `NOT_APPLICABLE` |
+| `professional_review_status` | `NOT_REQUIRED`, `REQUESTED`, `MATERIALS_PENDING`, `IN_REVIEW`, `COMPLETED`, `PARTIALLY_COMPLETED`, `REQUIRES_MORE_INFORMATION`, `SUPERSEDED`, `REQUIRES_REVIEW` |
+| `verification_exception_status` | `OPEN`, `RESOLVED`, `ACCEPTED_LIMITATION` |
+| `public_copy_approval_status` | `DRAFT`, `APPROVED`, `RETIRED` |
 | `risk_level` | `NONE`, `LOW`, `MEDIUM`, `HIGH`, `CRITICAL` |
 | `owner_submission_status` | `NEW`, `CONTACTED`, `DOCS_REQUESTED`, `UNDER_REVIEW`, `VERIFICATION_PENDING`, `APPROVED`, `REJECTED`, `ON_HOLD`, `CONVERTED`, `CLOSED` |
 | `lead_status` | `NEW`, `CONTACT_ATTEMPTED`, `QUALIFIED`, `REQUIREMENT_CONFIRMED`, `PROPERTY_MATCHED`, `SITE_VISIT_REQUESTED`, `SITE_VISIT_CONFIRMED`, `SITE_VISIT_COMPLETED`, `NEGOTIATION`, `WON`, `LOST`, `NURTURE`, `CLOSED` |
@@ -340,7 +347,7 @@ EXPIRED | FAILED | REQUIRES_REVIEW -> IN_REVIEW
 REQUIRES_REVIEW -> FAILED
 ```
 
-There is no automatic `EXPIRED|FAILED|REQUIRES_REVIEW -> PASSED`. A new human review, scope and required evidence are mandatory. Public output additionally requires an eligible status, `public_visible`, approved label/explanation, freshness and claim-specific support.
+There is no automatic `EXPIRED|FAILED|REQUIRES_REVIEW -> PASSED`. A new human review, scope and required evidence are mandatory. Applicability is independent of status. Completion additionally enforces current evidence at the definition's minimum provenance, required professional-review outcomes and no open blocking exception. Public output requires a scoped eligible passed result, explicit visibility/disclosure eligibility, freshness, current evidence and lawyer-approved safe label/explanation/scope/limitation. M8 seeds no approved public copy.
 
 ### 6.7 Guide/content
 
@@ -597,8 +604,8 @@ Development, local migrations/tests and staging preparation may proceed only aft
 ## 15. Known architecture additions requiring ADR/migration
 
 1. **SEO redirect history (deferred to M16):** the approved schema has no persistent redirect model. Before editable published slugs are supported, create a controlled ADR and additive typed `seo_redirects` migration, or explicitly lock published slugs and use a narrowly approved static redirect process. Never store redirect history in JSON/settings/process memory.
-2. **Evidence provenance lifecycle (decision by M8):** `06-VERIFICATION-WORKFLOW.md` defines `RECEIVED`, `REVIEWED`, `SOURCE_VERIFIED`, `SUPERSEDED`, `REVOKED`, while the current schema does not persist an explicit provenance state/history. The verification document permits a future migration if stronger V1 traceability requires it. Resolve via ADR before implementing behavior that depends on those states.
-3. **Professional review lifecycle (decision by M8):** the verification architecture describes a richer professional-review state machine without a dedicated table/status in the authoritative schema. V1 may model it as scoped verification definitions/results only if every required identity/scope/material/date/outcome field can be preserved without ad hoc JSON; otherwise use an ADR and migration.
+2. **Evidence provenance lifecycle:** resolved by ADR-0003 and the M8 additive migration with typed provenance on evidence plus append-only verification history. Retain the currentness, supersession/revocation and actor-attribution regression contracts.
+3. **Professional review lifecycle:** resolved by ADR-0003 and the M8 additive migration with a dedicated typed, scoped review record. Retain the materials, outcome, attribution and completion-gate regression contracts.
 4. **Site-visit follow-up status:** resolved by ADR-0001 with no schema addition; retain as a regression-test contract through M14.
 5. **Hosted/external media locator gap:** resolved by ADR-0002 and the M7 additive constrained migration; retain as a projection and provider-allowlist regression contract.
 
@@ -627,8 +634,8 @@ No unresolved M0 blocker remains.
 | ID | Finding | Milestone |
 |---|---|---|
 | M0-D01 | Persistent SEO redirect history absent by design | M16 ADR/migration gate |
-| M0-D02 | Evidence provenance lifecycle may need persistent state/history | M8 ADR gate |
-| M0-D03 | Professional review lifecycle may need dedicated persistence | M8 ADR gate |
+| M0-D02 | Evidence provenance lifecycle persistence | RESOLVED in M8 by ADR-0003 |
+| M0-D03 | Professional review lifecycle persistence | RESOLVED in M8 by ADR-0003 |
 
 ### Review results
 
@@ -641,6 +648,7 @@ No unresolved M0 blocker remains.
 - No V1 workflow requires buyer accounts, seller dashboards, payments, in-app chat, automatic booking, external search or microservices.
 - The complete master prompt introduces no unresolved implementation-blocking contradiction with documents `01`–`14` under the established source hierarchy.
 - ADR-0001 remains consistent with the master prompt and the owner’s explicit site-visit/follow-up decision.
+- ADR-0003 preserves scoped verification and private evidence while requiring an explicit lawyer-approved copy policy before any public claim can project.
 
 ## 17. Milestone status
 
@@ -668,5 +676,6 @@ No unresolved M0 blocker remains.
 | M5 | COMPLETE | Login/logout, refresh proxy, `requireActiveAdmin()`, protected dashboard, generic denial states and responsive shell pass a seven-scenario local browser suite |
 | M6 | COMPLETE | Service-role-only transactional draft RPCs, three-category extension consistency, offers/parcels/location/planning/party/source persistence, protected list/detail/create/edit routes, stale-write protection, controlled availability, archive/restore, public-projection exclusion and sensitive audit behavior pass 136 pgTAP, 36 unit, 3 component, 6 integration and 13 E2E assertions/scenarios |
 | M7 | COMPLETE | Five configured buckets, hosted/external media registry, private staging and immutable promotion, EXIF stripping, document scanning states, short-lived authorized signed access, archive/restore, quota surfacing and protected media UX pass 187 pgTAP, 46 unit, 7 component, 12 integration and 15 E2E assertions/scenarios plus full QA/build |
+| M8 | COMPLETE | 27 configurable common/category check definitions, typed applicability/provenance/professional review/exceptions/history, service-owned transitions, lawyer-gated public projection and protected queue/workspace pass 238 pgTAP, 62 unit, 9 component, 16 integration and 17 E2E assertions/scenarios plus full QA/build |
 
-M7 introduced no new table and preserves the canonical Property ID and existing `media_assets`/`private_documents` models. ADR-0002 records the minimal locator/schema extension required for truthful external media. Publication remains blocked until M9, verification workflow behavior has not begun, and M8 may start only after this clean checkpoint is accepted.
+M8 adds four typed workflow/policy tables and six enums under ADR-0003 while preserving the canonical Property ID, existing verification rows and private-document boundary. There is no property-level verified flag or universal score. Publication remains blocked until M9, all seeded public verification copy remains unapproved, and M9 has not begun.
