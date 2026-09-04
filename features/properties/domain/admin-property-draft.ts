@@ -227,10 +227,3 @@ export class PropertyDraftConflictError extends Error {
     this.name = "PropertyDraftConflictError";
   }
 }
-
-export class PublicationUnavailableError extends Error {
-  constructor() {
-    super("Publication is unavailable until the M9 publication gate is complete.");
-    this.name = "PublicationUnavailableError";
-  }
-}

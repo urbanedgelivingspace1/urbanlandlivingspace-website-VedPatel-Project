@@ -45,6 +45,10 @@ function refresh(propertyId: string) {
   revalidatePath(`/admin/properties/${propertyId}`);
   revalidatePath(`/admin/properties/${propertyId}/media`);
   revalidatePath("/admin/media");
+  revalidatePath("/");
+  revalidatePath("/properties");
+  revalidatePath("/properties/[property-slug]", "page");
+  revalidatePath("/sitemap.xml");
 }
 
 export async function uploadImageAction(

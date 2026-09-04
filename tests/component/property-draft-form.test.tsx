@@ -40,7 +40,7 @@ describe("PropertyDraftForm", () => {
     ]) {
       expect(screen.getByRole("group", { name: section })).toBeVisible();
     }
-    expect(screen.getByText(/Publishing is blocked until M9/)).toBeVisible();
+    expect(screen.getByText(/Publish from the property readiness panel/)).toBeVisible();
     expect(screen.queryByRole("button", { name: /^publish$/i })).not.toBeInTheDocument();
   });
 });

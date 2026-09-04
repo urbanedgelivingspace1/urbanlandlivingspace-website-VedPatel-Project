@@ -463,7 +463,8 @@ export function PropertyDraftForm({ action, references, initialValues = {}, subm
 
       <div className="sticky bottom-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-300 bg-white/95 p-4 shadow-xl backdrop-blur">
         <p className="text-sm text-slate-600">
-          Saving keeps publication in Draft. Publishing is blocked until M9.
+          Saving keeps this record private. Publish from the property readiness panel after all
+          blockers are resolved.
         </p>
         <div className="flex gap-3">
           <Link className="rounded-lg px-4 py-2 text-sm font-semibold" href="/admin/properties">

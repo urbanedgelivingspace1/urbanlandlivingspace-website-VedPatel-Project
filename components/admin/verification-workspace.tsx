@@ -79,8 +79,8 @@ export function VerificationWorkspace(props: Props) {
       <section className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
         <strong>No universal verification or legal-clearance status exists.</strong> A completed
         check means only that its recorded scope was reviewed using its recorded evidence and
-        reviewer on its recorded date. Publication remains disabled until M9, and public
-        verification copy has no lawyer-approved policy in M8.
+        reviewer on its recorded date. Publication evaluates only the required scoped checks, and
+        gated public verification copy remains disabled without a lawyer-approved policy.
       </section>
       {props.detail.checks.length === 0 ? (
         <form

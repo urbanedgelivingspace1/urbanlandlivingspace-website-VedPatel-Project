@@ -29,7 +29,8 @@ for (const category of ["AGRICULTURAL", "NA", "INDUSTRIAL"] as const) {
     await expect(page).toHaveURL(/\/admin\/properties\/[0-9a-f-]+$/);
     await expect(page.getByText(/^UE-LS-\d{6}$/).first()).toBeVisible();
     await expect(page.getByText("DRAFT").first()).toBeVisible();
-    await expect(page.getByRole("button", { name: "Publish unavailable until M9" })).toBeDisabled();
+    await expect(page.getByRole("heading", { name: "Publication readiness" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Publish property" })).toBeDisabled();
   });
 }
 

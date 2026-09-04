@@ -5,7 +5,6 @@ import { describe, expect, it } from "vitest";
 import {
   adminPropertyDraftSchema,
   buildPropertySlug,
-  PublicationUnavailableError,
 } from "@/features/properties/domain/admin-property-draft";
 
 const districtId = "00000000-0000-4000-8000-000000000003";
@@ -110,9 +109,5 @@ describe("M6 property draft contract", () => {
         categoryDetails: { landCategory: "AGRICULTURAL" },
       }),
     ).toThrow(/greater than zero/);
-  });
-
-  it("defines the explicit pre-M9 publication blocker", () => {
-    expect(new PublicationUnavailableError().message).toMatch(/M9 publication gate/);
   });
 });

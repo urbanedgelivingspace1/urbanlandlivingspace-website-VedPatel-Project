@@ -1,10 +1,29 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { PropertyPublicationPanel } from "@/components/admin/property-publication-panel";
 import { requireActiveAdminPage } from "@/server/auth/require-admin-page";
 import { getAdminProperty } from "@/server/services/property-drafts";
+import { getPublicationReadiness } from "@/server/services/property-publication";
+import type { AvailabilityStatus } from "@/types/database";
 
-import { archivePropertyAction, changeAvailabilityAction, restorePropertyAction } from "../actions";
+import {
+  archivePropertyAction,
+  changeAvailabilityAction,
+  publishPropertyAction,
+  restorePropertyAction,
+  unpublishPropertyAction,
+} from "../actions";
+
+function nextAvailability(status: AvailabilityStatus): AvailabilityStatus[] {
+  if (status === "AVAILABLE")
+    return ["UNDER_NEGOTIATION", "SOLD", "RENTED", "LEASED", "OFF_MARKET"];
+  if (status === "UNDER_NEGOTIATION")
+    return ["AVAILABLE", "SOLD", "RENTED", "LEASED", "OFF_MARKET"];
+  if (status === "SOLD") return ["OFF_MARKET"];
+  if (status === "RENTED" || status === "LEASED") return ["AVAILABLE", "OFF_MARKET"];
+  return [];
+}
 
 export default async function AdminPropertyDetailPage({
   params,
@@ -14,6 +33,7 @@ export default async function AdminPropertyDetailPage({
   await requireActiveAdminPage();
   const property = await getAdminProperty(id);
   if (!property) notFound();
+  const readiness = await getPublicationReadiness(id);
   const { saved } = await searchParams;
   const row = property.property;
   return (
@@ -36,6 +56,12 @@ export default async function AdminPropertyDetailPage({
             className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold"
           >
             Back to inventory
+          </Link>
+          <Link
+            href={`/admin/properties/${id}/preview`}
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold"
+          >
+            Public-safe preview
           </Link>
           <Link
             href={`/admin/properties/${id}/media`}
@@ -83,20 +109,12 @@ export default async function AdminPropertyDetailPage({
           }
         />
       </section>
-      <section className="rounded-xl border border-amber-300 bg-amber-50 p-5">
-        <h2 className="font-display text-xl font-semibold">Publication readiness</h2>
-        <p className="mt-1 text-sm text-amber-950">
-          Publishing is intentionally unavailable until M9. Title, description, public-safe
-          location, offer, approved media and verification dependencies will be evaluated by that
-          gate.
-        </p>
-        <button
-          disabled
-          className="mt-3 rounded-lg bg-slate-300 px-4 py-2 text-sm font-bold text-slate-600"
-        >
-          Publish unavailable until M9
-        </button>
-      </section>
+      <PropertyPublicationPanel
+        readiness={readiness}
+        expectedUpdatedAt={row.updated_at}
+        publishAction={publishPropertyAction}
+        unpublishAction={unpublishPropertyAction}
+      />
       <section className="grid gap-5 lg:grid-cols-2">
         <DetailSection title="Core">
           <Detail label="Immutable Property ID" value={row.property_code} />
@@ -153,34 +171,37 @@ export default async function AdminPropertyDetailPage({
       <section className="rounded-xl border border-slate-200 bg-white p-5">
         <h2 className="font-display text-xl font-semibold">Controlled status actions</h2>
         <div className="mt-4 flex flex-wrap gap-3">
-          {row.publication_status === "DRAFT" ? (
+          {row.publication_status !== "ARCHIVED" &&
+          nextAvailability(row.availability_status).length ? (
+            <form action={changeAvailabilityAction} className="flex gap-2">
+              <input type="hidden" name="propertyId" value={id} />
+              <input type="hidden" name="expectedUpdatedAt" value={row.updated_at} />
+              <label className="sr-only" htmlFor="nextStatus">
+                Next availability
+              </label>
+              <select
+                id="nextStatus"
+                name="nextStatus"
+                className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              >
+                {nextAvailability(row.availability_status).map((status) => (
+                  <option key={status} value={status}>
+                    {status.replaceAll("_", " ")}
+                  </option>
+                ))}
+              </select>
+              <button className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold">
+                Change availability
+              </button>
+            </form>
+          ) : null}
+          {row.publication_status !== "PUBLISHED" && row.publication_status !== "ARCHIVED" ? (
             <>
-              <form action={changeAvailabilityAction} className="flex gap-2">
-                <input type="hidden" name="propertyId" value={id} />
-                <input type="hidden" name="expectedUpdatedAt" value={row.updated_at} />
-                <label className="sr-only" htmlFor="nextStatus">
-                  Next availability
-                </label>
-                <select
-                  id="nextStatus"
-                  name="nextStatus"
-                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                >
-                  <option value="UNDER_NEGOTIATION">Under negotiation</option>
-                  <option value="SOLD">Sold</option>
-                  <option value="RENTED">Rented</option>
-                  <option value="LEASED">Leased</option>
-                  <option value="OFF_MARKET">Off market</option>
-                </select>
-                <button className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold">
-                  Change availability
-                </button>
-              </form>
               <form action={archivePropertyAction}>
                 <input type="hidden" name="propertyId" value={id} />
                 <input type="hidden" name="expectedUpdatedAt" value={row.updated_at} />
                 <button className="rounded-lg border border-red-300 px-3 py-2 text-sm font-bold text-red-800">
-                  Archive draft
+                  Archive property
                 </button>
               </form>
             </>

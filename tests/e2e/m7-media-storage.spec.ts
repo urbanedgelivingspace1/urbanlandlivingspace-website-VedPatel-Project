@@ -52,7 +52,7 @@ test("active admin manages staged/public media and private evidence without publ
   await page.getByRole("button", { name: "Approve / promote" }).click();
   await expect(page.getByText("APPROVED").first()).toBeVisible();
   await page.getByRole("button", { name: "Set cover" }).click();
-  await expect(page.getByText("Cover")).toBeVisible();
+  await expect(page.getByText("Cover", { exact: true })).toBeVisible();
 
   const externalForm = page
     .locator("form")
@@ -80,7 +80,8 @@ test("active admin manages staged/public media and private evidence without publ
 
   await page.getByRole("link", { name: "Back to property" }).click();
   await expect(page.getByText("DRAFT").first()).toBeVisible();
-  await expect(page.getByRole("button", { name: "Publish unavailable until M9" })).toBeDisabled();
+  await expect(page.getByRole("heading", { name: "Publication readiness" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Publish property" })).toBeDisabled();
 });
 
 test("anonymous users cannot reach the media manager", async ({ page }) => {

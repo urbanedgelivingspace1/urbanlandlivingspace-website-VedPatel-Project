@@ -57,7 +57,7 @@ describe("PropertyMediaManager", () => {
     expect(screen.getByRole("heading", { name: "Upload private evidence" })).toBeVisible();
     expect(screen.getByText(/No media yet/)).toBeVisible();
     expect(screen.getByText(/No private documents stored/)).toBeVisible();
-    expect(screen.getByText(/Property publication remains unavailable until M9/)).toBeVisible();
+    expect(screen.getByText(/requires one approved public cover image/)).toBeVisible();
   });
 
   it("shows controlled approval, cover, ordering, metadata and archive actions", () => {

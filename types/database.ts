@@ -114,6 +114,16 @@ export type PublicVerificationSummaryRow = Readonly<{
     | "URBANEDGE_OPERATIONAL_POLICY";
 }>;
 
+export type PublicPropertyIndexabilityRow = Readonly<{
+  id: string;
+  property_code: string;
+  public_slug: string;
+  canonical_path: string;
+  availability_status: AvailabilityStatus;
+  published_at: string;
+  updated_at: string;
+}>;
+
 export type PublicGeographyOptionRow = Readonly<{
   district_id: string;
   district_name: string;
@@ -173,6 +183,7 @@ export type Database = {
       public_property_details: View<PublicPropertyDetailRow>;
       public_property_media: View<PublicMediaRow>;
       public_property_verification_summaries: View<PublicVerificationSummaryRow>;
+      public_property_indexability: View<PublicPropertyIndexabilityRow>;
       public_geography_options: View<PublicGeographyOptionRow>;
       public_area_units: View<PublicAreaUnitRow>;
       public_app_settings: View<PublicAppSettingRow>;

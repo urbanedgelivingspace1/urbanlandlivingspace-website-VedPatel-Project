@@ -118,8 +118,8 @@ select ok(not (select rolcanlogin from pg_roles where rolname = 'urbanedge_publi
 select ok(not (select rolbypassrls from pg_roles where rolname = 'urbanedge_public_projection'), 'projection owner cannot bypass RLS');
 select is(
   (select count(*)::integer from information_schema.views where table_schema = 'public' and table_name like 'public_%'),
-  10,
-  'ten explicit public views exist'
+  11,
+  'eleven explicit public views exist'
 );
 
 set local role anon;

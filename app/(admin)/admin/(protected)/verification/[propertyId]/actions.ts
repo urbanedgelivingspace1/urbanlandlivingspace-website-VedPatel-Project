@@ -45,6 +45,10 @@ function refresh(propertyId: string) {
   revalidatePath(`/admin/verification/${propertyId}`);
   revalidatePath(`/admin/properties/${propertyId}`);
   revalidatePath(`/admin/properties/${propertyId}/verification`);
+  revalidatePath("/");
+  revalidatePath("/properties");
+  revalidatePath("/properties/[property-slug]", "page");
+  revalidatePath("/sitemap.xml");
 }
 
 function result(

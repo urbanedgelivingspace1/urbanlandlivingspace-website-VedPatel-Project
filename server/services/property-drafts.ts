@@ -9,7 +9,6 @@ import type {
 import {
   adminPropertyDraftSchema,
   PropertyDraftConflictError,
-  PublicationUnavailableError,
   type AdminPropertyDraftInput,
 } from "@/features/properties/domain/admin-property-draft";
 import { requireActiveAdmin } from "@/server/auth/authorization";
@@ -126,10 +125,6 @@ export async function changePropertyAvailability(
     requested_property_id: propertyId,
   });
   if (error) translateMutationError(error);
-}
-
-export function publishProperty(): never {
-  throw new PublicationUnavailableError();
 }
 
 export async function getAdminReferenceData(): Promise<AdminPropertyReferenceData> {

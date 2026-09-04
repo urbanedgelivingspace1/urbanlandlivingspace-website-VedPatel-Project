@@ -89,7 +89,8 @@ test("admin completes a scoped evidence workflow while publication stays blocked
 
   await page.getByRole("link", { name: "Property" }).click();
   await expect(page.getByText("DRAFT").first()).toBeVisible();
-  await expect(page.getByRole("button", { name: "Publish unavailable until M9" })).toBeDisabled();
+  await expect(page.getByRole("heading", { name: "Publication readiness" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Publish property" })).toBeDisabled();
 });
 
 test("invalid transitions and unauthorized access remain blocked", async ({ page }) => {

@@ -10,6 +10,7 @@ import {
   type AdminPropertyDraftInput,
 } from "@/features/properties/domain/admin-property-draft";
 import type { PropertyFormState } from "@/features/properties/domain/property-form-state";
+import type { PublicationActionState } from "@/features/properties/domain/publication";
 import { requireActiveAdmin } from "@/server/auth/authorization";
 import {
   archivePropertyDraft,
@@ -18,9 +19,11 @@ import {
   restorePropertyDraft,
   updatePropertyDraft,
 } from "@/server/services/property-drafts";
+import { publishProperty, unpublishProperty } from "@/server/services/property-publication";
 import type { AvailabilityStatus } from "@/types/database";
 
 const text = (formData: FormData, key: string) => String(formData.get(key) ?? "").trim();
+const databaseTimestamp = z.iso.datetime({ offset: true });
 const optionalText = (formData: FormData, key: string) => text(formData, key) || undefined;
 const numberOrUndefined = (formData: FormData, key: string) => {
   const value = text(formData, key);
@@ -32,6 +35,17 @@ const numberOrNull = (formData: FormData, key: string) => {
 };
 const checkedOrUndefined = (formData: FormData, key: string) =>
   formData.has(key) ? true : undefined;
+
+function refreshPublicProperty(propertyId: string, slug?: string) {
+  revalidatePath("/");
+  revalidatePath("/properties");
+  revalidatePath("/sitemap.xml");
+  revalidatePath("/properties/[property-slug]", "page");
+  if (slug) revalidatePath(`/properties/${slug}`);
+  revalidatePath("/admin/properties");
+  revalidatePath(`/admin/properties/${propertyId}`);
+  revalidatePath(`/admin/properties/${propertyId}/preview`);
+}
 
 function retainedValues(formData: FormData): Record<string, string> {
   return Object.fromEntries(
@@ -245,19 +259,60 @@ export async function updatePropertyDraftAction(
 export async function changeAvailabilityAction(formData: FormData) {
   await requireActiveAdmin();
   const propertyId = z.uuid().parse(text(formData, "propertyId"));
-  const expectedUpdatedAt = z.iso.datetime().parse(text(formData, "expectedUpdatedAt"));
+  const expectedUpdatedAt = databaseTimestamp.parse(text(formData, "expectedUpdatedAt"));
   const next = z
     .enum(["AVAILABLE", "UNDER_NEGOTIATION", "SOLD", "RENTED", "LEASED", "OFF_MARKET"])
     .parse(text(formData, "nextStatus")) as AvailabilityStatus;
   await changePropertyAvailability(propertyId, expectedUpdatedAt, next);
-  revalidatePath("/admin/properties");
-  revalidatePath(`/admin/properties/${propertyId}`);
+  refreshPublicProperty(propertyId);
+}
+
+export async function publishPropertyAction(
+  _previous: PublicationActionState,
+  formData: FormData,
+): Promise<PublicationActionState> {
+  await requireActiveAdmin();
+  try {
+    if (text(formData, "confirmation") !== "PUBLISH")
+      return { ok: false, message: "Confirm that the readiness report was reviewed." };
+    const propertyId = z.uuid().parse(text(formData, "propertyId"));
+    const expectedUpdatedAt = databaseTimestamp.parse(text(formData, "expectedUpdatedAt"));
+    const readiness = await publishProperty(propertyId, expectedUpdatedAt);
+    refreshPublicProperty(propertyId, readiness.publicSlug ?? undefined);
+    return { ok: true, message: "Property published through the atomic readiness gate." };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Publication could not be completed.",
+    };
+  }
+}
+
+export async function unpublishPropertyAction(
+  _previous: PublicationActionState,
+  formData: FormData,
+): Promise<PublicationActionState> {
+  await requireActiveAdmin();
+  try {
+    const propertyId = z.uuid().parse(text(formData, "propertyId"));
+    const expectedUpdatedAt = databaseTimestamp.parse(text(formData, "expectedUpdatedAt"));
+    const reason = z.string().trim().min(10).parse(text(formData, "reason"));
+    const slug = optionalText(formData, "publicSlug");
+    await unpublishProperty(propertyId, expectedUpdatedAt, reason);
+    refreshPublicProperty(propertyId, slug);
+    return { ok: true, message: "Property unpublished and removed from public projections." };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Unpublish could not be completed.",
+    };
+  }
 }
 
 export async function archivePropertyAction(formData: FormData) {
   await requireActiveAdmin();
   const propertyId = z.uuid().parse(text(formData, "propertyId"));
-  const expectedUpdatedAt = z.iso.datetime().parse(text(formData, "expectedUpdatedAt"));
+  const expectedUpdatedAt = databaseTimestamp.parse(text(formData, "expectedUpdatedAt"));
   await archivePropertyDraft(propertyId, expectedUpdatedAt);
   revalidatePath("/admin/properties");
   revalidatePath(`/admin/properties/${propertyId}`);
@@ -266,7 +321,7 @@ export async function archivePropertyAction(formData: FormData) {
 export async function restorePropertyAction(formData: FormData) {
   await requireActiveAdmin();
   const propertyId = z.uuid().parse(text(formData, "propertyId"));
-  const expectedUpdatedAt = z.iso.datetime().parse(text(formData, "expectedUpdatedAt"));
+  const expectedUpdatedAt = databaseTimestamp.parse(text(formData, "expectedUpdatedAt"));
   await restorePropertyDraft(propertyId, expectedUpdatedAt);
   revalidatePath("/admin/properties");
   revalidatePath(`/admin/properties/${propertyId}`);

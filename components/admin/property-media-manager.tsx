@@ -171,7 +171,7 @@ export function PropertyMediaManager(props: Props) {
         <h2 className="font-display text-2xl font-semibold">Gallery and public media</h2>
         <p className="mt-1 text-sm text-slate-600">
           Assets are private until an explicit approval copies them to the public bucket. Property
-          publication remains unavailable until M9.
+          publication requires one approved public cover image with alt text.
         </p>
         {active.length === 0 ? (
           <div className="mt-4 rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-600">

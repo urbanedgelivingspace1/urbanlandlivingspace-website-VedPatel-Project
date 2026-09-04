@@ -133,6 +133,13 @@ export type Database = {
             foreignKeyName: "analytics_events_property_id_fkey";
             columns: ["property_id"];
             isOneToOne: false;
+            referencedRelation: "public_property_indexability";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "analytics_events_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
             referencedRelation: "public_property_listings";
             referencedColumns: ["id"];
           },
@@ -846,6 +853,13 @@ export type Database = {
             foreignKeyName: "lead_activities_property_id_fkey";
             columns: ["property_id"];
             isOneToOne: false;
+            referencedRelation: "public_property_indexability";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "lead_activities_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
             referencedRelation: "public_property_listings";
             referencedColumns: ["id"];
           },
@@ -912,6 +926,13 @@ export type Database = {
             columns: ["property_id"];
             isOneToOne: false;
             referencedRelation: "public_property_details";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "lead_properties_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "public_property_indexability";
             referencedColumns: ["id"];
           },
           {
@@ -1325,6 +1346,13 @@ export type Database = {
             foreignKeyName: "media_assets_property_id_fkey";
             columns: ["property_id"];
             isOneToOne: false;
+            referencedRelation: "public_property_indexability";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "media_assets_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
             referencedRelation: "public_property_listings";
             referencedColumns: ["id"];
           },
@@ -1479,6 +1507,13 @@ export type Database = {
             columns: ["converted_property_id"];
             isOneToOne: true;
             referencedRelation: "public_property_details";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "owner_submissions_converted_property_id_fkey";
+            columns: ["converted_property_id"];
+            isOneToOne: true;
+            referencedRelation: "public_property_indexability";
             referencedColumns: ["id"];
           },
           {
@@ -1907,6 +1942,13 @@ export type Database = {
             columns: ["property_id"];
             isOneToOne: false;
             referencedRelation: "public_property_details";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "private_documents_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "public_property_indexability";
             referencedColumns: ["id"];
           },
           {
@@ -2383,6 +2425,13 @@ export type Database = {
             foreignKeyName: "property_agricultural_property_id_fkey";
             columns: ["property_id"];
             isOneToOne: true;
+            referencedRelation: "public_property_indexability";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "property_agricultural_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: true;
             referencedRelation: "public_property_listings";
             referencedColumns: ["id"];
           },
@@ -2613,6 +2662,13 @@ export type Database = {
             foreignKeyName: "property_attribute_values_property_id_fkey";
             columns: ["property_id"];
             isOneToOne: false;
+            referencedRelation: "public_property_indexability";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "property_attribute_values_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
             referencedRelation: "public_property_listings";
             referencedColumns: ["id"];
           },
@@ -2787,6 +2843,13 @@ export type Database = {
             foreignKeyName: "property_industrial_property_id_fkey";
             columns: ["property_id"];
             isOneToOne: true;
+            referencedRelation: "public_property_indexability";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "property_industrial_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: true;
             referencedRelation: "public_property_listings";
             referencedColumns: ["id"];
           },
@@ -2876,6 +2939,13 @@ export type Database = {
             columns: ["property_id"];
             isOneToOne: true;
             referencedRelation: "public_property_details";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "property_locations_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: true;
+            referencedRelation: "public_property_indexability";
             referencedColumns: ["id"];
           },
           {
@@ -3000,6 +3070,13 @@ export type Database = {
             foreignKeyName: "property_na_property_id_fkey";
             columns: ["property_id"];
             isOneToOne: true;
+            referencedRelation: "public_property_indexability";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "property_na_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: true;
             referencedRelation: "public_property_listings";
             referencedColumns: ["id"];
           },
@@ -3112,6 +3189,13 @@ export type Database = {
             foreignKeyName: "property_offers_property_id_fkey";
             columns: ["property_id"];
             isOneToOne: false;
+            referencedRelation: "public_property_indexability";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "property_offers_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
             referencedRelation: "public_property_listings";
             referencedColumns: ["id"];
           },
@@ -3197,6 +3281,13 @@ export type Database = {
             columns: ["property_id"];
             isOneToOne: false;
             referencedRelation: "public_property_details";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "property_parcels_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "public_property_indexability";
             referencedColumns: ["id"];
           },
           {
@@ -3294,6 +3385,13 @@ export type Database = {
             columns: ["property_id"];
             isOneToOne: false;
             referencedRelation: "public_property_details";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "property_parties_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "public_property_indexability";
             referencedColumns: ["id"];
           },
           {
@@ -3404,6 +3502,13 @@ export type Database = {
             foreignKeyName: "property_planning_context_property_id_fkey";
             columns: ["property_id"];
             isOneToOne: false;
+            referencedRelation: "public_property_indexability";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "property_planning_context_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
             referencedRelation: "public_property_listings";
             referencedColumns: ["id"];
           },
@@ -3477,6 +3582,13 @@ export type Database = {
             columns: ["property_id"];
             isOneToOne: false;
             referencedRelation: "public_property_details";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "property_source_links_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "public_property_indexability";
             referencedColumns: ["id"];
           },
           {
@@ -3596,6 +3708,13 @@ export type Database = {
             columns: ["property_id"];
             isOneToOne: false;
             referencedRelation: "public_property_details";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "property_verifications_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "public_property_indexability";
             referencedColumns: ["id"];
           },
           {
@@ -3844,6 +3963,13 @@ export type Database = {
             columns: ["property_id"];
             isOneToOne: false;
             referencedRelation: "public_property_details";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "site_visits_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "public_property_indexability";
             referencedColumns: ["id"];
           },
           {
@@ -4798,6 +4924,36 @@ export type Database = {
           },
         ];
       };
+      public_property_indexability: {
+        Row: {
+          availability_status: Database["public"]["Enums"]["property_availability_status"] | null;
+          canonical_path: string | null;
+          id: string | null;
+          property_code: string | null;
+          public_slug: string | null;
+          published_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          availability_status?: Database["public"]["Enums"]["property_availability_status"] | null;
+          canonical_path?: never;
+          id?: string | null;
+          property_code?: string | null;
+          public_slug?: string | null;
+          published_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          availability_status?: Database["public"]["Enums"]["property_availability_status"] | null;
+          canonical_path?: never;
+          id?: string | null;
+          property_code?: string | null;
+          public_slug?: string | null;
+          published_at?: string | null;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
       public_property_listings: {
         Row: {
           availability_status: Database["public"]["Enums"]["property_availability_status"] | null;
@@ -4940,6 +5096,13 @@ export type Database = {
             foreignKeyName: "media_assets_property_id_fkey";
             columns: ["property_id"];
             isOneToOne: false;
+            referencedRelation: "public_property_indexability";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "media_assets_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
             referencedRelation: "public_property_listings";
             referencedColumns: ["id"];
           },
@@ -4972,6 +5135,13 @@ export type Database = {
             columns: ["property_id"];
             isOneToOne: false;
             referencedRelation: "public_property_details";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "property_verifications_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "public_property_indexability";
             referencedColumns: ["id"];
           },
           {
@@ -5112,6 +5282,10 @@ export type Database = {
         Args: { requested_actor_id: string; requested_payload: Json };
         Returns: string;
       };
+      get_property_publication_readiness: {
+        Args: { requested_actor_id: string; requested_property_id: string };
+        Returns: Json;
+      };
       initialize_property_verifications: {
         Args: { requested_actor_id: string; requested_property_id: string };
         Returns: number;
@@ -5129,6 +5303,18 @@ export type Database = {
       next_owner_submission_reference: { Args: never; Returns: string };
       next_property_code: { Args: never; Returns: string };
       next_site_visit_reference: { Args: never; Returns: string };
+      property_publication_readiness: {
+        Args: { requested_property_id: string };
+        Returns: Json;
+      };
+      publish_property: {
+        Args: {
+          requested_actor_id: string;
+          requested_expected_updated_at: string;
+          requested_property_id: string;
+        };
+        Returns: Json;
+      };
       record_private_document_access: {
         Args: {
           requested_actor_id: string;
@@ -5244,6 +5430,15 @@ export type Database = {
           requested_verification_id: string;
         };
         Returns: undefined;
+      };
+      unpublish_property: {
+        Args: {
+          requested_actor_id: string;
+          requested_expected_updated_at: string;
+          requested_property_id: string;
+          requested_reason: string;
+        };
+        Returns: string;
       };
       update_professional_review: {
         Args: {
