@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import type { PublicBusinessConfig } from "@/lib/config/public-business";
 import { buildTelephoneUrl, buildWhatsAppUrl } from "@/lib/config/public-business";
 import type { PublicPropertyDetailDto } from "@/features/properties/domain/contracts";
@@ -76,4 +78,3 @@ export function PropertyActions({
     </div>
   );
 }
-import Link from "next/link";

@@ -9,13 +9,13 @@ This is the live record of what has actually happened. Update it after every mea
 | Project | UrbanEdge Land Space |
 | Repository | `/Users/vedpatel/Desktop/UrbanLand_website` |
 | Current branch | `main` |
-| Latest relevant commit | M9 completion commit `d0edaa3a0a6d3fdc607f939e296abaa2493e1463`; this handoff metadata is the following `HEAD` commit |
-| Working tree | CLEAN after the M9 handoff metadata commit |
-| Current milestone | M9 — Publication Gate and Public Projection Freeze |
+| Latest relevant commit | M10 completion commit `ac328b890b71aa91c8322389bb997f4de0a4ca9d`; this handoff metadata is the following `HEAD` commit |
+| Working tree | CLEAN after the M10 handoff metadata commit |
+| Current milestone | M10 — Public Property Experience |
 | Current milestone status | COMPLETE |
-| Last completed milestone | M9 — Publication Gate and Public Projection Freeze |
-| Next milestone | M10 — Public Property Experience (not begun) |
-| Last updated | 2026-09-04 20:44:20 IST |
+| Last completed milestone | M10 — Public Property Experience |
+| Next milestone | M11 — PostgreSQL Search and URL-State Discovery (not begun) |
+| Last updated | 2026-09-05 01:46:23 IST |
 | Last updating agent | Codex |
 
 ## 2. Source-of-Truth Documents
@@ -90,7 +90,7 @@ The design report governs Living Space brand/design reference only. It does not 
 | M7 Media, Public Storage and Private Document Storage | COMPLETE | 2026-09-03 | 2026-09-03 | Five-bucket boundary, normalized/approved media, private documents, signed access, audits, quota controls and protected admin UX pass complete local qualification |
 | M8 Verification Workflow and Verification Admin | COMPLETE | 2026-09-04 | 2026-09-04 | Configurable scoped checks, typed provenance, professional referrals, exceptions, history, public-safe disclosure gate and protected admin workflow pass complete local qualification |
 | M9 Publication Gate and Public Projection Freeze | COMPLETE | 2026-09-04 | 2026-09-04 | Authoritative database readiness, atomic publish/unpublish, protected grouped admin UX/preview, closed availability, safe projections/indexability, revalidation, audit and complete regression gates pass |
-| M10 Public Property Experience | NOT_STARTED | — | — | — |
+| M10 Public Property Experience | COMPLETE | 2026-09-04 | 2026-09-05 | Server-rendered public home/shell, category and transaction landings, published inventory, canonical card/detail experiences, safe media/location/availability behavior, baseline SEO, responsive/accessibility/privacy checks and complete regressions pass |
 | M11 PostgreSQL Search and URL-State Discovery | NOT_STARTED | — | — | — |
 | M12 CRM Core and Admin Operational Pipeline | NOT_STARTED | — | — | — |
 | M13 Public Inquiry, Buyer Requirement, Contact and Intent Events | NOT_STARTED | — | — | — |
@@ -103,32 +103,32 @@ The design report governs Living Space brand/design reference only. It does not 
 
 ## 4. Current Work
 
-Objective: preserve the completed M9 checkpoint. M10 has not begun. Public inventory is eligible only through the M9 gate, while no public verification wording is approved.
+Objective: preserve the completed M10 public published-property experience. M11 has not begun. Public inventory remains eligible only through the M9 publication gate, and no public verification wording is approved.
 
 Relevant sources:
 
 - owner's implementation brief;
 - embedded master prompt and finalized architecture;
-- `12-IMPLEMENTATION-ROADMAP.md`, M9;
-- database/backend/verification/security contracts in documents `03`, `04`, `06`, `08`, `11` and `13`;
+- `12-IMPLEMENTATION-ROADMAP.md`, M10;
+- route/data/backend/verification/SEO/security/media contracts in documents `01`, `02`, `03`, `04`, `06`, `07`, `08`, `09`, `11` and `13`;
 - ADR-0003's typed provenance, professional-review and public-copy contract;
 - ADR-0001's unchanged eight-value `site_visit_status` contract;
 - `docs/architecture/IMPLEMENTATION-LEDGER.md`.
 
-Principal M9 files:
+Principal M10 files:
 
-- `supabase/migrations/20260903090000_property_publication_gate.sql`
-- `server/services/property-publication.ts`
-- `features/properties/domain/publication.ts`
-- `components/admin/property-publication-panel.tsx`
-- `/admin/properties/[id]` and `/admin/properties/[id]/preview`
-- M9 database, unit, integration, component and E2E test files
+- `app/(public)/page.tsx`, `app/(public)/properties` and the category/transaction public routes
+- `components/public/*`
+- `server/queries/public-properties.ts` and `server/queries/public-page-data.ts`
+- `features/properties/queries/public-property-projector.ts`
+- `supabase/migrations/20260905010000_m10_public_property_detail.sql`
+- M10 database, unit, integration, component and E2E test files
 - `docs/architecture/IMPLEMENTATION-LEDGER.md`
 - this handoff file.
 
-Dependencies/blockers: M9 is complete against the isolated local Supabase stack on ports `55320`–`55327`. No production database/storage operation is authorized. M10 remains NOT_STARTED. Lawyer approval for any public verification copy remains an explicit owner gate; the seed approves none.
+Dependencies/blockers: M10 is complete against the isolated local Supabase stack on ports `55320`–`55327`. No production database/storage operation is authorized. M11 remains NOT_STARTED. Lawyer approval for any public verification copy remains an explicit owner gate; the seed approves none. Real inventory/media, public contact values and a production map provider/style remain pre-launch inputs, not M10 blockers.
 
-Required M9 checks: authoritative readiness, atomic publish/unpublish, category/offer/location/media/claim gates, closed availability independence, archive exclusion, public-safe projections, indexability eligibility, actor attribution, RLS/RPC denial, revalidation and full regression. All pass locally.
+Required M10 checks: initial-HTML property content, canonical cards/details, category/transaction shells, category-specific facts, exact/approximate/hidden location policy, media and closed states, public-safe not-found behavior, responsive widths, keyboard/accessibility, metadata/canonicals, privacy canaries, complete regression and production build. All pass locally.
 
 ## 5. Completed Implementation
 
@@ -138,15 +138,15 @@ Next.js 16 App Router, React 19, strict TypeScript, Tailwind 4, shadcn configura
 
 ### Database
 
-Nine ordered migrations implement 53 application tables and 32 enum types, including the M8 verification model and M9 atomic publication gate. M9 adds no table or enum: it adds service-role-only readiness/publish/unpublish functions, safe archive semantics, an archived/off-market constraint and the published-only `public_property_indexability` view. The schema retains UUID keys, immutable sequence-backed references, foreign keys, checks, partial uniqueness, typed-value/category/audit triggers, updated timestamps, public-safe views and service-role-only domain transactions. `supabase/seed.sql` contains only repeatable India/Gujarat/service-district/unit/reference conversions. Applied and tested only in disposable local Supabase; never applied to production.
+Ten ordered migrations implement 53 application tables and 32 enum types, including the M8 verification model, M9 atomic publication gate and M10 public-detail projection expansion. M10 adds no table or enum: it explicitly extends `public_property_details` with public-safe category/planning context and adds `public_property_parcel_identifiers`, restricted to public identifiers for published properties. The schema retains UUID keys, immutable sequence-backed references, foreign keys, checks, partial uniqueness, typed-value/category/audit triggers, updated timestamps, public-safe views and service-role-only domain transactions. `supabase/seed.sql` contains only repeatable India/Gujarat/service-district/unit/reference conversions. Applied and tested only in disposable local Supabase; never applied to production.
 
 ### Server contracts
 
-Separate public/admin DTOs, typed Supabase view rows, public property/reference queries, a centralized public-location transformer, price/area helpers, seven executable state machines and shared Zod schemas for upcoming mutations are implemented. Browser, authenticated server, privileged server and test-actor Supabase helpers are separate; privileged helpers import `server-only`.
+Separate public/admin DTOs, typed Supabase view rows, explicit public property/reference queries, a defensive public-property projector, centralized public-location/media/business-config helpers, price/area formatters, seven executable state machines and shared Zod schemas for upcoming mutations are implemented. Public page loaders consume only bounded published projections and fail to safe empty/not-found states. Browser, anonymous server, authenticated server, privileged server and test-actor Supabase helpers are separate; privileged helpers import `server-only`.
 
 ### RLS
 
-All 53 application tables have RLS. Authenticated browser identities receive database-profile-gated read access only; business writes remain server-owned. Ten explicit public views are owned by a `NOLOGIN`, `NOBYPASSRLS` projection role and granted to anonymous/authenticated actors. Anonymous direct business-table writes and all client audit mutation are denied. `write_audit_log` and service-role-only domain transactions are the trusted mutation/audit paths.
+All 53 application tables have RLS. Authenticated browser identities receive database-profile-gated read access only; business writes remain server-owned. Twelve explicit public views are owned by a `NOLOGIN`, `NOBYPASSRLS` projection role and granted to anonymous/authenticated actors. Narrow projection-owner read policies support only the safe joins required by those views; anonymous actors retain no base-table access. Anonymous direct business-table writes and all client audit mutation are denied. `write_audit_log` and service-role-only domain transactions are the trusted mutation/audit paths.
 
 ### Admin Authentication
 
@@ -182,11 +182,15 @@ M9 publication is complete. `property_publication_readiness()` evaluates the cur
 
 `publish_property()` locks the row, checks optimistic concurrency, reruns readiness and atomically transitions only Draft/Under Review/Unpublished records to Published with actor/time/audit. `unpublish_property()` requires a specific reason and removes the record from every public projection without deleting it. Availability remains independent: Published records can become Under Negotiation or accurately retain Sold/Rented/Leased. Archive requires prior unpublish and always sets Off Market; restore returns to a private Available Draft.
 
-All public property queries now use explicit field lists. Published-only projection views remain the sole anonymous data source, and `public_property_indexability` is the safe later sitemap/canonical source. Publish, unpublish, availability, public-media and verification changes revalidate inventory, property, admin preview and sitemap paths. M10 public property UI, M11 search and M16 sitemap/robots rendering are not implemented.
+All public property queries use explicit field lists. Published-only projection views remain the sole anonymous data source, and `public_property_indexability` is the safe later sitemap/robots source. Publish, unpublish, availability, public-media and verification changes revalidate inventory, property, admin preview and sitemap paths. M11 search and M16 sitemap/robots rendering are not implemented.
 
 ### Public Website
 
-Not implemented.
+M10 is complete. A custom responsive navy/gold public shell uses Playfair Display headings, Montserrat UI text, semantic navigation, visible focus, honest empty/failure states and a mobile menu. The homepage contains the approved header, hero/discovery entry, category cards, featured published inventory, trust/process/service-area/verification education, guide preview, sell-land CTA and footer/cross-link structure without inventing production content.
+
+`/properties`, three category landings and Buy/Rent/Lease landings reuse one bounded server-rendered `PropertyCollection` and canonical `PropertyCard`. Advanced search, URL-state filtering and query ranking remain entirely deferred to M11. `/properties/[property-slug]` is the approved route-architecture form of the detail URL and renders identity, gallery/external media, pricing/area, category-specific facts, public parcels/planning, privacy-aware location/map enhancement, safe verification education, sharing and responsive actions. Closed listings retain accurate status and suppress inappropriate conversion actions; inaccessible slugs return an indistinguishable real 404.
+
+MapLibre is integrated as an opt-in client enhancement using its separately copied worker. It never mounts for hidden locations and receives only approved public coordinates for exact/approximate modes. Video/drone/360 embeds remain consent-gated. Contact actions read centralized public settings and stay disabled or absent when real values are unavailable; no CRM mutation exists before M13.
 
 ### Search
 
@@ -206,15 +210,17 @@ Not implemented.
 
 ### SEO
 
-Not implemented.
+M10 baseline SEO is implemented for real public pages: server-rendered titles/H1s, route metadata, canonical URLs, Open Graph values, breadcrumbs and published-only eligibility. Admin preview remains noindex from M9. M16 still owns sitemap/robots rendering, guide/location scale-out and broader crawl control.
 
 ### Security
 
-M1 foundation security is implemented: server environment access is marked `server-only`, client dependency graphs are checked for privileged imports, stateful tests fail closed against production-shaped targets, examples contain names only, and tracked/candidate files are secret-scanned. RLS and domain privacy enforcement begin in M2–M4.
+The M1–M9 server, test-target, RLS, storage and publication protections remain intact. M10 public pages consume only explicit published projections and defensively map permitted fields. Tests prove drafts/unpublished/archived guesses reveal nothing; owner PII, internal notes, audit data, private documents/evidence/URLs and private coordinates never reach public DOM, initial HTML, DTOs or network-visible map payloads. Approximate mode uses only the stored public point and hidden mode mounts no map.
 
 ### Testing
 
-The complete current local suite passes: 277 pgTAP assertions, the 24-worker Property ID concurrency test, 73 Vitest unit tests, 14 component tests, 22 guarded application integration tests and 18 guarded Chromium E2E scenarios. Lint, Prettier verification, strict typecheck, seven-client server-boundary scan, secret scan, database lint and the Next.js 16 webpack production build also pass. M9 coverage includes blocker structure, category/pricing/location policy, atomic transitions, cover/evidence requirements, closed availability, archive safety, audit, public/indexability inclusion and removal, preview privacy, explicit query shape and anonymous/non-admin/browser denial.
+The complete current local suite passes: 294 pgTAP assertions, the 24-worker Property ID concurrency test, 80 Vitest unit tests, 20 component tests, 23 guarded application integration tests and 23 guarded Chromium E2E scenarios. Lint, Prettier verification, strict typecheck, 13-client server-boundary scan, 242-file secret scan, database lint and the Next.js 16 webpack production build also pass. M10 browser coverage includes initial HTML, all category surfaces, media/price/area, exact/approximate/hidden location privacy, closed and not-found states, network/DOM privacy canaries, keyboard navigation, automated accessibility and 320/375/390/430/768/1024/1440/1728 px layouts.
+
+Final mobile Lighthouse on the local production homepage scored Performance 95, Accessibility 100, Best Practices 100 and SEO 100, with FCP 1.22 s, lab LCP 2.92 s, CLS 0 and TBT 28 ms. The no-layout-shift and interaction results pass; the throttled local LCP remains above the 2.5 s field target and must be remeasured on staging/real traffic rather than represented as achieved.
 
 ### Deployment Preparation
 
@@ -224,10 +230,11 @@ Not implemented or configured.
 
 ```text
 app/                                       Next.js App Router
-  (public)/                                public shell and foundation page
+  (public)/                                M10 public shell, discovery/category/transaction/property routes
   (admin)/admin/                           explicit admin route-group placeholder
   error.tsx / global-error.tsx / not-found.tsx
 components/foundation/                     M1 shell components
+components/public/                         canonical M10 cards, collections, detail/media/location/actions and shell
 config/                                    site and environment schemas
 features/                                  domain-module boundary (empty in M1)
 lib/                                       shared/test/privacy/SEO/Supabase boundaries
@@ -266,17 +273,17 @@ docs/
     README.md                               runbook scope and production guardrails
 ```
 
-There is no `.openai/hosting.json`; no hosting/deployment is configured. The approved Living Space logo reference is present, while the old reference-app source is intentionally unavailable. Git is on `main`. The `.gitignore` excludes secrets, environment files, dependencies, generated output, local Supabase runtime and provider state. M0–M9 are complete; M10 has not begun.
+There is no `.openai/hosting.json`; no hosting/deployment is configured. The approved Living Space logo reference is present, while the old reference-app source is intentionally unavailable. Git is on `main`. The `.gitignore` excludes secrets, environment files, dependencies, generated output including the copied MapLibre worker, local Supabase runtime and provider state. M0–M10 are complete; M11 has not begun.
 
 ## 7. Database State
 
 | Item | Actual state |
 |---|---|
-| Migration files | Nine ordered migrations through `20260903090000_property_publication_gate.sql` |
+| Migration files | Ten ordered migrations through `20260905010000_m10_public_property_detail.sql` |
 | Tables created | 53 application tables: the authoritative 49 plus four typed M8 workflow/policy tables approved by ADR-0003 |
 | Enums created | 32 enum types; six M8 types cover source class, provenance, applicability, professional review, exceptions and public-copy approval |
 | Functions/triggers | Prior generators/integrity/draft/media/verification functions plus authoritative publication readiness and service-only atomic publish/unpublish/safe archive functions |
-| Views/public projections | 11 whitelisted views: property listing/detail/media/verifications/indexability, geography, area units, settings, guide categories/guides and SEO pages |
+| Views/public projections | 12 whitelisted views: property listing/detail/media/public parcels/verifications/indexability, geography, area units, settings, guide categories/guides and SEO pages |
 | Indexes | Baseline publication/geography/offers/media/CRM/visit/verification/content/audit indexes |
 | Storage buckets | Five local migration-controlled buckets: two intentional public buckets and three private buckets; no browser object mutation/list policies |
 | RLS policies | Enabled on all 53 tables; active-admin read policy on each plus narrowly scoped projection-owner policies |
@@ -285,11 +292,11 @@ There is no `.openai/hosting.json`; no hosting/deployment is configured. The app
 | Development/staging application | Nothing applied |
 | Production | Nothing applied; no production operation authorized |
 
-The 53-table inventory, 32 enum types, nine-migration order, 11 explicit public-safe projections, five-bucket boundary, RLS grants and M6–M9 service transactions are implemented and validated locally.
+The 53-table inventory, 32 enum types, ten-migration order, 12 explicit public-safe projections, five-bucket boundary, RLS grants and M6–M9 service transactions are implemented and validated locally.
 
 ## 8. RLS / Security State
 
-Database integrity, server module boundaries, RLS, grants and privacy projections are implemented and tested locally. Browser roles cannot write business tables, execute M6–M9 mutation RPCs, list private objects, upload to any controlled bucket or change bucket visibility. Every property, media, verification and publication Server Action reauthorizes with `requireActiveAdmin()` before privileged work. Verification/publication RPCs repeat the active-admin actor check and are executable only by `service_role`. Private signing additionally checks the active, clean, non-archived document and active property, then audits the resource ID/purpose without paths or URL. Anonymous/non-admin path guesses fail; unpublished inventory/media, private evidence/documents, source details, exact coordinates, EXIF and owner contact data remain outside public outputs.
+Database integrity, server module boundaries, RLS, grants and privacy projections are implemented and tested locally. Browser roles cannot write business tables, execute M6–M9 mutation RPCs, list private objects, upload to any controlled bucket or change bucket visibility. Every property, media, verification and publication Server Action reauthorizes with `requireActiveAdmin()` before privileged work. Verification/publication RPCs repeat the active-admin actor check and are executable only by `service_role`. Private signing additionally checks the active, clean, non-archived document and active property, then audits the resource ID/purpose without paths or URL. Anonymous/non-admin path guesses fail; unpublished inventory/media, private evidence/documents, source details, exact coordinates, EXIF and owner contact data remain outside public outputs. M10 adds no public mutation and its queries contain no wildcard selection.
 
 ## 9. Routes Implemented
 
@@ -297,8 +304,14 @@ Database integrity, server module boundaries, RLS, grants and privacy projection
 
 | Route | Status | Notes |
 |---|---|---|
-| `/` | SHELL_ONLY / TESTED | Responsive development-only public foundation; no property data or imagery |
-| Other canonical public routes | NOT_STARTED | Implemented only in their roadmap milestones |
+| `/` | COMPLETE / TESTED | Server-rendered public home with discovery, categories, featured published inventory, trust/process/service/verification/content/CTA sections |
+| `/properties` | COMPLETE / TESTED | Bounded published inventory using the canonical card/collection; advanced discovery remains M11 |
+| `/agricultural-land` | COMPLETE / TESTED | Agricultural guidance and current published category inventory |
+| `/na-land` | COMPLETE / TESTED | NA guidance and current published category inventory |
+| `/industrial-land` | COMPLETE / TESTED | Industrial/GIDC guidance and current published category inventory |
+| `/buy`, `/rent`, `/lease` | COMPLETE / TESTED | Transaction-specific published collection shells, without M11 filtering |
+| `/properties/[property-slug]` | COMPLETE / TESTED | Approved canonical detail route with safe category facts, media, privacy-aware location, availability, metadata and actions |
+| Other canonical public routes | NOT_STARTED | Implemented only in their roadmap milestones; future links do not prefetch absent routes |
 
 ### Admin routes
 
@@ -336,7 +349,7 @@ ADR-0001 remains enforced in code: `REQUESTED`, `CONTACTED`, `PROPOSED`, `CONFIR
 | Supabase | LOCAL_ONLY | Isolated local project runs on `55320`–`55327`; a new dedicated remote project is still required and must never share Living Space |
 | Netlify | NOT_CONFIGURED | Free tier is architecture target; no site created |
 | Email / Resend | NOT_CONFIGURED | No key/domain/sending enabled |
-| Maps / OpenFreeMap + MapLibre | NOT_CONFIGURED | No provider or style configured |
+| Maps / OpenFreeMap + MapLibre | CLIENT_READY / PROVIDER_NOT_CONFIGURED | Consent-free lazy MapLibre client and worker are integrated; no map mounts without an approved style/provider, and hidden listings never receive a point |
 | Analytics / Cloudflare Web Analytics | NOT_CONFIGURED | No identifier/configuration |
 | Cloudflare Turnstile | NOT_CONFIGURED | No widget/site key/secret |
 | Domain / Cloudflare DNS | NOT_CONFIGURED | No DNS changes performed |
@@ -458,18 +471,28 @@ The environment schema and `.env.example` contain names only. Never store actual
 | Complete guarded local E2E | PASS | 2026-09-04 | 18 Chromium scenarios cover all prior workflows plus admin preview, incomplete denial, full M9 publish/availability/unpublish lifecycle, public privacy and anonymous/non-admin publication denial |
 | M9 application QA/build | PASS | 2026-09-04 | Lint, Prettier, strict typecheck, seven-client boundary scan, 203-file secret scan and Next.js 16 webpack production build pass; preview compiles dynamically |
 | Property-code concurrency regression | PASS | 2026-09-04 | 24 parallel inserts still produce 24 distinct immutable canonical Property IDs after M9 |
+| M10 clean database rebuild | PASS | 2026-09-05 | All ten migrations and repeatable seed apply from zero in isolated local Supabase |
+| M10 database/RLS suite | PASS | 2026-09-05 | 8 files / 294 pgTAP assertions cover prior contracts plus detail/parcel projection shape, published eligibility, category context and location/privacy canaries |
+| M10 database lint | PASS | 2026-09-05 | `supabase db lint` reports no schema errors |
+| M10 guarded integration suite | PASS | 2026-09-05 | 5 files / 23 tests cover published-to-public DTO behavior, draft exclusion and exact/approximate/hidden location transitions plus all prior services |
+| M10 unit/component suite | PASS | 2026-09-05 | 13 files / 80 unit tests and 8 files / 20 component tests cover public projection/formatting, canonical cards, gallery, category facts, status, map/media/actions and empty states |
+| Complete guarded local E2E | PASS | 2026-09-05 | 23 Chromium scenarios cover the full M0–M10 suite; M10 exercises SSR HTML, categories, detail/media/price/area, privacy modes, closed/404 states, eight target widths, keyboard behavior and axe checks |
+| M10 application QA/build | PASS | 2026-09-05 | Lint, Prettier, strict typecheck, 13-client boundary scan, 242-file secret scan, unit/component suites and Next.js 16 webpack production build pass |
+| Property-code concurrency regression | PASS | 2026-09-05 | 24 parallel inserts still produce 24 distinct immutable canonical Property IDs after M10 |
+| M10 Lighthouse production snapshot | PASS WITH FOLLOW-UP | 2026-09-05 | Mobile homepage: Performance 95, Accessibility 100, Best Practices 100, SEO 100; FCP 1.22 s, LCP 2.92 s, CLS 0, TBT 28 ms. Remeasure the 2.5 s LCP field target on staging/real traffic |
 
 ## 14. Known Issues
 
 ### Blocking
 
-None. Every M9 completion criterion passes locally; M10 has not begun.
+None. Every M10 completion criterion passes locally; M11 has not begun.
 
 ### Important
 
 1. **Provider facts are dated.** Revalidate current terms/free limits before configuration or launch.
 2. **ESLint compatibility warning.** Clean install succeeds, but npm reports ESLint 9 as deprecated; Next 16's bundled lint plugins do not yet declare ESLint 10 peer compatibility. Upgrade when the dependency set supports it without overrides.
 3. **Supabase CLI update available.** Local validation used pinned CLI `2.104.0`; `2.116.0` is available. Upgrade only with a reviewed migration/reset regression run.
+4. **Field performance still needs staging evidence.** The final throttled local homepage Lighthouse LCP was 2.92 s against the 2.5 s field target; CLS and TBT were healthy. Recheck with the selected host/CDN, approved imagery and real-user monitoring before launch.
 
 ### Minor
 
@@ -487,7 +510,7 @@ None. Every M9 completion criterion passes locally; M10 has not begun.
 | `ADR-0002` | Keep one media registry with mutually exclusive hosted-object and canonical external-provider locators | Required video/drone/360 URLs cannot truthfully satisfy document `03`'s non-null Storage columns; fake objects or duplicate tables would violate the media architecture | `media_assets`, migration, public DTO/projection, storage service, safe embeds, tests |
 | `ADR-0003` | Persist evidence provenance, applicability, exceptions, professional review, history and public-copy approval as separate typed verification concepts | Notes and generic pass counts cannot preserve scope, currentness, attribution or safe public-claim gates | Verification schema/RPCs, service, admin workflow, public projection and tests |
 
-M8 required ADR-0003; M9 required no new ADR. Its additive migration uses the accepted publication, media, privacy and verification contracts without a property-level verified flag or universal score. Production migration, bucket creation, malware-provider activation, lawyer copy approval and public deployment remain unperformed approval gates.
+M8 required ADR-0003; M9 and M10 required no new ADR. M10 follows the approved plural property-detail route and extends only explicit public projections, using the accepted publication, media, privacy and verification contracts without a property-level verified flag or universal score. Production migration, bucket creation, map-provider selection, contact configuration, malware-provider activation, lawyer copy approval and public deployment remain unperformed approval gates.
 
 The non-ADR M0 reconciliation decisions are recorded in `docs/DECISIONS.md`: later finalized documents refine master examples where the master describes them as recommendations/high-level guidance; the owner-designated design report is the authoritative Living Space brand/design reference; the approved Living Space logo is a reference asset rather than an automatically relabeled Land Space logo; missing photography may use only clearly marked development placeholders tracked for replacement.
 
@@ -516,7 +539,7 @@ Future explicit approval gates (not currently requested):
 
 ## 18. Placeholder / Pre-Launch Data
 
-The placeholder register records two open items (public foundation and provisional text wordmark) and one resolved M5 admin-foundation item. No property imagery or inventory is shown. Every open item must be replaced or explicitly approved before launch.
+The placeholder register records five open pre-launch inputs and two resolved foundations. M10 renders honest empty/media/contact/map states when real inputs are absent. No production property imagery or inventory is shown. Every open item must be replaced or explicitly approved before launch.
 
 The following real inputs remain unavailable/unconfigured:
 
@@ -525,8 +548,10 @@ The following real inputs remain unavailable/unconfigured:
 - phone and WhatsApp destination;
 - public email and sending identity;
 - office address;
+- Living Space cross-link destination;
 - real property inventory;
 - final lawyer-approved public verification/legal copy;
+- approved MapLibre-compatible map style/provider and attribution;
 - social links;
 - analytics identifiers;
 - domain/DNS configuration;
@@ -536,14 +561,15 @@ Do not invent production values or fabricate property/geography records to popul
 
 ## 19. Exact Next Actions
 
-1. Preserve the clean M9 checkpoint and do not begin M10 without an explicit continuation request.
-2. Before M10, read the public property experience roadmap and consume only the frozen explicit public query/projection contracts.
+1. Preserve the clean M10 checkpoint and do not begin M11 without an explicit continuation request.
+2. Before M11, read the PostgreSQL search and URL-state discovery roadmap; reuse the M10 canonical `PropertyCard`/`PropertyCollection` and explicit public projections instead of creating a parallel result model.
 3. Keep all verification public copy disabled until wording receives the recorded lawyer approval required by its policy row.
-4. Consume `public_property_indexability` only when M16 implements sitemap/robots/canonical rendering; do not reimplement readiness in public UI.
-5. Configure and validate an approved malware-scanning provider before any preview/production private upload is trusted; current remote behavior fails closed as `PENDING` when none is configured.
+4. Consume `public_property_indexability` only when M16 implements sitemap/robots rendering; do not reimplement publication readiness in search or public UI.
+5. Keep M13 CRM-backed inquiry/requirement/site-visit persistence out of M11; existing M10 contact presentation is intentionally connection-ready only.
+6. Configure and validate approved map and malware-scanning providers before staging/production use; both currently fail safely when absent.
 
 ## 20. Resume Instructions For The Next Coding Agent
 
-> You are continuing an existing UrbanEdge Land Space implementation after M9. M0–M9 are complete and M10 has not begun. Read this file, `docs/architecture/IMPLEMENTATION-LEDGER.md`, ADR-0001 through ADR-0003 and the M10 public-property sources before any M10 work. The local database is disposable and isolated; production remains untouched. Preserve the M9 server-owned readiness/publish/unpublish boundary, public-safe projection freeze, location privacy and scoped public-copy gate; never infer publication readiness in a client or public page.
+> You are continuing an existing UrbanEdge Land Space implementation after M10. M0–M10 are complete and M11 has not begun. Read this file, `docs/architecture/IMPLEMENTATION-LEDGER.md`, ADR-0001 through ADR-0003 and the M11 search/discovery sources before any M11 work. The local database is disposable and isolated; production remains untouched. Reuse the M10 canonical public property DTO/card/collection, preserve the M9 server-owned readiness/publish/unpublish boundary, public-safe projections, location privacy and scoped public-copy gate, and keep URL-state search server-rendered per the approved architecture.
 
 Special warning: owner submissions must never auto-publish, site-visit requests must never auto-confirm, and no public payload may contain owner PII, private documents/evidence/internal notes, unpublished inventory or exact coordinates for approximate/hidden listings.
