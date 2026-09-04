@@ -1,8 +1,8 @@
 # UrbanEdge Land Space V1 — Implementation Ledger
 
-**Ledger status:** M0–M8 COMPLETE; scoped verification, evidence provenance, professional review and safe disclosure are reconciled and validated.
+**Ledger status:** M0–M9 COMPLETE; authoritative publication readiness, atomic transitions and the public projection/indexability freeze are reconciled and validated.
 
-**Last reconciled:** 4 September 2026 (M8: configurable category workflows, evidence/currentness, professional referrals, exceptions, history, RLS, safe public projection and protected admin UX pass the complete local regression suite)
+**Last reconciled:** 4 September 2026 (M9: category/content/location/offer/media/claim readiness, publish/unpublish, closed availability, archive safety, RLS, public/indexability projections, revalidation and protected admin UX pass the complete local regression suite)
 
 This ledger is the single implementation-facing map required by `12-IMPLEMENTATION-ROADMAP.md`. It does not replace the source documents. When this ledger conflicts with a source, the source hierarchy in the owner's build brief applies.
 
@@ -262,16 +262,15 @@ All transitions are service-owned, concurrency-checked and audited where materia
 DRAFT -> UNDER_REVIEW
 DRAFT -> PUBLISHED                 only through publication service
 UNDER_REVIEW -> DRAFT
-UNDER_REVIEW -> PUBLISHED
-PUBLISHED -> UNPUBLISHED
-PUBLISHED -> ARCHIVED
+UNDER_REVIEW -> PUBLISHED          only through publication service
+PUBLISHED -> UNPUBLISHED           explicit reason; remains durable/private
 UNPUBLISHED -> UNDER_REVIEW
-UNPUBLISHED -> PUBLISHED
-UNPUBLISHED -> ARCHIVED
+UNPUBLISHED -> PUBLISHED           only through publication service
+DRAFT | UNDER_REVIEW | UNPUBLISHED -> ARCHIVED
 ARCHIVED -> DRAFT                  explicit restore; never direct restore to published
 ```
 
-Publication validation is distinct from draft validation. Publishing must be atomic and must validate public title/content, category/transaction, valid geography, public-safe location, area/provenance, price mode, cover media or approved exception, category minima, claims/evidence and privacy.
+Publication validation is distinct from draft validation. M9 implements one authoritative database validator. Publishing locks the current row, checks optimistic concurrency, reruns readiness and atomically validates public title/summary/description, immutable code/slug, category/transaction, geography/public location text, location privacy, area, source relationship, one matching price structure, approved public cover, category minima, required scoped identity/category evidence and unsafe claim wording. Archive is never a substitute for unpublish: a Published record must first become Unpublished, and every archive becomes Off Market.
 
 ### 6.2 Property availability
 
@@ -406,6 +405,7 @@ Database projections:
 - safe geography/reference projections as required;
 - safe public media projection;
 - safe public verification projection;
+- published-only property indexability/canonical source;
 - published guide/category projection;
 - published SEO-page projection;
 - allowlisted public-settings projection.
@@ -677,5 +677,6 @@ No unresolved M0 blocker remains.
 | M6 | COMPLETE | Service-role-only transactional draft RPCs, three-category extension consistency, offers/parcels/location/planning/party/source persistence, protected list/detail/create/edit routes, stale-write protection, controlled availability, archive/restore, public-projection exclusion and sensitive audit behavior pass 136 pgTAP, 36 unit, 3 component, 6 integration and 13 E2E assertions/scenarios |
 | M7 | COMPLETE | Five configured buckets, hosted/external media registry, private staging and immutable promotion, EXIF stripping, document scanning states, short-lived authorized signed access, archive/restore, quota surfacing and protected media UX pass 187 pgTAP, 46 unit, 7 component, 12 integration and 15 E2E assertions/scenarios plus full QA/build |
 | M8 | COMPLETE | 27 configurable common/category check definitions, typed applicability/provenance/professional review/exceptions/history, service-owned transitions, lawyer-gated public projection and protected queue/workspace pass 238 pgTAP, 62 unit, 9 component, 16 integration and 17 E2E assertions/scenarios plus full QA/build |
+| M9 | COMPLETE | Authoritative eight-group readiness, service-role-only atomic publish/unpublish, category/location/media/offer/claim gates, safe closed availability/archive behavior, explicit public query freeze, published-only indexability, revalidation and protected readiness/preview UX pass 277 pgTAP, 73 unit, 14 component, 22 integration and 18 E2E assertions/scenarios plus full QA/build |
 
-M8 adds four typed workflow/policy tables and six enums under ADR-0003 while preserving the canonical Property ID, existing verification rows and private-document boundary. There is no property-level verified flag or universal score. Publication remains blocked until M9, all seeded public verification copy remains unapproved, and M9 has not begun.
+M9 adds no table, enum or ADR. The ninth migration adds the authoritative structured readiness function, service-only publish/unpublish and safe archive/restore semantics, an archived/off-market integrity constraint and the `public_property_indexability` view. Publication and availability remain independent; all seeded public verification copy remains unapproved. M10 has not begun.
