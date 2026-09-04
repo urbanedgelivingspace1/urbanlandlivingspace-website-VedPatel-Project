@@ -9,13 +9,13 @@ This is the live record of what has actually happened. Update it after every mea
 | Project | UrbanEdge Land Space |
 | Repository | `/Users/vedpatel/Desktop/UrbanLand_website` |
 | Current branch | `main` |
-| Latest relevant commit | M8 completion commit recorded by the following handoff metadata commit |
+| Latest relevant commit | M8 completion commit `3693e69e21092409083130f32eecc75b3e18dc3d`; this handoff metadata is the following `HEAD` commit |
 | Working tree | CLEAN after the M8 handoff metadata commit |
 | Current milestone | M8 — Verification Workflow and Verification Admin |
 | Current milestone status | COMPLETE |
 | Last completed milestone | M8 — Verification Workflow and Verification Admin |
 | Next milestone | M9 — Publication Gate and Public Projection Freeze (not begun) |
-| Last updated | 2026-09-04 IST |
+| Last updated | 2026-09-04 15:42:20 IST |
 | Last updating agent | Codex |
 
 ## 2. Source-of-Truth Documents
