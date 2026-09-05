@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowIcon, CheckIcon, CompassIcon } from "@/components/public/icons";
 import { PropertyCollection } from "@/components/public/property-collection";
 import { SectionHeading } from "@/components/public/section-heading";
+import { SearchEntryForm } from "@/components/search/search-entry-form";
 import { loadPublicInventory } from "@/server/queries/public-page-data";
 
 export const dynamic = "force-dynamic";
@@ -76,6 +77,9 @@ export default async function HomePage() {
             <p>
               Choose a land type or transaction to see the most relevant published opportunities.
             </p>
+            <div className="mt-5">
+              <SearchEntryForm />
+            </div>
             <div className="discovery-links">
               <Link href="/agricultural-land">
                 Agricultural <ArrowIcon className="size-4" />

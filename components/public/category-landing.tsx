@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import type { LandCategory } from "@/types/database";
-import { loadPublicInventory } from "@/server/queries/public-page-data";
+import { loadFixedPublicSearch } from "@/server/queries/public-search";
 
 import { Breadcrumbs } from "./breadcrumbs";
 import { PropertyCollection } from "./property-collection";
@@ -74,7 +74,8 @@ const content: Record<
 
 export async function CategoryLanding({ category }: Readonly<{ category: LandCategory }>) {
   const page = content[category];
-  const inventory = await loadPublicInventory({ category, limit: 12 });
+  const inventory = await loadFixedPublicSearch({ category }, 12);
+  const categoryParameter = category === "AGRICULTURAL" ? "agricultural" : category.toLowerCase();
   return (
     <main>
       <section className={`category-hero category-${category.toLowerCase()}`}>
@@ -125,6 +126,11 @@ export async function CategoryLanding({ category }: Readonly<{ category: LandCat
               result={inventory}
               emptyTitle={`No ${page.eyebrow.toLowerCase()} is publicly listed right now.`}
             />
+          </div>
+          <div className="mt-8">
+            <Link className="text-link" href={`/properties?category=${categoryParameter}`}>
+              Refine this search <ArrowIcon className="size-4" />
+            </Link>
           </div>
         </div>
       </section>

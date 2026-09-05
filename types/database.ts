@@ -222,6 +222,16 @@ export type PublicAppSettingRow = Readonly<{
   value: Json;
 }>;
 
+export type PublicSearchFacetRow = Readonly<{
+  facet_key: string;
+  land_category: LandCategory;
+  value: string;
+  label: string;
+  result_count: number;
+}>;
+
+export type PublicPropertySearchRow = PublicPropertyListingRow & Readonly<{ total_count: number }>;
+
 type View<Row> = {
   Row: Row;
   Insert: never;
@@ -257,8 +267,37 @@ export type Database = {
       public_geography_options: View<PublicGeographyOptionRow>;
       public_area_units: View<PublicAreaUnitRow>;
       public_app_settings: View<PublicAppSettingRow>;
+      public_property_search_filter_options: View<PublicSearchFacetRow>;
     };
     Functions: {
+      search_public_properties: {
+        Args: {
+          requested_keyword?: string | null;
+          requested_property_code?: string | null;
+          requested_category?: LandCategory | null;
+          requested_transaction?: TransactionType | null;
+          requested_district?: string | null;
+          requested_taluka?: string | null;
+          requested_place?: string | null;
+          requested_locality?: string | null;
+          requested_minimum_area_sqm?: number | null;
+          requested_maximum_area_sqm?: number | null;
+          requested_minimum_price?: number | null;
+          requested_maximum_price?: number | null;
+          requested_pricing?: string | null;
+          requested_availability?: AvailabilityStatus | null;
+          requested_agricultural_tenure?: string | null;
+          requested_agricultural_irrigation?: string | null;
+          requested_na_status?: string | null;
+          requested_na_purpose?: string | null;
+          requested_industrial_type?: string | null;
+          requested_industrial_power?: string | null;
+          requested_sort?: string;
+          requested_page?: number;
+          requested_page_size?: number;
+        };
+        Returns: PublicPropertySearchRow[];
+      };
       write_audit_log: {
         Args: {
           requested_action: AuditAction;

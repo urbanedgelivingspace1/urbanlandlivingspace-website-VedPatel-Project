@@ -315,16 +315,20 @@ test("visitor receives the homepage in initial HTML and browses each category", 
   for (const [path, title] of [
     ["/agricultural-land", agricultural.title],
     ["/na-land", naLand.title],
-    ["/industrial-land", industrial.title],
   ] as const) {
     await page.goto(path);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page.getByText(title, { exact: true })).toBeVisible();
   }
+  await page.goto("/industrial-land");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByText(industrial.title, { exact: true })).toHaveCount(0);
 
   await page.goto("/properties");
   await expect(page.getByText(agricultural.title, { exact: true })).toBeVisible();
   await expect(page.getByText(naLand.title, { exact: true })).toBeVisible();
+  await expect(page.getByText(industrial.title, { exact: true })).toHaveCount(0);
+  await page.goto("/properties?availability=leased");
   await expect(page.getByText(industrial.title, { exact: true })).toBeVisible();
 });
 

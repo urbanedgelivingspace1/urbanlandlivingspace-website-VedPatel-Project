@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import type { TransactionType } from "@/types/database";
 import { transactionLabels } from "@/lib/formatting/property-values";
-import { loadPublicInventory } from "@/server/queries/public-page-data";
+import { loadFixedPublicSearch } from "@/server/queries/public-search";
 
 import { Breadcrumbs } from "./breadcrumbs";
 import { PropertyCollection } from "./property-collection";
@@ -34,7 +34,7 @@ export async function TransactionLanding({
   transaction,
 }: Readonly<{ transaction: TransactionType }>) {
   const page = copy[transaction];
-  const inventory = await loadPublicInventory({ transactionType: transaction, limit: 12 });
+  const inventory = await loadFixedPublicSearch({ transaction }, 12);
   return (
     <main>
       <section className="collection-hero">
@@ -61,8 +61,11 @@ export async function TransactionLanding({
             <PropertyCollection result={inventory} />
           </div>
           <div className="mt-10">
-            <Link href="/properties" className="text-link">
-              See all published land <ArrowIcon className="size-4" />
+            <Link
+              href={`/properties?transaction=${transaction.toLowerCase()}`}
+              className="text-link"
+            >
+              Refine this search <ArrowIcon className="size-4" />
             </Link>
           </div>
         </div>
