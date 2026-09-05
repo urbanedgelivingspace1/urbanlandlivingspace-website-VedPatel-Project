@@ -1,8 +1,8 @@
 # UrbanEdge Land Space V1 — Implementation Ledger
 
-**Ledger status:** M0–M10 COMPLETE; authoritative publication readiness, public-safe projections and the server-rendered published-property experience are reconciled and validated.
+**Ledger status:** M0–M11 COMPLETE; PostgreSQL search, URL-state discovery and the prior publication/public-experience boundaries are reconciled and validated.
 
-**Last reconciled:** 4 September 2026 (M9: category/content/location/offer/media/claim readiness, publish/unpublish, closed availability, archive safety, RLS, public/indexability projections, revalidation and protected admin UX pass the complete local regression suite)
+**Last reconciled:** 5 September 2026 (M11: bounded typed public search, URL normalization, SSR filters/sorts/pagination, category integration, crawl controls, privacy, query plans and the complete local regression suite)
 
 This ledger is the single implementation-facing map required by `12-IMPLEMENTATION-ROADMAP.md`. It does not replace the source documents. When this ledger conflicts with a source, the source hierarchy in the owner's build brief applies.
 
@@ -91,7 +91,7 @@ All listing/content reads are server-side and must consume explicit public proje
 | Route | Public data source | Mutation path / notes |
 |---|---|---|
 | `/` | `public_property_listings`, public geography/content/settings projections | Read only; featured inventory must remain publish-eligible |
-| `/properties` | PostgreSQL search over `public_property_listings` | URL-owned filter/sort/page state |
+| `/properties` | `search_public_properties()` over the private `public_property_search` projection plus safe facet/geography views | Canonical URL-owned keyword/ID/filter/sort/page state; arbitrary filters are noindex |
 | `/properties/[property-slug]` | `public_property_detail` plus related public listings | Inquiry/interaction/visit actions are server-owned |
 | `/agricultural-land` | Public listing search constrained to `AGRICULTURAL`; published SEO/content projection | Read only |
 | `/na-land` | Public listing search constrained to `NA`; published SEO/content projection | Read only; no development guarantee |
@@ -679,7 +679,10 @@ No unresolved M0 blocker remains.
 | M8 | COMPLETE | 27 configurable common/category check definitions, typed applicability/provenance/professional review/exceptions/history, service-owned transitions, lawyer-gated public projection and protected queue/workspace pass 238 pgTAP, 62 unit, 9 component, 16 integration and 17 E2E assertions/scenarios plus full QA/build |
 | M9 | COMPLETE | Authoritative eight-group readiness, service-role-only atomic publish/unpublish, category/location/media/offer/claim gates, safe closed availability/archive behavior, explicit public query freeze, published-only indexability, revalidation and protected readiness/preview UX pass 277 pgTAP, 73 unit, 14 component, 22 integration and 18 E2E assertions/scenarios plus full QA/build |
 | M10 | COMPLETE | Premium server-rendered public shell/home, category and transaction landings, published inventory, canonical property cards, complete public detail/media/location/availability experience, baseline metadata, responsive/privacy/accessibility regressions and failure/empty states pass 294 pgTAP, 80 unit, 20 component, 23 integration and 23 E2E assertions/scenarios plus full QA/build and Lighthouse |
+| M11 | COMPLETE | One normalized query contract and PostgreSQL provider power SSR keyword/Property-ID search, AND filters, category facts, strict area/budget semantics, availability/pricing classes, deterministic sorts, page-number navigation, category/transaction landings and `/search`; 334 pgTAP, 98 unit, 25 component, 26 integration and 29 E2E assertions/scenarios pass plus query-plan, security, reset, lint and build gates |
 
 M9 adds no table, enum or ADR. The ninth migration adds the authoritative structured readiness function, service-only publish/unpublish and safe archive/restore semantics, an archived/off-market integrity constraint and the `public_property_indexability` view. Publication and availability remain independent; all seeded public verification copy remains unapproved.
 
-M10 adds no table, enum or ADR. The tenth migration narrows and extends the published detail projection, grants its projection owner only the reference rows needed for category/planning context, and adds a published-only public parcel-identifier projection. Twelve explicit public-safe views now support the visitor experience. The approved canonical detail route remains `/properties/[property-slug]` under the route architecture. No public property-specific verification claim is rendered because the legal-copy gate remains closed; missing contact, map-provider and real-inventory inputs fail honestly and remain registered for pre-launch resolution. M11 has not begun.
+M10 adds no table, enum or ADR. The tenth migration narrows and extends the published detail projection, grants its projection owner only the reference rows needed for category/planning context, and adds a published-only public parcel-identifier projection. Twelve explicit public-safe views support the visitor experience. The approved canonical detail route remains `/properties/[property-slug]`.
+
+M11 adds no table, enum or ADR. The eleventh migration adds an allow-listed generated public-text search document, five purpose-specific partial indexes plus the primary-offer price index, a private projection-owner search view, a public-safe category facet view and a bounded typed search RPC. Fourteen explicit public views now exist; anonymous users can execute the RPC and read safe facet vocabulary but cannot select the internal search projection or any base table. URL and database validation cap keyword length at 120, page at 100 and page size at 48 (the visitor route uses 12). Default discovery is active inventory only; closed inventory is explicit and Off Market is impossible. No M12 CRM write or public verification claim is introduced.

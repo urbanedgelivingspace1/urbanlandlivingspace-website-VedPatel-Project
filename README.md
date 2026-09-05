@@ -34,3 +34,9 @@ configuration. Never commit real values.
 - Stateful tests refuse production-shaped targets and require an explicit synthetic-test token.
 - Public code must use public-safe DTOs/projections once the data layer exists.
 - M1 contains foundation placeholders only; it does not contain real property inventory.
+
+## Public search
+
+`/properties` is the canonical server-rendered search workspace. Its URL owns keyword/Property ID, category, transaction, geography, category-specific facts, comparable INR budget, authoritative area, availability, pricing class, sort and page state. `/search` is a noindex utility entry that redirects normalized searches into `/properties`; category and transaction landings use the same PostgreSQL provider and canonical property-card projection.
+
+Default results include Available and Under Negotiation listings. Closed listings require an explicit availability filter. Numeric budget filters exclude price-on-request and per-unit offers; strict area filters exclude measurements without an authoritative normalized value.

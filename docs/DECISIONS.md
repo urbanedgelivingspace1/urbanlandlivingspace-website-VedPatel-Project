@@ -33,6 +33,12 @@ The documentation-only baseline commit was created while accurately recording th
 
 `UrbanEdge_Living_Space_Logo_HD.jpg` is an approved UrbanEdge Living Space brand asset and is valid for extracting visual character and brand colors. It must not be silently presented as a purpose-built UrbanEdge Land Space logo. A Land Space-specific wordmark/lockup remains a separately approved brand deliverable if the product needs one.
 
+### D-006 — M11 public search comparability and discovery defaults
+
+M11 uses one URL parser and one PostgreSQL provider for `/properties`, `/search`, category landings and transaction landings. Default discovery includes only `AVAILABLE` and `UNDER_NEGOTIATION`; `SOLD`, `RENTED` and `LEASED` require an explicit availability filter, and `OFF_MARKET` is rejected.
+
+Numeric INR budget filters use overlap semantics for `EXACT_TOTAL` and `PRICE_RANGE` offers only. `PRICE_ON_REQUEST` is available through the explicit `pricing=por` class and `PER_UNIT` is not treated as a comparable total. Strict area filters use only `AUTHORITATIVE` normalized square-metre values and support the exact standard conversions `sq_m`, `sq_ft`, `sq_yd`, `var`, `acre` and `hectare`; ambiguous local units remain displayable but are excluded from strict numeric filtering. These are implementation-level applications of documents `03`, `04`, `07`, `08` and roadmap M11, not a new state model or security boundary, so no ADR is required.
+
 ## Formal ADRs
 
 - `ADR-0001`: site-visit lifecycle remains separate from CRM follow-up. `FOLLOW_UP_REQUIRED` is not a `site_visit_status`.
