@@ -9,13 +9,13 @@ This is the live record of what has actually happened. Update it after every mea
 | Project | UrbanEdge Land Space |
 | Repository | `/Users/vedpatel/Desktop/UrbanLand_website` |
 | Current branch | `main` |
-| Latest relevant commits | M11 implementation `87fcaac1dcc25c6f42c63517bb4d48a3805827c6`; exhaustive browser matrix `0a7a406`; full-axe contrast closure `c3e2d5e`; this handoff metadata is the following checkpoint commit |
-| Working tree | CLEAN after the M11 handoff metadata commit |
-| Current milestone | M11 — PostgreSQL Search and URL-State Discovery |
+| Latest relevant commits | M12 implementation `8170559`; this handoff checkpoint follows it; prior M11 checkpoint `3342810` |
+| Working tree | CLEAN after the M12 handoff commit |
+| Current milestone | M12 — CRM Core and Admin Operational Pipeline |
 | Current milestone status | COMPLETE |
-| Last completed milestone | M11 — PostgreSQL Search and URL-State Discovery |
-| Next milestone | M12 — CRM Core and Admin Operational Pipeline (not begun) |
-| Last updated | 2026-09-05 12:34:00 IST |
+| Last completed milestone | M12 — CRM Core and Admin Operational Pipeline |
+| Next milestone | M13 — Public Demand Conversions (not begun) |
+| Last updated | 2026-09-05 21:59:37 IST |
 | Last updating agent | Codex |
 
 ## 2. Source-of-Truth Documents
@@ -67,6 +67,7 @@ Accepted ADR:
 - Full master-prompt review confirms ADR-0001 remains compatible: the master contains no `FOLLOW_UP_REQUIRED` visit state and uses `SCHEDULED` as a high-level lifecycle phase, which document `03` refines into `PROPOSED`, `CONFIRMED` and `RESCHEDULED`.
 - `docs/adr/0002-hosted-and-external-media-locators.md` is accepted for M7. It preserves one `media_assets` registry while resolving hosted-object requirements versus mandatory external video/drone/360 locators through mutually exclusive constrained fields.
 - `docs/adr/0003-verification-provenance-and-professional-review.md` is accepted for M8. It persists evidence provenance, professional review, exceptions, applicability, history and lawyer-approved public copy as separate typed concepts.
+- `docs/adr/0004-m12-crm-status-and-follow-up-reconciliation.md` is accepted for M12. It adopts the owner-mandated twelve-state pipeline and adds private structured follow-up history while retaining ADR-0001 separation from site visits.
 
 Resolved source limitation:
 
@@ -92,7 +93,7 @@ The design report governs Living Space brand/design reference only. It does not 
 | M9 Publication Gate and Public Projection Freeze | COMPLETE | 2026-09-04 | 2026-09-04 | Authoritative database readiness, atomic publish/unpublish, protected grouped admin UX/preview, closed availability, safe projections/indexability, revalidation, audit and complete regression gates pass |
 | M10 Public Property Experience | COMPLETE | 2026-09-04 | 2026-09-05 | Server-rendered public home/shell, category and transaction landings, published inventory, canonical card/detail experiences, safe media/location/availability behavior, baseline SEO, responsive/accessibility/privacy checks and complete regressions pass |
 | M11 PostgreSQL Search and URL-State Discovery | COMPLETE | 2026-09-05 | 2026-09-05 | Typed PostgreSQL provider, allow-listed public search projection/RPC, URL-owned filters/sorts/page, canonical/noindex rules, accessible desktop/mobile discovery, category/transaction integration and complete regression/query-plan/security gates pass |
-| M12 CRM Core and Admin Operational Pipeline | NOT_STARTED | — | — | — |
+| M12 CRM Core and Admin Operational Pipeline | COMPLETE | 2026-09-05 | 2026-09-05 | Private lead/party/requirement/match/activity/follow-up services, exact pipeline, protected inbox/pipeline/detail/requirements/follow-up routes, duplicate warning/contact reuse, dashboard queue, RLS/audit privacy and full local qualification pass |
 | M13 Public Inquiry, Buyer Requirement, Contact and Intent Events | NOT_STARTED | — | — | — |
 | M14 Site Visit Request and Manual Coordination | NOT_STARTED | — | — | — |
 | M15 Sell Your Land Owner Submission and Conversion | NOT_STARTED | — | — | — |
@@ -103,32 +104,32 @@ The design report governs Living Space brand/design reference only. It does not 
 
 ## 4. Current Work
 
-Objective: preserve the completed M11 PostgreSQL search and URL-state discovery checkpoint. M12 has not begun. Public search remains read-only, publication-gated and isolated from CRM; no public verification wording is approved.
+Objective achieved: M12 is the single private operational CRM. Public search remains read-only, publication-gated and isolated from CRM; no M13 public form or public verification wording was introduced.
 
 Relevant sources:
 
 - owner's implementation brief;
 - embedded master prompt and finalized architecture;
-- `12-IMPLEMENTATION-ROADMAP.md`, M11;
-- route/data/backend/verification/SEO/security/media contracts in documents `01`, `02`, `03`, `04`, `06`, `07`, `08`, `09`, `11` and `13`;
-- ADR-0003's typed provenance, professional-review and public-copy contract;
-- ADR-0001's unchanged eight-value `site_visit_status` contract;
+- `12-IMPLEMENTATION-ROADMAP.md`, M12;
+- CRM data/backend/admin/security/testing contracts in documents `03`, `04`, `05`, `08`, `11` and `13`;
+- ADR-0001's separation of follow-up work from the site-visit lifecycle;
+- ADR-0004's exact terminal status and structured follow-up reconciliation;
 - `docs/architecture/IMPLEMENTATION-LEDGER.md`.
 
-Principal M11 files:
+Principal M12 files:
 
-- `features/search/domain/search-query.ts` and `features/search/domain/contracts.ts`
-- `server/search/postgres-search-provider.ts` and `server/queries/public-search.ts`
-- `app/(public)/properties/page.tsx`, `app/(public)/search/page.tsx` and category/transaction public routes
-- `components/search/*` plus the unchanged canonical `components/public/property-card.tsx`
-- `supabase/migrations/20260905020000_m11_public_property_search.sql`
-- M11 database, unit, integration, component and E2E test files
+- `features/crm/domain/*`, `server/services/crm.ts` and the CRM Server Actions
+- `app/(admin)/admin/(protected)/leads/*`, `requirements/*` and `follow-ups/page.tsx`
+- `components/admin/lead-form.tsx` and the CRM additions to the admin shell/dashboard
+- `supabase/migrations/20260905030000_m12_crm_core.sql`
+- `supabase/tests/010_m12_crm_core.test.sql` and M12 unit, component, integration and E2E coverage
+- `docs/adr/0004-m12-crm-status-and-follow-up-reconciliation.md`
 - `docs/architecture/IMPLEMENTATION-LEDGER.md`
 - this handoff file.
 
-Dependencies/blockers: M11 is complete against the isolated local Supabase stack on ports `55320`–`55327`. No production database/storage operation is authorized. M12 remains NOT_STARTED. Lawyer approval for any public verification copy remains an explicit owner gate; the seed approves none. Real inventory/media, public contact values and a production map provider/style remain pre-launch inputs, not M11 blockers.
+Dependencies/blockers: M12 is complete against the isolated local Supabase stack on ports `55320`–`55327`. No production database/storage operation is authorized. Lawyer approval for any public verification copy remains an explicit future gate; the seed approves none. Real inventory/media, public contact values and a production map provider/style remain pre-launch inputs, not M12 blockers.
 
-Required M11 checks: exact ID and public-keyword search, AND filters, geography/category facts, budget/area comparability, POR and closed-state handling, every deterministic sort, page preservation and true out-of-range 404, URL normalization, canonical/noindex rules, zero/failure recovery, responsive filter rail/sheet, keyboard/accessibility, projection privacy, bounded RPC validation, index plans, complete regression and production build. All pass locally.
+Required M12 checks: private lead CRUD, exact controlled transitions, requirement integrity, append-oriented activities/notes, structured follow-up history and India-time queues, manual property match/reject/remove, duplicate contact detection/reuse without destructive merge, bounded protected discovery, admin/non-admin/public actor separation, privacy-safe audit, responsive/keyboard/accessibility behavior, complete regression and production build. All pass locally.
 
 ## 5. Completed Implementation
 
@@ -138,15 +139,15 @@ Next.js 16 App Router, React 19, strict TypeScript, Tailwind 4, shadcn configura
 
 ### Database
 
-Eleven ordered migrations implement 53 application tables and 32 enum types, including the M8 verification model, M9 atomic publication gate, M10 public-detail projections and M11 public search. M11 adds no table or enum. It adds a generated allow-listed `tsvector`, partial GIN/discovery/dimension/geography/authoritative-area indexes, a primary-offer price index, the private `public_property_search` projection, safe `public_property_search_filter_options` and the typed bounded `search_public_properties()` RPC. The schema retains UUID keys, immutable sequence-backed references, foreign keys, checks, partial uniqueness, typed-value/category/audit triggers, updated timestamps, public-safe views and service-role-only domain transactions. `supabase/seed.sql` contains only repeatable India/Gujarat/service-district/unit/reference conversions. Applied and tested only in disposable local Supabase; never applied to production.
+Twelve ordered migrations implement 54 application tables and 32 enum types. M12 adds private `lead_follow_ups`, reconciles `lead_status` to the exact twelve-state owner pipeline, extends CRM activity types, adds duplicate/filter indexes and provides nine service-role-only transactional CRM RPCs. The prior generated public search document, typed bounded search RPC, publication projections and all privacy boundaries remain unchanged. The schema retains UUID keys, immutable sequence-backed references, foreign keys, checks, partial uniqueness, typed-value/category/audit triggers, updated timestamps, public-safe views and service-role-only domain transactions. `supabase/seed.sql` contains only repeatable India/Gujarat/service-district/unit/reference conversions. Applied and tested only in disposable local Supabase; never applied to production.
 
 ### Server contracts
 
-Separate public/admin DTOs, typed Supabase view rows, explicit public property/reference queries, a defensive public-property projector, centralized public-location/media/business-config helpers, price/area formatters, seven executable state machines and shared Zod schemas are implemented. `PostgresSearchProvider` converts one canonical `SearchQuery` into explicit typed RPC parameters and reuses the M10 public-card projector; fixed category/transaction inventory uses the same provider. Public page loaders consume only bounded published projections and fail to safe empty/not-found states. Browser, anonymous server, authenticated server, privileged server and test-actor Supabase helpers are separate; privileged helpers import `server-only`.
+Separate public/admin/CRM DTOs, typed Supabase rows, explicit public property/reference queries, a defensive public-property projector, centralized public-location/media/business-config helpers, price/area formatters, seven executable state machines and shared Zod schemas are implemented. M12 adds normalized lead/requirement/transition/follow-up validation and one server-only CRM service boundary whose exported operations all reauthorize the actor. `PostgresSearchProvider` continues to own public discovery. Public page loaders consume only bounded published projections and fail to safe empty/not-found states. Browser, anonymous server, authenticated server, privileged server and test-actor Supabase helpers remain separate; privileged helpers import `server-only`.
 
 ### RLS
 
-All 53 application tables have RLS. Authenticated browser identities receive database-profile-gated read access only; business writes remain server-owned. Fourteen explicit public views are owned by a `NOLOGIN`, `NOBYPASSRLS` projection role. Anonymous actors may read the established safe views and M11 facet vocabulary and execute only the bounded M11 search RPC; they cannot select the internal search projection or any base table. Narrow projection-owner read policies support only safe joins. Anonymous direct business-table writes and all client audit mutation are denied. `write_audit_log` and service-role-only domain transactions remain the trusted mutation/audit paths.
+All 54 application tables have RLS. Authenticated browser identities receive database-profile-gated read access only; business writes remain server-owned. The private follow-up table follows the same active-admin read/service-only write model, and all nine CRM RPCs deny `anon` and `authenticated`. Fourteen explicit public views remain owned by a `NOLOGIN`, `NOBYPASSRLS` projection role and contain no CRM rows or PII. Anonymous actors may execute only the bounded public search RPC; they cannot select the internal search projection or any base table. Anonymous direct business-table writes and all client audit mutation are denied. `write_audit_log` and service-role-only domain transactions remain the trusted mutation/audit paths.
 
 ### Admin Authentication
 
@@ -200,7 +201,11 @@ The PostgreSQL function applies AND semantics. Exact `UE-LS-######` input takes 
 
 ### CRM
 
-Not implemented.
+M12 implements a single private brokerage CRM over the approved `parties`, `leads`, `lead_requirements`, `lead_properties` and `lead_activities` model plus structured `lead_follow_ups`. New leads start at `NEW`; server-owned transitions enforce the exact twelve-stage lifecycle and evidence prerequisites for contact attempts, confirmed requirements, active matches, nurture planning and terminal outcomes. Closed states are terminal and clear the open-work pointer.
+
+Admin creation normalizes phone/email and surfaces likely duplicates. When the normalized signals identify exactly one existing party, a confirmed new intent reuses that contact but creates a separate lead; ambiguous signals never select an arbitrary party and no destructive merge exists. Lead notes are append-oriented, actor-attributed activities. Requirements reuse lead-level transaction/category/geography/budget fields and store only requirement-specific area, frontage, road width and notes. Matches remain manual, status-bearing and reversible; no automated recommendation/contact system exists.
+
+The protected inbox is bounded to 100 results and filters by free text, stage, category, transaction, source, district, assignee, created dates and follow-up state. The pipeline, lead workspace, requirement lists and 200-row follow-up queue provide the operational views. Follow-up history stores UTC `timestamptz`, type, context, note, creation/completion actors, completion time and outcome; the UI derives overdue/today/upcoming/completed buckets in Asia/Kolkata. M13 public intake and M14 visit scheduling remain unimplemented.
 
 ### Site Visits
 
@@ -216,11 +221,11 @@ M11 search SEO extends the M10 baseline. Unfiltered `/properties` and valid unfi
 
 ### Security
 
-The M1–M10 protections remain intact. M11 searchable text is an explicit public-field allowlist; its internal projection excludes owner PII, private coordinates, evidence, documents, internal notes, actor/audit data and unpublished records. Database and browser canaries prove unpublished text never becomes a result. RPC values are typed and bounded, no dynamic SQL exists, and anonymous actors have no direct internal-projection/base-table read. M11 adds no public mutation or CRM persistence.
+The M1–M11 protections remain intact. M12 CRM routes and every read/write service require `requireActiveAdmin()`; browser roles receive no mutation privileges and cannot execute CRM RPCs. Database and browser canaries prove anonymous, authenticated non-admin and inactive-admin actors cannot read leads, requirements, follow-ups or guessed lead IDs. Public projections remain lead-free and contain no contact data, notes, requirement data, follow-up detail or activity. Generic audits retain actor/entity/change/status identifiers but omit contact PII and note bodies; richer business context stays in the private activity timeline.
 
 ### Testing
 
-The complete current local suite passes: 334 pgTAP assertions, the 24-worker Property ID concurrency test, 98 Vitest unit tests, 25 component tests, 26 guarded application integration tests and 30 guarded Chromium E2E scenarios. Lint, Prettier verification, strict typecheck, 14-client server-boundary scan, 259-file secret scan, database lint/reset, selective query plans and the Next.js 16 webpack production build also pass. M11 browser coverage includes homepage/fast-path search, exact and unpublished identity, URL filters/chips/sorts, combined category/transaction/geography/area/price/category-fact filtering, reload/history/shared URL/clear-all behavior, 12-item pagination, zero/unpublished handling, canonical/noindex behavior, real 404s, mobile focus/overflow and automated accessibility.
+The complete current local suite passes: 372 pgTAP assertions, the 24-worker Property ID concurrency test, 102 Vitest unit tests, 31 component tests, 30 guarded application integration tests and 32 guarded Chromium E2E scenarios. Lint, Prettier verification, strict typecheck, 15-client server-boundary scan, 281-file secret scan, clean database reset/lint and the Next.js 16 webpack production build also pass. M12 browser coverage includes lead create/edit, invalid transition exclusion, qualification, requirement save, match/remove/relink, follow-up schedule and every derived queue bucket, completion, attributed activity/note rendering, closed won/lost, bounded search/filtering, mobile overflow, keyboard submission, axe accessibility and anonymous/non-admin/inactive denial.
 
 Final mobile Lighthouse on the local production homepage scored Performance 95, Accessibility 100, Best Practices 100 and SEO 100, with FCP 1.22 s, lab LCP 2.92 s, CLS 0 and TBT 28 ms. The no-layout-shift and interaction results pass; the throttled local LCP remains above the 2.5 s field target and must be remeasured on staging/real traffic rather than represented as achieved.
 
@@ -233,18 +238,21 @@ Not implemented or configured.
 ```text
 app/                                       Next.js App Router
   (public)/                                M11 public shell, search/category/transaction/property routes
-  (admin)/admin/                           explicit admin route-group placeholder
+  (admin)/admin/                           protected property, verification, media and M12 CRM operations
   error.tsx / global-error.tsx / not-found.tsx
 components/foundation/                     M1 shell components
 components/public/                         canonical M10 cards, collections, detail/media/location/actions and shell
 components/search/                         M11 filter rail/sheet, chips, sort, pagination, entry and results
+components/admin/                          protected shell, property/media/verification and lead form UI
 config/                                    site and environment schemas
+features/crm/                              M12 lead/follow-up contracts, validation and pipeline helpers
 features/search/                           normalized M11 query and provider contracts
 lib/                                       shared/test/privacy/SEO/Supabase boundaries
 server/                                    server-only env and domain-layer boundaries
+  services/crm.ts                          authorized M12 CRM read/write services
   search/                                  PostgreSQL public-search provider
-supabase/                                  local config; migrations/seed placeholders
-tests/                                     unit, component, integration and E2E scaffolds
+supabase/                                  local config, 12 migrations, repeatable seed and pgTAP suites
+tests/                                     complete unit, component, integration and E2E regressions
 scripts/                                   secret and server-boundary checks
 .github/workflows/ci.yml                   M1 CI gate
 package.json / package-lock.json           pinned reproducible toolchain
@@ -273,34 +281,36 @@ docs/
                                             accepted hosted/external media decision
     0003-verification-provenance-and-professional-review.md
                                             accepted scoped verification persistence decision
+    0004-m12-crm-status-and-follow-up-reconciliation.md
+                                            accepted pipeline/follow-up reconciliation
   runbooks/
     README.md                               runbook scope and production guardrails
 ```
 
-There is no `.openai/hosting.json`; no hosting/deployment is configured. The approved Living Space logo reference is present, while the old reference-app source is intentionally unavailable. Git is on `main`. The `.gitignore` excludes secrets, environment files, dependencies, generated output including the copied MapLibre worker, local Supabase runtime and provider state. M0–M11 are complete; M12 has not begun.
+There is no `.openai/hosting.json`; no hosting/deployment is configured. The approved Living Space logo reference is present, while the old reference-app source is intentionally unavailable. Git is on `main`. The `.gitignore` excludes secrets, environment files, dependencies, generated output including the copied MapLibre worker, local Supabase runtime and provider state. M0–M12 are complete; M13 has not begun.
 
 ## 7. Database State
 
 | Item | Actual state |
 |---|---|
-| Migration files | Ten ordered migrations through `20260905010000_m10_public_property_detail.sql` |
-| Tables created | 53 application tables: the authoritative 49 plus four typed M8 workflow/policy tables approved by ADR-0003 |
-| Enums created | 32 enum types; six M8 types cover source class, provenance, applicability, professional review, exceptions and public-copy approval |
-| Functions/triggers | Prior generators/integrity/draft/media/verification functions plus authoritative publication readiness and service-only atomic publish/unpublish/safe archive functions |
-| Views/public projections | 12 whitelisted views: property listing/detail/media/public parcels/verifications/indexability, geography, area units, settings, guide categories/guides and SEO pages |
-| Indexes | Baseline publication/geography/offers/media/CRM/visit/verification/content/audit indexes |
+| Migration files | Twelve ordered migrations through `20260905030000_m12_crm_core.sql` |
+| Tables created | 54 application tables: the authoritative 49, four typed M8 workflow/policy tables and private M12 `lead_follow_ups` |
+| Enums created | 32 enum types; `lead_status` has the exact twelve M12 states and `lead_activity_type` includes service-owned follow-up/match/closure events |
+| Functions/triggers | Prior generators/integrity/draft/media/verification/publication/search functions plus nine service-only CRM transactions |
+| Views/public projections | 14 whitelisted public views plus one private projection-owner search view; none contains CRM data |
+| Indexes | Baseline publication/geography/offers/media/visit/verification/content/audit indexes plus normalized contact, CRM filtering and follow-up queue indexes |
 | Storage buckets | Five local migration-controlled buckets: two intentional public buckets and three private buckets; no browser object mutation/list policies |
-| RLS policies | Enabled on all 53 tables; active-admin read policy on each plus narrowly scoped projection-owner policies |
+| RLS policies | Enabled on all 54 tables; active-admin read policy on each plus narrowly scoped projection-owner policies |
 | Seed data | Safe repeatable India, Gujarat, Ahmedabad/Gandhinagar, 9 units and 5 non-local standard conversions |
 | Local database | Running isolated Supabase project `urbanedge-land-space-local` on `55320`–`55327` |
 | Development/staging application | Nothing applied |
 | Production | Nothing applied; no production operation authorized |
 
-The 53-table inventory, 32 enum types, ten-migration order, 12 explicit public-safe projections, five-bucket boundary, RLS grants and M6–M9 service transactions are implemented and validated locally.
+The 54-table inventory, 32 enum types, twelve-migration order, 14 explicit public-safe projections, five-bucket boundary, RLS grants and M6–M12 service transactions are implemented and validated locally.
 
 ## 8. RLS / Security State
 
-Database integrity, server module boundaries, RLS, grants and privacy projections are implemented and tested locally. Browser roles cannot write business tables, execute M6–M9 mutation RPCs, list private objects, upload to any controlled bucket or change bucket visibility. Every property, media, verification and publication Server Action reauthorizes with `requireActiveAdmin()` before privileged work. Verification/publication RPCs repeat the active-admin actor check and are executable only by `service_role`. Private signing additionally checks the active, clean, non-archived document and active property, then audits the resource ID/purpose without paths or URL. Anonymous/non-admin path guesses fail; unpublished inventory/media, private evidence/documents, source details, exact coordinates, EXIF and owner contact data remain outside public outputs. M10 adds no public mutation and its queries contain no wildcard selection.
+Database integrity, server module boundaries, RLS, grants and privacy projections are implemented and tested locally. Browser roles cannot write business tables, execute M6–M12 mutation RPCs, list private objects, upload to any controlled bucket or change bucket visibility. Every property, media, verification, publication and CRM Server Action reauthorizes with `requireActiveAdmin()` before privileged work; RPCs repeat the active-admin actor check and are executable only by `service_role`. Private signing additionally checks the active, clean, non-archived document and active property, then audits the resource ID/purpose without paths or URL. Anonymous/non-admin path guesses fail; unpublished inventory/media, CRM data, private evidence/documents, source details, exact coordinates, EXIF and owner contact data remain outside public outputs.
 
 ## 9. Routes Implemented
 
@@ -336,6 +346,14 @@ Database integrity, server module boundaries, RLS, grants and privacy projection
 | `/admin/verification/queue` | COMPLETE / TESTED | Protected risk/review/recheck work queue |
 | `/admin/verification/[propertyId]` | COMPLETE / TESTED | Protected scoped-check, evidence, exception, referral, history and disclosure workflow |
 | `/admin/media` | COMPLETE / TESTED | Protected global registry, failed/unused candidates and configured storage-budget status |
+| `/admin/leads` | COMPLETE / TESTED | Protected bounded lead/contact search with stage, demand, geography, source, assignee, date and follow-up filters |
+| `/admin/leads/new` | COMPLETE / TESTED | Admin lead creation with normalized duplicate detection and explicit new-opportunity confirmation |
+| `/admin/leads/pipeline` | COMPLETE / TESTED | Exact twelve-lane operational pipeline |
+| `/admin/leads/[id]` | COMPLETE / TESTED | Contact/demand edit, requirement, matching, activity/note, follow-up/history and controlled transition workspace |
+| `/admin/requirements` | COMPLETE / TESTED | Protected buyer demand book |
+| `/admin/requirements/unmatched` | COMPLETE / TESTED | Protected zero-match requirement queue |
+| `/admin/requirements/[id]` | COMPLETE / TESTED | Canonical redirect into the owning lead workspace |
+| `/admin/follow-ups` | COMPLETE / TESTED | India-time overdue/today/upcoming/completed operational queue |
 | `/api/admin/private-documents/[id]/download` | COMPLETE / TESTED | Active-admin-only late-bound temporary signed redirect; generic denial and no-store response |
 | Other canonical admin routes | NOT_STARTED | Implemented only in their domain milestones |
 
@@ -343,9 +361,9 @@ The planned route inventory and route-specific data/authorization sources are in
 
 ## 10. Business State Machines
 
-Pure executable state machines now implement property publication, property availability, lead, owner-submission, site-visit, verification and guide/content transitions. Unit tests cover allowed and denied transitions; later milestone services remain responsible for authorization, locking, transactional side effects and audit.
+Pure executable state machines implement property publication, property availability, lead, owner-submission, site-visit, verification and guide/content transitions. The M12 lead machine uses `NEW`, `CONTACT_ATTEMPTED`, `QUALIFIED`, `REQUIREMENT_CONFIRMED`, `PROPERTY_MATCHED`, `SITE_VISIT_REQUESTED`, `SITE_VISIT_CONFIRMED`, `SITE_VISIT_COMPLETED`, `NEGOTIATION`, `NURTURE`, `CLOSED_WON` and `CLOSED_LOST`; database transitions enforce the same allow-list and evidence checks. Unit/database tests cover allowed and denied transitions, while services own authorization, locking, transactional side effects and audit.
 
-ADR-0001 remains enforced in code: `REQUESTED`, `CONTACTED`, `PROPOSED`, `CONFIRMED`, `COMPLETED`, `CANCELLED`, `NO_SHOW`, `RESCHEDULED` are the visit states; `FOLLOW_UP_REQUIRED` is absent. Completed visits are terminal while CRM follow-up stays in `leads.next_follow_up_at` and activity/next-action context.
+ADR-0001 remains enforced in code: `REQUESTED`, `CONTACTED`, `PROPOSED`, `CONFIRMED`, `COMPLETED`, `CANCELLED`, `NO_SHOW`, `RESCHEDULED` are the visit states; `FOLLOW_UP_REQUIRED` is absent. Completed visits are terminal while CRM follow-up stays in `lead_follow_ups` with `leads.next_follow_up_at` as its open-work pointer.
 
 ## 11. External Providers / Infrastructure
 
@@ -493,12 +511,18 @@ The environment schema and `.env.example` contain names only. Never store actual
 | M11 unit/component suites | PASS | 2026-09-05 | 14 files / 98 unit tests and 9 files / 25 component tests cover parser normalization/bounds/conversions/every sort, cards, zero states, chips, mobile dialog and pagination plus all prior behavior |
 | Complete guarded local E2E | PASS | 2026-09-05 | 30 Chromium scenarios cover M0–M11; M11 adds home/fast search, exact/unpublished ID, combined filters, URL reload/history/share/clear-all, facets/chips/sorts, 12-item pagination, zero/unpublished states, canonical/noindex, true 404, mobile focus/overflow and axe |
 | M11 application QA/build | PASS | 2026-09-05 | Clean reset, database lint/tests, concurrency, lint, Prettier, strict typecheck, boundary/secret scans, unit/component/integration/E2E suites and Next.js 16 webpack production build pass |
+| M12 clean database rebuild | PASS | 2026-09-05 | All twelve migrations and repeatable seed apply from zero in isolated local Supabase |
+| M12 database/RLS suite | PASS | 2026-09-05 | 10 files / 372 pgTAP assertions cover prior contracts plus exact pipeline inventory, atomic creation and attributed intake notes, contact reuse with separate opportunities, transition prerequisites, won-property and structured-loss closure rules, requirement/match/follow-up integrity, audit privacy, public denial and browser-role RPC denial |
+| M12 guarded integration suite | PASS | 2026-09-05 | 7 files / 30 tests cover atomic lead creation, duplicate detection/contact reuse, requirement persistence, invalid rollback, manual matching, follow-up history and privacy-safe audits plus all prior services |
+| M12 unit/component suites | PASS | 2026-09-05 | 15 files / 102 unit tests and 10 files / 31 component tests cover exact transition rules, validation, normalization, India-time queue buckets, lead form/list/empty states, twelve pipeline lanes, requirement list, complete lead workspace and follow-up controls plus all prior behavior |
+| Complete guarded local E2E | PASS | 2026-09-05 | All 32 Chromium scenarios pass. The final parallel run completed 31 scenarios and exposed one M9 publication timeout under load; that unchanged scenario passed its immediate single-worker rerun in 10.4 s. M12 adds protected lead create/edit, invalid-transition exclusion, qualification/requirement, match/remove/relink, all follow-up buckets/completion, notes/activity, closed-won/lost, search/filter, mobile/keyboard/axe checks and anonymous/non-admin/inactive denial |
+| M12 application QA/build | PASS | 2026-09-05 | Lint, Prettier, strict typecheck, boundary/secret scans, unit/component/integration/E2E suites and Next.js 16 webpack production build pass with all CRM routes dynamic |
 
 ## 14. Known Issues
 
 ### Blocking
 
-None. Every M11 completion criterion passes locally; M12 has not begun.
+None. Every M12 completion criterion passes locally; M13 has not begun.
 
 ### Important
 
@@ -509,7 +533,7 @@ None. Every M11 completion criterion passes locally; M12 has not begun.
 
 ### Minor
 
-- None recorded.
+- The unchanged M9 publication E2E scenario timed out once while waiting for its admin page during the final 32-scenario parallel run; its immediate single-worker rerun passed in 10.4 s. Treat recurrence as test-load flakiness to investigate rather than suppressing the assertion.
 
 ### Deferred / Future
 
@@ -522,8 +546,9 @@ None. Every M11 completion criterion passes locally; M12 has not begun.
 | `ADR-0001` | Keep site-visit lifecycle separate from CRM follow-up; do not add `FOLLOW_UP_REQUIRED` to `site_visit_status` | A completed visit can simultaneously require follow-up; visit outcome and operational work are independent | Database enum, visit service, CRM follow-up, admin derived views, tests |
 | `ADR-0002` | Keep one media registry with mutually exclusive hosted-object and canonical external-provider locators | Required video/drone/360 URLs cannot truthfully satisfy document `03`'s non-null Storage columns; fake objects or duplicate tables would violate the media architecture | `media_assets`, migration, public DTO/projection, storage service, safe embeds, tests |
 | `ADR-0003` | Persist evidence provenance, applicability, exceptions, professional review, history and public-copy approval as separate typed verification concepts | Notes and generic pass counts cannot preserve scope, currentness, attribution or safe public-claim gates | Verification schema/RPCs, service, admin workflow, public projection and tests |
+| `ADR-0004` | Use the owner-mandated twelve-state CRM pipeline and add private structured follow-up history while retaining `leads.next_follow_up_at` as the open-work pointer | The legacy `WON`/`LOST`/`CLOSED` labels and one timestamp could not represent exact M12 outcomes or append-preserving follow-up details | Lead enum/data migration, follow-up table, CRM RPCs/services/UI, RLS/audit and tests |
 
-M8 required ADR-0003; M9 through M11 required no new ADR. M11 applies the approved search, numeric comparability, publication and crawl contracts through D-006 without altering persistent business state. Production migration, bucket creation, map-provider selection, contact configuration, malware-provider activation, lawyer copy approval and public deployment remain unperformed approval gates.
+Production migration, bucket creation, map-provider selection, contact configuration, malware-provider activation, lawyer copy approval and public deployment remain unperformed approval gates.
 
 The non-ADR M0 reconciliation decisions are recorded in `docs/DECISIONS.md`: later finalized documents refine master examples where the master describes them as recommendations/high-level guidance; the owner-designated design report is the authoritative Living Space brand/design reference; the approved Living Space logo is a reference asset rather than an automatically relabeled Land Space logo; missing photography may use only clearly marked development placeholders tracked for replacement.
 
@@ -574,15 +599,15 @@ Do not invent production values or fabricate property/geography records to popul
 
 ## 19. Exact Next Actions
 
-1. Preserve the clean M11 checkpoint and do not begin M12 without an explicit continuation request.
-2. Before M12, read the CRM core/admin operational pipeline roadmap and preserve the M11 provider/query contract without mixing CRM state into public search.
-3. Keep all verification public copy disabled until wording receives the recorded lawyer approval required by its policy row.
-4. Consume `public_property_indexability` only when M16 implements sitemap/robots rendering; do not reimplement publication readiness in search or public UI.
-5. Keep M13 public inquiry/requirement persistence out of M12 unless the roadmap explicitly introduces shared CRM services behind non-public admin work.
+1. Preserve the clean M12 checkpoint; M13 remains unstarted until the owner explicitly continues it.
+2. Before M13, read its public-demand conversion sources and reuse the M12 CRM domain/service contracts rather than creating public-only lead storage.
+3. Keep browser roles unable to read CRM rows or execute privileged CRM mutations; public intake must enter through a bounded server-owned adapter.
+4. Keep all verification public copy disabled until wording receives the recorded lawyer approval required by its policy row.
+5. Consume `public_property_indexability` only when M16 implements sitemap/robots rendering; do not reimplement publication readiness in search or public UI.
 6. Configure and validate approved map and malware-scanning providers before staging/production use; both currently fail safely when absent.
 
 ## 20. Resume Instructions For The Next Coding Agent
 
-> You are continuing an existing UrbanEdge Land Space implementation after M11. M0–M11 are complete and M12 has not begun. Read this file, `docs/architecture/IMPLEMENTATION-LEDGER.md`, ADR-0001 through ADR-0003 and the M12 CRM sources before any M12 work. The local database is disposable and isolated; production remains untouched. Preserve the M11 normalized URL query and `PostgresSearchProvider`, the M10 canonical public DTO/card, the M9 server-owned publication boundary, public-safe projections, location privacy and scoped public-copy gate. Do not mix private CRM data into public search.
+> You are continuing an existing UrbanEdge Land Space implementation after M12. M0–M12 are complete and M13 has not begun. Read this file, `docs/architecture/IMPLEMENTATION-LEDGER.md`, ADR-0001 through ADR-0004 and the M13 public-demand sources before any M13 work. The local database is disposable and isolated; production remains untouched. Reuse the M12 server/domain CRM interfaces for public intake; do not create public-only lead tables or grant browser CRM mutations. Preserve the M11 search contract, M9 publication boundary, public-safe projections, location privacy and scoped public-copy gate.
 
 Special warning: owner submissions must never auto-publish, site-visit requests must never auto-confirm, and no public payload may contain owner PII, private documents/evidence/internal notes, unpublished inventory or exact coordinates for approximate/hidden listings.
