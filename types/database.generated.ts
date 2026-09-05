@@ -892,6 +892,7 @@ export type Database = {
           lead_id: string;
           note: string | null;
           outcome: string | null;
+          site_visit_id: string | null;
         };
         Insert: {
           completed_at?: string | null;
@@ -905,6 +906,7 @@ export type Database = {
           lead_id: string;
           note?: string | null;
           outcome?: string | null;
+          site_visit_id?: string | null;
         };
         Update: {
           completed_at?: string | null;
@@ -918,6 +920,7 @@ export type Database = {
           lead_id?: string;
           note?: string | null;
           outcome?: string | null;
+          site_visit_id?: string | null;
         };
         Relationships: [
           {
@@ -939,6 +942,13 @@ export type Database = {
             columns: ["lead_id"];
             isOneToOne: false;
             referencedRelation: "leads";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "lead_follow_ups_site_visit_id_fkey";
+            columns: ["site_visit_id"];
+            isOneToOne: false;
+            referencedRelation: "site_visits";
             referencedColumns: ["id"];
           },
         ];
@@ -4244,17 +4254,147 @@ export type Database = {
           },
         ];
       };
+      site_visit_events: {
+        Row: {
+          actor_admin_id: string | null;
+          created_at: string;
+          event_type: string;
+          follow_up_id: string | null;
+          from_status: Database["public"]["Enums"]["site_visit_status"] | null;
+          id: string;
+          lead_id: string;
+          new_end_at: string | null;
+          new_start_at: string | null;
+          note: string | null;
+          occurred_at: string;
+          previous_end_at: string | null;
+          previous_start_at: string | null;
+          property_id: string;
+          reason: string | null;
+          site_visit_id: string;
+          to_status: Database["public"]["Enums"]["site_visit_status"] | null;
+        };
+        Insert: {
+          actor_admin_id?: string | null;
+          created_at?: string;
+          event_type: string;
+          follow_up_id?: string | null;
+          from_status?: Database["public"]["Enums"]["site_visit_status"] | null;
+          id?: string;
+          lead_id: string;
+          new_end_at?: string | null;
+          new_start_at?: string | null;
+          note?: string | null;
+          occurred_at?: string;
+          previous_end_at?: string | null;
+          previous_start_at?: string | null;
+          property_id: string;
+          reason?: string | null;
+          site_visit_id: string;
+          to_status?: Database["public"]["Enums"]["site_visit_status"] | null;
+        };
+        Update: {
+          actor_admin_id?: string | null;
+          created_at?: string;
+          event_type?: string;
+          follow_up_id?: string | null;
+          from_status?: Database["public"]["Enums"]["site_visit_status"] | null;
+          id?: string;
+          lead_id?: string;
+          new_end_at?: string | null;
+          new_start_at?: string | null;
+          note?: string | null;
+          occurred_at?: string;
+          previous_end_at?: string | null;
+          previous_start_at?: string | null;
+          property_id?: string;
+          reason?: string | null;
+          site_visit_id?: string;
+          to_status?: Database["public"]["Enums"]["site_visit_status"] | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "site_visit_events_actor_admin_id_fkey";
+            columns: ["actor_admin_id"];
+            isOneToOne: false;
+            referencedRelation: "admin_profiles";
+            referencedColumns: ["user_id"];
+          },
+          {
+            foreignKeyName: "site_visit_events_follow_up_id_fkey";
+            columns: ["follow_up_id"];
+            isOneToOne: false;
+            referencedRelation: "lead_follow_ups";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "site_visit_events_lead_id_fkey";
+            columns: ["lead_id"];
+            isOneToOne: false;
+            referencedRelation: "leads";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "site_visit_events_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "properties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "site_visit_events_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "public_property_details";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "site_visit_events_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "public_property_indexability";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "site_visit_events_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "public_property_listings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "site_visit_events_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "public_property_search";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "site_visit_events_site_visit_id_fkey";
+            columns: ["site_visit_id"];
+            isOneToOne: false;
+            referencedRelation: "site_visits";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       site_visits: {
         Row: {
           archived_at: string | null;
+          assigned_to: string | null;
+          cancellation_reason: string | null;
+          cancelled_at: string | null;
           completed_at: string | null;
           confirmed_end_at: string | null;
           confirmed_start_at: string | null;
+          contact_outcome: string | null;
           contacted_at: string | null;
           created_at: string;
           created_by: string | null;
           id: string;
           lead_id: string;
+          meeting_instructions: string | null;
+          no_show_at: string | null;
           notes_internal: string | null;
           outcome: string | null;
           property_id: string;
@@ -4263,20 +4403,28 @@ export type Database = {
           requested_end_at: string | null;
           requested_start_at: string | null;
           status: Database["public"]["Enums"]["site_visit_status"];
+          timezone: string;
           updated_at: string;
           updated_by: string | null;
+          version: number;
           visit_reference: string;
         };
         Insert: {
           archived_at?: string | null;
+          assigned_to?: string | null;
+          cancellation_reason?: string | null;
+          cancelled_at?: string | null;
           completed_at?: string | null;
           confirmed_end_at?: string | null;
           confirmed_start_at?: string | null;
+          contact_outcome?: string | null;
           contacted_at?: string | null;
           created_at?: string;
           created_by?: string | null;
           id?: string;
           lead_id: string;
+          meeting_instructions?: string | null;
+          no_show_at?: string | null;
           notes_internal?: string | null;
           outcome?: string | null;
           property_id: string;
@@ -4285,20 +4433,28 @@ export type Database = {
           requested_end_at?: string | null;
           requested_start_at?: string | null;
           status?: Database["public"]["Enums"]["site_visit_status"];
+          timezone?: string;
           updated_at?: string;
           updated_by?: string | null;
+          version?: number;
           visit_reference?: string;
         };
         Update: {
           archived_at?: string | null;
+          assigned_to?: string | null;
+          cancellation_reason?: string | null;
+          cancelled_at?: string | null;
           completed_at?: string | null;
           confirmed_end_at?: string | null;
           confirmed_start_at?: string | null;
+          contact_outcome?: string | null;
           contacted_at?: string | null;
           created_at?: string;
           created_by?: string | null;
           id?: string;
           lead_id?: string;
+          meeting_instructions?: string | null;
+          no_show_at?: string | null;
           notes_internal?: string | null;
           outcome?: string | null;
           property_id?: string;
@@ -4307,11 +4463,20 @@ export type Database = {
           requested_end_at?: string | null;
           requested_start_at?: string | null;
           status?: Database["public"]["Enums"]["site_visit_status"];
+          timezone?: string;
           updated_at?: string;
           updated_by?: string | null;
+          version?: number;
           visit_reference?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "site_visits_assigned_to_fkey";
+            columns: ["assigned_to"];
+            isOneToOne: false;
+            referencedRelation: "admin_profiles";
+            referencedColumns: ["user_id"];
+          },
           {
             foreignKeyName: "site_visits_created_by_fkey";
             columns: ["created_by"];
@@ -5942,6 +6107,15 @@ export type Database = {
         };
         Returns: string;
       };
+      add_site_visit_note: {
+        Args: {
+          requested_actor_id: string;
+          requested_expected_version: number;
+          requested_note: string;
+          requested_visit_id: string;
+        };
+        Returns: number;
+      };
       advance_verification_evidence: {
         Args: {
           requested_actor_id: string;
@@ -6161,6 +6335,18 @@ export type Database = {
         };
         Returns: string;
       };
+      schedule_site_visit_follow_up: {
+        Args: {
+          requested_actor_id: string;
+          requested_context?: string;
+          requested_due_at: string;
+          requested_expected_version: number;
+          requested_note?: string;
+          requested_type: string;
+          requested_visit_id: string;
+        };
+        Returns: string;
+      };
       search_public_properties: {
         Args: {
           requested_agricultural_irrigation?: string;
@@ -6289,6 +6475,16 @@ export type Database = {
           requested_verification_id: string;
         };
         Returns: undefined;
+      };
+      transition_site_visit: {
+        Args: {
+          requested_actor_id: string;
+          requested_expected_version: number;
+          requested_next_status: Database["public"]["Enums"]["site_visit_status"];
+          requested_payload?: Json;
+          requested_visit_id: string;
+        };
+        Returns: number;
       };
       unmatch_lead_property: {
         Args: {

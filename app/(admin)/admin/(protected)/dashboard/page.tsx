@@ -2,11 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { classifyFollowUp } from "@/features/crm/domain/follow-ups";
 import { listFollowUps, listLeads } from "@/server/services/crm";
+import { listSiteVisits } from "@/server/services/site-visits";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
 export default async function AdminDashboardPage() {
-  const [leads, followUps] = await Promise.all([listLeads({}), listFollowUps()]);
+  const [leads, followUps, visits] = await Promise.all([
+    listLeads({}),
+    listFollowUps(),
+    listSiteVisits({}),
+  ]);
   const cards = [
     {
       label: "New leads",
@@ -26,6 +31,21 @@ export default async function AdminDashboardPage() {
         (followUp) => classifyFollowUp(followUp.due_at, followUp.completed_at) === "TODAY",
       ).length,
       href: "/admin/follow-ups",
+    },
+    {
+      label: "New visit requests",
+      value: visits.filter((visit) => visit.status === "REQUESTED").length,
+      href: "/admin/site-visits?status=REQUESTED",
+    },
+    {
+      label: "Visits today",
+      value: visits.filter((visit) => visit.bucket === "TODAY").length,
+      href: "/admin/site-visits?bucket=TODAY",
+    },
+    {
+      label: "Visit follow-ups",
+      value: visits.filter((visit) => visit.hasOpenFollowUp).length,
+      href: "/admin/site-visits?followUp=required",
     },
   ];
   return (

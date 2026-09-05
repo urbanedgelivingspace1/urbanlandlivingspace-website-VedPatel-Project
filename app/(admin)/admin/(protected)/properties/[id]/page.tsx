@@ -75,6 +75,12 @@ export default async function AdminPropertyDetailPage({
           >
             Verification
           </Link>
+          <Link
+            href={`/admin/site-visits?q=${encodeURIComponent(row.property_code)}`}
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold"
+          >
+            Site visits
+          </Link>
           {row.publication_status === "DRAFT" ? (
             <Link
               href={`/admin/properties/${id}/edit`}

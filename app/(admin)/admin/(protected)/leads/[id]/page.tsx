@@ -31,9 +31,12 @@ export default async function LeadDetailPage({
   const openFollowUp = followUps.find((f) => !f.completedAt);
   return (
     <section className="mx-auto max-w-7xl" aria-labelledby="lead-heading">
-      <Link href="/admin/leads" className="text-sm font-semibold text-[var(--brand-navy)]">
-        ← Lead inbox
-      </Link>
+      <div className="flex flex-wrap gap-4 text-sm font-semibold text-[var(--brand-navy)]">
+        <Link href="/admin/leads">← Lead inbox</Link>
+        <Link href={`/admin/site-visits?q=${encodeURIComponent(lead.leadReference)}`}>
+          Linked site visits →
+        </Link>
+      </div>
       {saved ? (
         <p role="status" className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">
           CRM update saved.
