@@ -9,13 +9,13 @@ This is the live record of what has actually happened. Update it after every mea
 | Project | UrbanEdge Land Space |
 | Repository | `/Users/vedpatel/Desktop/UrbanLand_website` |
 | Current branch | `main` |
-| Latest relevant commit | M11 implementation commit `87fcaac1dcc25c6f42c63517bb4d48a3805827c6`; this handoff metadata is the following checkpoint commit |
+| Latest relevant commits | M11 implementation `87fcaac1dcc25c6f42c63517bb4d48a3805827c6`; exhaustive browser matrix `0a7a406`; this handoff metadata is the following checkpoint commit |
 | Working tree | CLEAN after the M11 handoff metadata commit |
 | Current milestone | M11 — PostgreSQL Search and URL-State Discovery |
 | Current milestone status | COMPLETE |
 | Last completed milestone | M11 — PostgreSQL Search and URL-State Discovery |
 | Next milestone | M12 — CRM Core and Admin Operational Pipeline (not begun) |
-| Last updated | 2026-09-05 12:29:24 IST |
+| Last updated | 2026-09-05 12:34:00 IST |
 | Last updating agent | Codex |
 
 ## 2. Source-of-Truth Documents
@@ -220,7 +220,7 @@ The M1–M10 protections remain intact. M11 searchable text is an explicit publi
 
 ### Testing
 
-The complete current local suite passes: 334 pgTAP assertions, the 24-worker Property ID concurrency test, 98 Vitest unit tests, 25 component tests, 26 guarded application integration tests and 29 guarded Chromium E2E scenarios. Lint, Prettier verification, strict typecheck, 14-client server-boundary scan, 259-file secret scan, database lint/reset, selective query plans and the Next.js 16 webpack production build also pass. M11 browser coverage includes homepage/fast-path search, exact identity, URL filters/chips/sorts, category facets, 12-item pagination, zero/unpublished handling, canonical/noindex behavior, real 404s, mobile focus/overflow and automated accessibility.
+The complete current local suite passes: 334 pgTAP assertions, the 24-worker Property ID concurrency test, 98 Vitest unit tests, 25 component tests, 26 guarded application integration tests and 30 guarded Chromium E2E scenarios. Lint, Prettier verification, strict typecheck, 14-client server-boundary scan, 259-file secret scan, database lint/reset, selective query plans and the Next.js 16 webpack production build also pass. M11 browser coverage includes homepage/fast-path search, exact and unpublished identity, URL filters/chips/sorts, combined category/transaction/geography/area/price/category-fact filtering, reload/history/shared URL/clear-all behavior, 12-item pagination, zero/unpublished handling, canonical/noindex behavior, real 404s, mobile focus/overflow and automated accessibility.
 
 Final mobile Lighthouse on the local production homepage scored Performance 95, Accessibility 100, Best Practices 100 and SEO 100, with FCP 1.22 s, lab LCP 2.92 s, CLS 0 and TBT 28 ms. The no-layout-shift and interaction results pass; the throttled local LCP remains above the 2.5 s field target and must be remeasured on staging/real traffic rather than represented as achieved.
 
@@ -491,7 +491,7 @@ The environment schema and `.env.example` contain names only. Never store actual
 | M11 query-plan evidence | PASS | 2026-09-05 | Selective public keyword uses `properties_public_search_document_idx`; strict area uses `properties_public_authoritative_area_idx` (0.014 ms on the rolled-back 2,000-row sample); default discovery and primary offer checks use their dedicated indexes |
 | M11 guarded integration suite | PASS | 2026-09-05 | 6 files / 26 tests include real anonymous-provider exact identity, fixed category reuse and bounded geography/category facets plus every prior service integration |
 | M11 unit/component suites | PASS | 2026-09-05 | 14 files / 98 unit tests and 9 files / 25 component tests cover parser normalization/bounds/conversions/every sort, cards, zero states, chips, mobile dialog and pagination plus all prior behavior |
-| Complete guarded local E2E | PASS | 2026-09-05 | 29 Chromium scenarios cover M0–M11; M11 adds home/fast search, exact ID, URL filters/facets/chips/sort, 12-item pagination, zero/unpublished states, canonical/noindex, true 404, mobile focus/overflow and axe |
+| Complete guarded local E2E | PASS | 2026-09-05 | 30 Chromium scenarios cover M0–M11; M11 adds home/fast search, exact/unpublished ID, combined filters, URL reload/history/share/clear-all, facets/chips/sorts, 12-item pagination, zero/unpublished states, canonical/noindex, true 404, mobile focus/overflow and axe |
 | M11 application QA/build | PASS | 2026-09-05 | Clean reset, database lint/tests, concurrency, lint, Prettier, strict typecheck, boundary/secret scans, unit/component/integration/E2E suites and Next.js 16 webpack production build pass |
 
 ## 14. Known Issues
