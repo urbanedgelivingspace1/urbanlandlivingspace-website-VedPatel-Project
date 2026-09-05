@@ -42,3 +42,6 @@ Numeric INR budget filters use overlap semantics for `EXACT_TOTAL` and `PRICE_RA
 ## Formal ADRs
 
 - `ADR-0001`: site-visit lifecycle remains separate from CRM follow-up. `FOLLOW_UP_REQUIRED` is not a `site_visit_status`.
+- `ADR-0002`: hosted storage objects and canonical external media locators coexist in one constrained media registry.
+- `ADR-0003`: verification provenance, applicability, exceptions, professional review, history and public-copy approval are separate typed concepts.
+- `ADR-0004`: M12 uses the exact twelve-state owner CRM pipeline and private structured follow-up history without coupling follow-up to site visits.

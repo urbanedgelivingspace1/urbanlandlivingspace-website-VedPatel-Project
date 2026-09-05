@@ -60,10 +60,9 @@ export type LeadStatus =
   | "SITE_VISIT_CONFIRMED"
   | "SITE_VISIT_COMPLETED"
   | "NEGOTIATION"
-  | "WON"
-  | "LOST"
   | "NURTURE"
-  | "CLOSED";
+  | "CLOSED_WON"
+  | "CLOSED_LOST";
 
 export type AdminOwnerSubmissionDto = Readonly<{
   id: string;

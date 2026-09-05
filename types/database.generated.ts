@@ -879,6 +879,48 @@ export type Database = {
           },
         ];
       };
+      lead_follow_ups: {
+        Row: {
+          completed_at: string | null;
+          completed_by: string | null;
+          context: string | null;
+          created_at: string;
+          created_by: string;
+          due_at: string;
+          follow_up_type: string;
+          id: string;
+          lead_id: string;
+          note: string | null;
+          outcome: string | null;
+        };
+        Insert: {
+          completed_at?: string | null;
+          completed_by?: string | null;
+          context?: string | null;
+          created_at?: string;
+          created_by: string;
+          due_at: string;
+          follow_up_type: string;
+          id?: string;
+          lead_id: string;
+          note?: string | null;
+          outcome?: string | null;
+        };
+        Update: {
+          completed_at?: string | null;
+          completed_by?: string | null;
+          context?: string | null;
+          created_at?: string;
+          created_by?: string;
+          due_at?: string;
+          follow_up_type?: string;
+          id?: string;
+          lead_id?: string;
+          note?: string | null;
+          outcome?: string | null;
+        };
+        Relationships: [];
+      };
       lead_properties: {
         Row: {
           created_at: string;
@@ -5680,6 +5722,74 @@ export type Database = {
       };
     };
     Functions: {
+      add_lead_activity: {
+        Args: {
+          requested_actor_id: string;
+          requested_activity_type: Database["public"]["Enums"]["lead_activity_type"];
+          requested_lead_id: string;
+          requested_note?: string;
+        };
+        Returns: string;
+      };
+      complete_lead_follow_up: {
+        Args: {
+          requested_actor_id: string;
+          requested_follow_up_id: string;
+          requested_outcome?: string;
+        };
+        Returns: undefined;
+      };
+      create_admin_lead: {
+        Args: { requested_actor_id: string; requested_payload: Json };
+        Returns: string;
+      };
+      match_lead_property: {
+        Args: {
+          requested_actor_id: string;
+          requested_lead_id: string;
+          requested_notes?: string;
+          requested_property_id: string;
+          requested_status?: string;
+        };
+        Returns: string;
+      };
+      save_lead_requirement: {
+        Args: { requested_actor_id: string; requested_lead_id: string; requested_payload: Json };
+        Returns: string;
+      };
+      schedule_lead_follow_up: {
+        Args: {
+          requested_actor_id: string;
+          requested_context?: string;
+          requested_due_at: string;
+          requested_lead_id: string;
+          requested_note?: string;
+          requested_type: string;
+        };
+        Returns: string;
+      };
+      transition_lead_status: {
+        Args: {
+          requested_actor_id: string;
+          requested_lead_id: string;
+          requested_next_status: Database["public"]["Enums"]["lead_status"];
+          requested_reason?: string;
+        };
+        Returns: undefined;
+      };
+      unmatch_lead_property: {
+        Args: {
+          requested_actor_id: string;
+          requested_lead_id: string;
+          requested_property_id: string;
+          requested_reason?: string;
+        };
+        Returns: undefined;
+      };
+      update_admin_lead: {
+        Args: { requested_actor_id: string; requested_lead_id: string; requested_payload: Json };
+        Returns: undefined;
+      };
       advance_verification_evidence: {
         Args: {
           requested_actor_id: string;
@@ -6058,6 +6168,12 @@ export type Database = {
         | "FOLLOW_UP_SCHEDULED"
         | "STATUS_CHANGED"
         | "DOCUMENT_REQUESTED"
+        | "EMAIL_INTERACTION"
+        | "FOLLOW_UP_COMPLETED"
+        | "PROPERTY_REJECTED"
+        | "PROPERTY_UNMATCHED"
+        | "CLOSED_WON"
+        | "CLOSED_LOST"
         | "OTHER";
       lead_inquiry_type:
         | "PROPERTY_INQUIRY"
@@ -6077,10 +6193,9 @@ export type Database = {
         | "SITE_VISIT_CONFIRMED"
         | "SITE_VISIT_COMPLETED"
         | "NEGOTIATION"
-        | "WON"
-        | "LOST"
         | "NURTURE"
-        | "CLOSED";
+        | "CLOSED_WON"
+        | "CLOSED_LOST";
       location_visibility: "EXACT" | "APPROXIMATE" | "HIDDEN";
       media_processing_status: "READY" | "APPROVED" | "FAILED";
       media_type:
@@ -6349,6 +6464,12 @@ export const Constants = {
         "FOLLOW_UP_SCHEDULED",
         "STATUS_CHANGED",
         "DOCUMENT_REQUESTED",
+        "EMAIL_INTERACTION",
+        "FOLLOW_UP_COMPLETED",
+        "PROPERTY_REJECTED",
+        "PROPERTY_UNMATCHED",
+        "CLOSED_WON",
+        "CLOSED_LOST",
         "OTHER",
       ],
       lead_inquiry_type: [
@@ -6370,10 +6491,9 @@ export const Constants = {
         "SITE_VISIT_CONFIRMED",
         "SITE_VISIT_COMPLETED",
         "NEGOTIATION",
-        "WON",
-        "LOST",
         "NURTURE",
-        "CLOSED",
+        "CLOSED_WON",
+        "CLOSED_LOST",
       ],
       location_visibility: ["EXACT", "APPROXIMATE", "HIDDEN"],
       media_processing_status: ["READY", "APPROVED", "FAILED"],

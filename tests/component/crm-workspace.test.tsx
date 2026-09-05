@@ -1,0 +1,261 @@
+import { cleanup, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import FollowUpsPage from "@/app/(admin)/admin/(protected)/follow-ups/page";
+import LeadDetailPage from "@/app/(admin)/admin/(protected)/leads/[id]/page";
+import LeadsPage from "@/app/(admin)/admin/(protected)/leads/page";
+import PipelinePage from "@/app/(admin)/admin/(protected)/leads/pipeline/page";
+import { RequirementList } from "@/app/(admin)/admin/(protected)/requirements/page";
+import { LeadForm } from "@/components/admin/lead-form";
+import type { LeadListItem, LeadWorkspace } from "@/features/crm/domain/contracts";
+
+const service = vi.hoisted(() => ({
+  listLeads: vi.fn(),
+  getCrmReferenceData: vi.fn(),
+  getLeadWorkspace: vi.fn(),
+  listFollowUps: vi.fn(),
+  listRequirements: vi.fn(),
+}));
+vi.mock("@/server/services/crm", () => service);
+vi.mock("@/app/(admin)/admin/(protected)/leads/actions", () => ({
+  addActivityAction: vi.fn(),
+  completeFollowUpAction: vi.fn(),
+  matchPropertyAction: vi.fn(),
+  saveRequirementAction: vi.fn(),
+  scheduleFollowUpAction: vi.fn(),
+  transitionLeadAction: vi.fn(),
+  unmatchPropertyAction: vi.fn(),
+  updateLeadAction: vi.fn(),
+}));
+
+const lead: LeadListItem = {
+  id: "lead-1",
+  leadReference: "UE-LD-000001",
+  name: "M12 Buyer",
+  phone: "+919999999999",
+  email: "buyer@example.invalid",
+  status: "QUALIFIED",
+  sourceType: "MANUAL",
+  buyerType: "INVESTOR",
+  transaction: "BUY",
+  category: "AGRICULTURAL",
+  districtName: "Ahmedabad",
+  localityText: "Sanand",
+  budgetMin: 1_000_000,
+  budgetMax: 3_000_000,
+  nextFollowUpAt: "2026-09-06T06:30:00.000Z",
+  lastContactedAt: "2026-09-05T06:30:00.000Z",
+  createdAt: "2026-09-05T05:30:00.000Z",
+  updatedAt: "2026-09-05T06:30:00.000Z",
+  matchCount: 1,
+};
+const refs = {
+  districts: [{ id: "district-1", name: "Ahmedabad" }],
+  units: [{ id: "unit-1", display_name: "Acre", symbol: "ac" }],
+  properties: [
+    {
+      id: "property-1",
+      property_code: "UE-LS-000001",
+      listing_title: "Sanand farmland",
+      land_category: "AGRICULTURAL",
+      primary_transaction_type: "BUY",
+      availability_status: "AVAILABLE",
+    },
+  ],
+  admins: [{ user_id: "admin-1", display_name: "CRM Admin" }],
+};
+const workspace: LeadWorkspace = {
+  lead: {
+    ...lead,
+    partyId: "party-1",
+    sourceDetail: "Referral",
+    inquiryType: "BUYER_REQUIREMENT",
+    intendedUse: "Investment",
+    notesInternal: "Private intake",
+    closedAt: null,
+    lossReason: null,
+  },
+  requirement: {
+    id: "requirement-1",
+    minAreaValue: 1,
+    maxAreaValue: 3,
+    areaUnitId: "unit-1",
+    areaUnitLabel: "Acre",
+    preferredRoadWidthMMin: 9,
+    preferredFrontageMMin: 20,
+    notes: "Near Ahmedabad",
+  },
+  matches: [
+    {
+      id: "match-1",
+      propertyId: "property-1",
+      propertyCode: "UE-LS-000001",
+      title: "Sanand farmland",
+      category: "AGRICULTURAL",
+      transaction: "BUY",
+      availability: "AVAILABLE",
+      status: "ACTIVE",
+      notes: "Candidate",
+      matchedAt: "2026-09-05T06:00:00.000Z",
+    },
+  ],
+  followUps: [
+    {
+      id: "follow-up-1",
+      type: "CALL",
+      context: "Discuss match",
+      note: "Private follow-up",
+      dueAt: "2026-09-06T06:30:00.000Z",
+      completedAt: null,
+      outcome: null,
+      actorName: "CRM Admin",
+    },
+  ],
+  activities: [
+    {
+      id: "activity-1",
+      type: "NOTE_ADDED",
+      at: "2026-09-05T06:00:00.000Z",
+      note: "Buyer asked for highway access",
+      metadata: null,
+      actorName: "CRM Admin",
+      propertyId: null,
+    },
+  ],
+};
+
+afterEach(cleanup);
+
+describe("M12 CRM components", () => {
+  it("provides an accessible lead editor with the approved demand taxonomy", async () => {
+    const action = vi.fn(async () => ({
+      ok: false,
+      message: "Possible existing contact with 1 lead.",
+      duplicateCount: 1,
+    }));
+    render(
+      <LeadForm
+        action={action}
+        districts={[{ id: "00000000-0000-4000-8000-000000000003", name: "Ahmedabad" }]}
+      />,
+    );
+    expect(screen.getByLabelText("Full name")).toBeRequired();
+    expect(screen.getByLabelText("Phone")).toHaveAttribute("type", "tel");
+    expect(screen.getByLabelText("Email")).toHaveAttribute("type", "email");
+    expect(screen.getByLabelText("Transaction")).toHaveAccessibleName("Transaction");
+    expect(screen.getByLabelText("Land category")).toHaveAccessibleName("Land category");
+    expect(screen.getByRole("button", { name: "Create lead" })).toBeEnabled();
+    await userEvent.selectOptions(screen.getByLabelText("Transaction"), "BUY");
+    expect(screen.getByLabelText("Transaction")).toHaveValue("BUY");
+  });
+
+  it("renders the bounded lead inbox, discovery controls, and empty state", async () => {
+    service.listLeads.mockResolvedValueOnce([lead]);
+    service.getCrmReferenceData.mockResolvedValue(refs);
+    const populated = await LeadsPage({ searchParams: Promise.resolve({ q: "M12" }) });
+    const view = render(populated);
+    expect(screen.getByRole("heading", { name: "Lead inbox" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "M12 Buyer" })).toBeVisible();
+    expect(screen.getByLabelText("Pipeline stage")).toBeVisible();
+    expect(screen.getByLabelText("Follow-up state")).toBeVisible();
+    expect(screen.getByLabelText("Assigned admin")).toBeVisible();
+    view.unmount();
+
+    service.listLeads.mockResolvedValueOnce([]);
+    render(await LeadsPage({ searchParams: Promise.resolve({}) }));
+    expect(screen.getByRole("heading", { name: "No leads found" })).toBeVisible();
+  });
+
+  it("renders every pipeline lane and keeps empty lanes explicit", async () => {
+    service.listLeads.mockResolvedValue([lead]);
+    render(await PipelinePage());
+    expect(screen.getByRole("heading", { name: "Opportunity stages" })).toBeVisible();
+    expect(screen.getByRole("region", { name: "Qualified 1" })).toContainElement(
+      screen.getByRole("link", { name: /M12 Buyer/ }),
+    );
+    expect(screen.getAllByText("No leads")).toHaveLength(11);
+  });
+
+  it("renders the operational lead workspace controls and attributed history", async () => {
+    service.getLeadWorkspace.mockResolvedValue(workspace);
+    service.getCrmReferenceData.mockResolvedValue(refs);
+    render(
+      await LeadDetailPage({
+        params: Promise.resolve({ id: lead.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    for (const heading of [
+      "Contact and demand",
+      "Buyer requirement",
+      "Matched properties",
+      "Activity timeline",
+      "Next action",
+      "Change stage",
+      "Follow-up history",
+    ])
+      expect(screen.getByRole("heading", { name: heading })).toBeVisible();
+    expect(screen.getByText("Buyer asked for highway access")).toBeVisible();
+    expect(screen.getByText("Private intake")).toBeVisible();
+    expect(screen.getByText("CRM Admin")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Remove match" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Complete follow-up" })).toBeEnabled();
+    expect(screen.getByLabelText("Private note")).toHaveAccessibleName("Private note");
+  });
+
+  it("separates follow-up buckets and exposes completion controls", async () => {
+    service.listFollowUps.mockResolvedValue([
+      {
+        id: "follow-up-1",
+        lead_id: lead.id,
+        follow_up_type: "CALL",
+        context: "Discuss match",
+        note: "Private follow-up",
+        due_at: "2026-09-04T06:30:00.000Z",
+        completed_at: null,
+        completed_by: null,
+        outcome: null,
+        created_at: "2026-09-03T06:30:00.000Z",
+        created_by: "admin-1",
+        leadName: lead.name,
+        leadReference: lead.leadReference,
+        leadStatus: lead.status,
+      },
+    ]);
+    render(await FollowUpsPage());
+    expect(screen.getByRole("heading", { name: /^OVERDUE/ })).toBeVisible();
+    expect(screen.getByRole("heading", { name: /^TODAY/ })).toBeVisible();
+    expect(screen.getByRole("heading", { name: /^UPCOMING/ })).toBeVisible();
+    expect(screen.getByRole("heading", { name: /^COMPLETED/ })).toBeVisible();
+    expect(screen.getByLabelText(`Outcome for ${lead.leadReference}`)).toBeVisible();
+  });
+
+  it("renders structured requirement rows and an explicit empty state", () => {
+    const requirement = {
+      id: "requirement-1",
+      lead_id: lead.id,
+      min_area_value: 1,
+      max_area_value: 3,
+      area_unit_id: "unit-1",
+      normalized_min_area_sqm: null,
+      normalized_max_area_sqm: null,
+      preferred_road_width_m_min: null,
+      preferred_frontage_m_min: null,
+      preferred_use_text: "Near Ahmedabad",
+      created_at: "2026-09-05T06:00:00.000Z",
+      updated_at: "2026-09-05T06:00:00.000Z",
+    };
+    const view = render(
+      <RequirementList
+        title="Buyer requirements"
+        items={[{ requirement, lead, matchCount: 1, areaUnit: "Acre" }]}
+      />,
+    );
+    expect(screen.getByRole("link", { name: lead.name })).toBeVisible();
+    expect(screen.getByRole("columnheader", { name: "Matches" })).toBeVisible();
+    view.unmount();
+    render(<RequirementList title="Buyer requirements" items={[]} />);
+    expect(screen.getByText("No buyer requirements found.")).toBeVisible();
+  });
+});

@@ -21,3 +21,4 @@ Accepted records:
 - `0001-separate-site-visit-lifecycle-from-follow-up.md`
 - `0002-hosted-and-external-media-locators.md`
 - `0003-verification-provenance-and-professional-review.md`
+- `0004-m12-crm-status-and-follow-up-reconciliation.md`

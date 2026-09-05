@@ -12,7 +12,10 @@ type AdminShellProps = Readonly<{
 const groups = [
   { label: "Workspace", items: ["Dashboard"] },
   { label: "Inventory", items: ["Properties", "Media", "Verification"] },
-  { label: "Operations", items: ["Leads", "Site visits", "Owner submissions"] },
+  {
+    label: "Operations",
+    items: ["Leads", "Requirements", "Follow-ups", "Site visits", "Owner submissions"],
+  },
   { label: "Publishing", items: ["Guides", "SEO pages", "Settings"] },
 ] as const;
 
@@ -74,7 +77,10 @@ function AdminNavigation() {
                 {item === "Dashboard" ||
                 item === "Properties" ||
                 item === "Media" ||
-                item === "Verification" ? (
+                item === "Verification" ||
+                item === "Leads" ||
+                item === "Requirements" ||
+                item === "Follow-ups" ? (
                   <Link
                     href={
                       item === "Dashboard"
@@ -83,7 +89,13 @@ function AdminNavigation() {
                           ? "/admin/media"
                           : item === "Verification"
                             ? "/admin/verification/queue"
-                            : "/admin/properties"
+                            : item === "Leads"
+                              ? "/admin/leads"
+                              : item === "Requirements"
+                                ? "/admin/requirements"
+                                : item === "Follow-ups"
+                                  ? "/admin/follow-ups"
+                                  : "/admin/properties"
                     }
                     className="block rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold"
                   >

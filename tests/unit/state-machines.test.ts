@@ -36,6 +36,6 @@ describe("approved state machines", () => {
     expect(() => assertTransition(propertyPublicationMachine, "ARCHIVED", "PUBLISHED")).toThrow(
       InvalidStateTransitionError,
     );
-    expect(canTransition(leadMachine, "WON", "NURTURE")).toBe(false);
+    expect(canTransition(leadMachine, "CLOSED_WON", "NURTURE")).toBe(false);
   });
 });
