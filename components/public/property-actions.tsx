@@ -42,12 +42,15 @@ export function PropertyActions({
   return (
     <div className={className}>
       {!mobile ? (
-        <a href="#property-contact" className="button button-primary">
+        <a href="#property-inquiry" className="button button-primary">
           Enquire now
         </a>
       ) : null}
       {telephone ? (
-        <a href={telephone} className="button button-outline">
+        <a
+          href={`/api/public/intent/call?property=${encodeURIComponent(property.slug)}`}
+          className="button button-outline"
+        >
           <PhoneIcon className="size-4" /> <span>{mobile ? "Call" : "Call UrbanEdge"}</span>
         </a>
       ) : (
@@ -60,7 +63,12 @@ export function PropertyActions({
         </span>
       )}
       {whatsApp ? (
-        <a href={whatsApp} className="button button-gold" rel="noreferrer" target="_blank">
+        <a
+          href={`/api/public/intent/whatsapp?property=${encodeURIComponent(property.slug)}`}
+          className="button button-gold"
+          rel="noreferrer"
+          target="_blank"
+        >
           <MessageIcon className="size-4" /> WhatsApp
         </a>
       ) : (
@@ -72,9 +80,13 @@ export function PropertyActions({
           <MessageIcon className="size-4" /> WhatsApp
         </span>
       )}
-      <a href="#property-contact" className="button button-outline">
+      <Link
+        href={`/site-visit?property=${encodeURIComponent(property.slug)}`}
+        className="button button-outline"
+        prefetch={false}
+      >
         {mobile ? "Request visit" : "Request site visit"}
-      </a>
+      </Link>
     </div>
   );
 }

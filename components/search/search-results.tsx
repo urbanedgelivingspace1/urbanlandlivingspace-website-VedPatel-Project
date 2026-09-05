@@ -3,6 +3,7 @@ import Link from "next/link";
 import { PropertyCard } from "@/components/public/property-card";
 import type { SearchResult } from "@/features/search/domain/contracts";
 import { activeFilterCount, type SearchQuery } from "@/features/search/domain/search-query";
+import { requirementHref } from "@/features/intake/domain/prefill";
 
 export function SearchResults({
   query,
@@ -38,7 +39,7 @@ export function SearchResults({
           <Link className="button button-outline" href="/industrial-land">
             Industrial land
           </Link>
-          <Link className="button button-outline" href="/requirements" prefetch={false}>
+          <Link className="button button-outline" href={requirementHref(query)} prefetch={false}>
             Share a requirement
           </Link>
         </div>

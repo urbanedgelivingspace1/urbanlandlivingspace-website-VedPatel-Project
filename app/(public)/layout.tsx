@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Script from "next/script";
 
 import { SiteFooter } from "@/components/public/site-footer";
 import { SiteHeader } from "@/components/public/site-header";
@@ -15,6 +16,12 @@ export default async function PublicLayout({ children }: PublicLayoutProps) {
       <SiteHeader config={config} />
       {children}
       <SiteFooter config={config} />
+      {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? (
+        <Script
+          src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+          strategy="afterInteractive"
+        />
+      ) : null}
     </div>
   );
 }

@@ -90,7 +90,11 @@ export async function CategoryLanding({ category }: Readonly<{ category: LandCat
             <a href="#current-inventory" className="button button-gold">
               Browse current land <ArrowIcon className="size-4" />
             </a>
-            <Link href="/requirements" className="button button-outline-light" prefetch={false}>
+            <Link
+              href={`/requirements?category=${categoryParameter}&source=CATEGORY_${category}`}
+              className="button button-outline-light"
+              prefetch={false}
+            >
               Share your requirement
             </Link>
           </div>
@@ -141,7 +145,11 @@ export async function CategoryLanding({ category }: Readonly<{ category: LandCat
             <p className="eyebrow text-[var(--brand-gold)]">A more specific brief?</p>
             <h2>Tell UrbanEdge the land, location and scale you need.</h2>
           </div>
-          <Link href="/requirements" className="button button-gold" prefetch={false}>
+          <Link
+            href={`/requirements?category=${categoryParameter}&source=CATEGORY_${category}`}
+            className="button button-gold"
+            prefetch={false}
+          >
             Share your requirement <ArrowIcon className="size-4" />
           </Link>
         </div>

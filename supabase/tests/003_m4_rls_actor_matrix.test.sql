@@ -111,8 +111,8 @@ insert into public.app_settings (
 
 select is(
   (select count(*)::integer from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r' and c.relrowsecurity),
-  54,
-  'RLS is enabled on all 54 M12 application tables'
+  58,
+  'RLS is enabled on all 58 M13 application tables'
 );
 select ok(not (select rolcanlogin from pg_roles where rolname = 'urbanedge_public_projection'), 'projection owner cannot log in');
 select ok(not (select rolbypassrls from pg_roles where rolname = 'urbanedge_public_projection'), 'projection owner cannot bypass RLS');
@@ -189,8 +189,8 @@ reset role;
 
 select is(
   (select count(distinct tablename)::integer from pg_policies where schemaname = 'public' and policyname = 'active_admin_select'),
-  54,
-  'every M12 application table has the active-admin read policy'
+  58,
+  'every M13 application table has the active-admin read policy'
 );
 
 select * from finish();

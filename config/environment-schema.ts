@@ -11,6 +11,7 @@ export const serverEnvironmentSchema = z.object({
   RESEND_API_KEY: z.string().min(1).optional(),
   EMAIL_FROM: z.string().min(1).optional(),
   EMAIL_REPLY_TO: z.string().min(1).optional(),
+  ADMIN_NOTIFICATION_EMAIL: z.email().optional(),
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().min(1).optional(),
   TURNSTILE_SECRET_KEY: z.string().min(1).optional(),
   NEXT_PUBLIC_MAP_STYLE_URL: optionalUrl,

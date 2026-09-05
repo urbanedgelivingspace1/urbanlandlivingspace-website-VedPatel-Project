@@ -60,6 +60,15 @@ export async function TransactionLanding({
           <div className="mt-10">
             <PropertyCollection result={inventory} />
           </div>
+          <div className="mt-8">
+            <Link
+              href={`/requirements?transaction=${transaction.toLowerCase()}&source=TRANSACTION_${transaction}`}
+              className="button button-outline"
+              prefetch={false}
+            >
+              Share a {transactionLabels[transaction].toLowerCase()} requirement
+            </Link>
+          </div>
           <div className="mt-10">
             <Link
               href={`/properties?transaction=${transaction.toLowerCase()}`}

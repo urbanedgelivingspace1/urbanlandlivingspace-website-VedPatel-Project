@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -7,6 +8,8 @@ import { AvailabilityBadge } from "@/components/public/availability-badge";
 import { Breadcrumbs } from "@/components/public/breadcrumbs";
 import { ArrowIcon, LocationIcon } from "@/components/public/icons";
 import { PropertyActions } from "@/components/public/property-actions";
+import { PropertyInquiryForm } from "@/components/public/intake-forms";
+import { submitPropertyInquiryAction } from "@/app/(public)/intake-actions";
 import { CoreFactStrip, PropertyFacts } from "@/components/public/property-facts";
 import { PropertyGallery } from "@/components/public/property-gallery";
 import { PropertyCollection } from "@/components/public/property-collection";
@@ -237,6 +240,17 @@ export default async function PropertyDetailPage({ params }: Props) {
                   : "Ask a question, discuss suitability or request help coordinating a site visit."}
               </p>
               <PropertyActions property={property} config={config} />
+              {!closed ? (
+                <div id="property-inquiry" className="mt-8 scroll-mt-24">
+                  <PropertyInquiryForm
+                    action={submitPropertyInquiryAction.bind(null, {
+                      propertySlug: property.slug,
+                    })}
+                    idempotencyKey={randomUUID()}
+                    turnstileSiteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                  />
+                </div>
+              ) : null}
             </section>
 
             <section className="property-disclaimer" aria-label="Property information disclaimer">

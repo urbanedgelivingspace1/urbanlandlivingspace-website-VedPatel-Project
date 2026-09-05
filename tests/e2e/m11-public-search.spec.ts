@@ -220,7 +220,7 @@ test("zero results recover safely and unpublished content never appears", async 
   await expect(page.locator(".property-card").getByText(privateCanary)).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Share a requirement" })).toHaveAttribute(
     "href",
-    "/requirements",
+    "/requirements?source=SEARCH_ZERO",
   );
   await page.goto(`/properties?q=${unpublishedPropertyCode}`);
   await expect(page).toHaveURL(new RegExp(`propertyId=${unpublishedPropertyCode}`));

@@ -919,7 +919,29 @@ export type Database = {
           note?: string | null;
           outcome?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "lead_follow_ups_completed_by_fkey";
+            columns: ["completed_by"];
+            isOneToOne: false;
+            referencedRelation: "admin_profiles";
+            referencedColumns: ["user_id"];
+          },
+          {
+            foreignKeyName: "lead_follow_ups_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "admin_profiles";
+            referencedColumns: ["user_id"];
+          },
+          {
+            foreignKeyName: "lead_follow_ups_lead_id_fkey";
+            columns: ["lead_id"];
+            isOneToOne: false;
+            referencedRelation: "leads";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       lead_properties: {
         Row: {
@@ -1435,6 +1457,50 @@ export type Database = {
           },
         ];
       };
+      notification_deliveries: {
+        Row: {
+          attempt_count: number;
+          created_at: string;
+          event_key: string;
+          id: string;
+          last_error_code: string | null;
+          lead_id: string;
+          notification_type: string;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          attempt_count?: number;
+          created_at?: string;
+          event_key: string;
+          id?: string;
+          last_error_code?: string | null;
+          lead_id: string;
+          notification_type: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          attempt_count?: number;
+          created_at?: string;
+          event_key?: string;
+          id?: string;
+          last_error_code?: string | null;
+          lead_id?: string;
+          notification_type?: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notification_deliveries_lead_id_fkey";
+            columns: ["lead_id"];
+            isOneToOne: false;
+            referencedRelation: "leads";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       owner_submission_documents: {
         Row: {
           created_at: string;
@@ -1794,6 +1860,54 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "admin_profiles";
             referencedColumns: ["user_id"];
+          },
+        ];
+      };
+      party_consents: {
+        Row: {
+          consent_source: string;
+          consented_at: string;
+          created_at: string;
+          id: string;
+          lead_id: string;
+          party_id: string;
+          privacy_notice_version: string;
+          purpose: string;
+        };
+        Insert: {
+          consent_source: string;
+          consented_at?: string;
+          created_at?: string;
+          id?: string;
+          lead_id: string;
+          party_id: string;
+          privacy_notice_version: string;
+          purpose: string;
+        };
+        Update: {
+          consent_source?: string;
+          consented_at?: string;
+          created_at?: string;
+          id?: string;
+          lead_id?: string;
+          party_id?: string;
+          privacy_notice_version?: string;
+          purpose?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "party_consents_lead_id_fkey";
+            columns: ["lead_id"];
+            isOneToOne: false;
+            referencedRelation: "leads";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "party_consents_party_id_fkey";
+            columns: ["party_id"];
+            isOneToOne: false;
+            referencedRelation: "parties";
+            referencedColumns: ["id"];
           },
         ];
       };
@@ -3911,6 +4025,103 @@ export type Database = {
           },
         ];
       };
+      public_intake_idempotency: {
+        Row: {
+          created_at: string;
+          expires_at: string;
+          id: string;
+          intake_action: string;
+          key_hash: string;
+          lead_id: string;
+          payload_hash: string;
+          property_id: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          expires_at?: string;
+          id?: string;
+          intake_action: string;
+          key_hash: string;
+          lead_id: string;
+          payload_hash: string;
+          property_id?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          expires_at?: string;
+          id?: string;
+          intake_action?: string;
+          key_hash?: string;
+          lead_id?: string;
+          payload_hash?: string;
+          property_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "public_intake_idempotency_lead_id_fkey";
+            columns: ["lead_id"];
+            isOneToOne: false;
+            referencedRelation: "leads";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "public_intake_idempotency_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "properties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "public_intake_idempotency_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "public_property_details";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "public_intake_idempotency_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "public_property_indexability";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "public_intake_idempotency_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "public_property_listings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "public_intake_idempotency_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "public_property_search";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      public_rate_limit_events: {
+        Row: {
+          bucket_hash: string;
+          id: number;
+          intake_action: string;
+          occurred_at: string;
+        };
+        Insert: {
+          bucket_hash: string;
+          id?: never;
+          intake_action: string;
+          occurred_at?: string;
+        };
+        Update: {
+          bucket_hash?: string;
+          id?: never;
+          intake_action?: string;
+          occurred_at?: string;
+        };
+        Relationships: [];
+      };
       seo_pages: {
         Row: {
           archived_at: string | null;
@@ -5724,71 +5935,12 @@ export type Database = {
     Functions: {
       add_lead_activity: {
         Args: {
-          requested_actor_id: string;
           requested_activity_type: Database["public"]["Enums"]["lead_activity_type"];
+          requested_actor_id: string;
           requested_lead_id: string;
           requested_note?: string;
         };
         Returns: string;
-      };
-      complete_lead_follow_up: {
-        Args: {
-          requested_actor_id: string;
-          requested_follow_up_id: string;
-          requested_outcome?: string;
-        };
-        Returns: undefined;
-      };
-      create_admin_lead: {
-        Args: { requested_actor_id: string; requested_payload: Json };
-        Returns: string;
-      };
-      match_lead_property: {
-        Args: {
-          requested_actor_id: string;
-          requested_lead_id: string;
-          requested_notes?: string;
-          requested_property_id: string;
-          requested_status?: string;
-        };
-        Returns: string;
-      };
-      save_lead_requirement: {
-        Args: { requested_actor_id: string; requested_lead_id: string; requested_payload: Json };
-        Returns: string;
-      };
-      schedule_lead_follow_up: {
-        Args: {
-          requested_actor_id: string;
-          requested_context?: string;
-          requested_due_at: string;
-          requested_lead_id: string;
-          requested_note?: string;
-          requested_type: string;
-        };
-        Returns: string;
-      };
-      transition_lead_status: {
-        Args: {
-          requested_actor_id: string;
-          requested_lead_id: string;
-          requested_next_status: Database["public"]["Enums"]["lead_status"];
-          requested_reason?: string;
-        };
-        Returns: undefined;
-      };
-      unmatch_lead_property: {
-        Args: {
-          requested_actor_id: string;
-          requested_lead_id: string;
-          requested_property_id: string;
-          requested_reason?: string;
-        };
-        Returns: undefined;
-      };
-      update_admin_lead: {
-        Args: { requested_actor_id: string; requested_lead_id: string; requested_payload: Json };
-        Returns: undefined;
       };
       advance_verification_evidence: {
         Args: {
@@ -5833,6 +5985,27 @@ export type Database = {
         };
         Returns: string;
       };
+      complete_lead_follow_up: {
+        Args: {
+          requested_actor_id: string;
+          requested_follow_up_id: string;
+          requested_outcome?: string;
+        };
+        Returns: undefined;
+      };
+      consume_public_intake_rate_limit: {
+        Args: {
+          requested_action: string;
+          requested_bucket_hash: string;
+          requested_max_attempts: number;
+          requested_window_seconds: number;
+        };
+        Returns: boolean;
+      };
+      create_admin_lead: {
+        Args: { requested_actor_id: string; requested_payload: Json };
+        Returns: string;
+      };
       create_verification_source_reference: {
         Args: { requested_actor_id: string; requested_payload: Json };
         Returns: string;
@@ -5854,6 +6027,16 @@ export type Database = {
         };
         Returns: string;
       };
+      match_lead_property: {
+        Args: {
+          requested_actor_id: string;
+          requested_lead_id: string;
+          requested_notes?: string;
+          requested_property_id: string;
+          requested_status?: string;
+        };
+        Returns: string;
+      };
       next_lead_reference: { Args: never; Returns: string };
       next_owner_submission_reference: { Args: never; Returns: string };
       next_property_code: { Args: never; Returns: string };
@@ -5869,6 +6052,14 @@ export type Database = {
           requested_property_id: string;
         };
         Returns: Json;
+      };
+      record_notification_delivery_result: {
+        Args: {
+          requested_delivery_id: string;
+          requested_error_code?: string;
+          requested_status: string;
+        };
+        Returns: undefined;
       };
       record_private_document_access: {
         Args: {
@@ -5942,12 +6133,31 @@ export type Database = {
         };
         Returns: undefined;
       };
+      save_lead_requirement: {
+        Args: {
+          requested_actor_id: string;
+          requested_lead_id: string;
+          requested_payload: Json;
+        };
+        Returns: string;
+      };
       save_property_draft: {
         Args: {
           requested_actor_id?: string;
           requested_expected_updated_at?: string;
           requested_payload?: Json;
           requested_property_id?: string;
+        };
+        Returns: string;
+      };
+      schedule_lead_follow_up: {
+        Args: {
+          requested_actor_id: string;
+          requested_context?: string;
+          requested_due_at: string;
+          requested_lead_id: string;
+          requested_note?: string;
+          requested_type: string;
         };
         Returns: string;
       };
@@ -6049,12 +6259,43 @@ export type Database = {
         };
         Returns: undefined;
       };
+      submit_public_crm_intake: {
+        Args: {
+          requested_action: string;
+          requested_idempotency_key_hash: string;
+          requested_payload: Json;
+        };
+        Returns: {
+          replayed: boolean;
+          target_lead_id: string;
+          target_notification_id: string;
+          target_property_id: string;
+        }[];
+      };
+      transition_lead_status: {
+        Args: {
+          requested_actor_id: string;
+          requested_lead_id: string;
+          requested_next_status: Database["public"]["Enums"]["lead_status"];
+          requested_reason?: string;
+        };
+        Returns: undefined;
+      };
       transition_property_verification: {
         Args: {
           requested_actor_id: string;
           requested_payload?: Json;
           requested_target: Database["public"]["Enums"]["verification_status"];
           requested_verification_id: string;
+        };
+        Returns: undefined;
+      };
+      unmatch_lead_property: {
+        Args: {
+          requested_actor_id: string;
+          requested_lead_id: string;
+          requested_property_id: string;
+          requested_reason?: string;
         };
         Returns: undefined;
       };
@@ -6066,6 +6307,14 @@ export type Database = {
           requested_reason: string;
         };
         Returns: string;
+      };
+      update_admin_lead: {
+        Args: {
+          requested_actor_id: string;
+          requested_lead_id: string;
+          requested_payload: Json;
+        };
+        Returns: undefined;
       };
       update_professional_review: {
         Args: {
@@ -6168,13 +6417,15 @@ export type Database = {
         | "FOLLOW_UP_SCHEDULED"
         | "STATUS_CHANGED"
         | "DOCUMENT_REQUESTED"
+        | "OTHER"
         | "EMAIL_INTERACTION"
         | "FOLLOW_UP_COMPLETED"
         | "PROPERTY_REJECTED"
         | "PROPERTY_UNMATCHED"
         | "CLOSED_WON"
         | "CLOSED_LOST"
-        | "OTHER";
+        | "PROPERTY_INQUIRY_RECEIVED"
+        | "GENERAL_CONTACT_RECEIVED";
       lead_inquiry_type:
         | "PROPERTY_INQUIRY"
         | "PRICE_INQUIRY"
@@ -6464,13 +6715,15 @@ export const Constants = {
         "FOLLOW_UP_SCHEDULED",
         "STATUS_CHANGED",
         "DOCUMENT_REQUESTED",
+        "OTHER",
         "EMAIL_INTERACTION",
         "FOLLOW_UP_COMPLETED",
         "PROPERTY_REJECTED",
         "PROPERTY_UNMATCHED",
         "CLOSED_WON",
         "CLOSED_LOST",
-        "OTHER",
+        "PROPERTY_INQUIRY_RECEIVED",
+        "GENERAL_CONTACT_RECEIVED",
       ],
       lead_inquiry_type: [
         "PROPERTY_INQUIRY",

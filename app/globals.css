@@ -1590,6 +1590,176 @@ a {
   color: #c9d4df;
   line-height: 1.75;
 }
+
+.conversion-layout {
+  display: grid;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.public-intake-form {
+  display: grid;
+  gap: 1.25rem;
+  min-width: 0;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1.25rem;
+  background: white;
+  box-shadow: var(--shadow-soft);
+}
+
+.public-intake-form fieldset {
+  display: grid;
+  gap: 1.25rem;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+}
+
+.public-intake-form legend {
+  margin-bottom: 1rem;
+  color: var(--brand-navy);
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.public-form-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.public-intake-form label:not(.consent-field, .intake-honeypot) {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+  color: var(--brand-navy);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.public-intake-form input:not([type="checkbox"]),
+.public-intake-form select,
+.public-intake-form textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.65rem;
+  background: #fff;
+  padding: 0.72rem 0.8rem;
+  color: #172033;
+  font: inherit;
+}
+
+.public-intake-form textarea {
+  resize: vertical;
+}
+
+.public-intake-form [aria-invalid="true"] {
+  border-color: #b42318;
+  box-shadow: 0 0 0 2px rgb(180 35 24 / 15%);
+}
+
+.consent-field {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: start;
+  color: #334155;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.consent-field input {
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-top: 0.15rem;
+}
+
+.consent-field .field-error {
+  grid-column: 2;
+}
+
+.field-error,
+.form-error-summary {
+  color: #8b1e15;
+}
+
+.field-error {
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.form-error-summary,
+.form-success {
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.form-error-summary {
+  border: 1px solid #f3b6af;
+  background: #fff4f2;
+}
+
+.form-success {
+  border: 1px solid #9bc8ad;
+  background: #edf8f1;
+  color: #174f2c;
+}
+
+.form-error-summary p,
+.form-success p {
+  margin-top: 0.3rem;
+}
+
+.form-reassurance,
+.form-protection-note {
+  color: #475569;
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.intake-honeypot {
+  position: absolute !important;
+  left: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+}
+
+.conversion-confirmation {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 2rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 1.25rem;
+  background: white;
+  padding: clamp(1.5rem, 5vw, 3rem);
+  box-shadow: var(--shadow-soft);
+}
+
+.conversion-confirmation h1 {
+  color: var(--brand-navy);
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  font-weight: 850;
+  line-height: 1.1;
+}
+
+.conversion-confirmation p {
+  color: #475569;
+  line-height: 1.75;
+}
+
+@media (min-width: 48rem) {
+  .public-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .conversion-layout {
+    grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
+  }
+}
 .property-actions {
   display: grid;
   gap: 0.7rem;
@@ -1799,9 +1969,6 @@ a {
     position: sticky;
     top: 6.3rem;
     display: block;
-  }
-  .property-detail-main .property-contact-section {
-    display: none;
   }
   .mobile-sticky-actions {
     display: none;
