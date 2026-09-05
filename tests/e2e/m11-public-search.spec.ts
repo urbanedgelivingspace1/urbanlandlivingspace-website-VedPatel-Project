@@ -255,6 +255,6 @@ test("mobile filter sheet is keyboard-dismissable, accessible and overflow-safe"
       () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
     ),
   ).toBe(true);
-  const violations = await new AxeBuilder({ page }).disableRules(["color-contrast"]).analyze();
+  const violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations).toEqual([]);
 });
