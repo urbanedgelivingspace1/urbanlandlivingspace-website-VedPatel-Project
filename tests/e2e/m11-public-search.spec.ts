@@ -5,6 +5,7 @@ import { expect, test } from "@playwright/test";
 import type { Database } from "@/types/database.generated";
 
 let exactPropertyCode = "";
+let unpublishedPropertyCode = "";
 let firstTitle = "";
 const searchMarker = `M11 Bounded ${Date.now()}`;
 const privateCanary = `PRIVATE_M11_E2E_${Date.now()}`;
@@ -97,20 +98,25 @@ async function seedSearchFixtures() {
       })),
   );
   if (industrialResult.error) throw industrialResult.error;
-  const draft = await client.from("properties").insert({
-    public_slug: `m11-private-${Date.now()}`,
-    land_category: "AGRICULTURAL",
-    primary_transaction_type: "BUY",
-    publication_status: "DRAFT",
-    availability_status: "AVAILABLE",
-    listing_title: privateCanary,
-    short_description: privateCanary,
-    district_id: "00000000-0000-4000-8000-000000000003",
-    display_area_value: 1,
-    display_area_unit_id: "10000000-0000-4000-8000-000000000006",
-    location_visibility: "HIDDEN",
-  });
+  const draft = await client
+    .from("properties")
+    .insert({
+      public_slug: `m11-private-${Date.now()}`,
+      land_category: "AGRICULTURAL",
+      primary_transaction_type: "BUY",
+      publication_status: "DRAFT",
+      availability_status: "AVAILABLE",
+      listing_title: privateCanary,
+      short_description: privateCanary,
+      district_id: "00000000-0000-4000-8000-000000000003",
+      display_area_value: 1,
+      display_area_unit_id: "10000000-0000-4000-8000-000000000006",
+      location_visibility: "HIDDEN",
+    })
+    .select("property_code")
+    .single();
   if (draft.error) throw draft.error;
+  unpublishedPropertyCode = draft.data.property_code;
 }
 
 test.describe.configure({ mode: "serial" });
@@ -147,6 +153,53 @@ test("filters use URL state, category facets, removable chips and deterministic 
   await expect(page).not.toHaveURL(/category=/);
 });
 
+test("combined controls, reload, history, shared URL and clear-all reproduce one search", async ({
+  page,
+}) => {
+  await page.goto(`/properties?q=${encodeURIComponent(searchMarker)}`);
+  const filters = page.locator(".search-workspace > .search-filter-rail");
+  await filters.getByLabel("Land category").selectOption("agricultural");
+  await filters.getByLabel("Transaction").selectOption("buy");
+  await filters.getByLabel("District").selectOption("ahmedabad");
+  await filters.getByLabel("Minimum price").fill("4000000");
+  await filters.getByLabel("Maximum price").fill("18000000");
+  await filters.getByLabel("Minimum area").fill("900");
+  await filters.getByLabel("Maximum area").fill("2300");
+  await filters.getByLabel("Area unit").selectOption("sq_m");
+  await filters.getByLabel("Tenure").selectOption("old-tenure");
+  await filters.getByRole("button", { name: "Apply filters" }).click();
+
+  await expect(page).toHaveURL(/category=agricultural/);
+  await expect(page).toHaveURL(/transaction=buy/);
+  await expect(page).toHaveURL(/district=ahmedabad/);
+  await expect(page).toHaveURL(/agriTenure=old-tenure/);
+  await expect(page).toHaveURL(/minArea=900/);
+  await expect(page).toHaveURL(/minPrice=4000000/);
+  await expect(page.locator(".property-card")).toHaveCount(3);
+  const sharedUrl = page.url();
+
+  await page.reload();
+  await expect(page.locator(".property-card")).toHaveCount(3);
+  await expect(
+    page.locator(".search-workspace > .search-filter-rail").getByLabel("Transaction"),
+  ).toHaveValue("buy");
+
+  const sharedPage = await page.context().newPage();
+  await sharedPage.goto(sharedUrl);
+  await expect(sharedPage.locator(".property-card")).toHaveCount(3);
+  await sharedPage.close();
+
+  await page.getByRole("link", { name: /Category: AGRICULTURAL/ }).click();
+  await expect(page).not.toHaveURL(/category=/);
+  await page.goBack();
+  await expect(page).toHaveURL(/category=agricultural/);
+  await expect(page.locator(".property-card")).toHaveCount(3);
+  await page.goForward();
+  await expect(page).not.toHaveURL(/category=/);
+  await page.locator(".search-chips .clear").click();
+  await expect(page).toHaveURL(/\/properties$/);
+});
+
 test("numbered pagination preserves filters and out-of-range pages are true 404s", async ({
   page,
   request,
@@ -169,6 +222,9 @@ test("zero results recover safely and unpublished content never appears", async 
     "href",
     "/requirements",
   );
+  await page.goto(`/properties?q=${unpublishedPropertyCode}`);
+  await expect(page).toHaveURL(new RegExp(`propertyId=${unpublishedPropertyCode}`));
+  await expect(page.getByRole("heading", { name: /No published land matches/ })).toBeVisible();
 });
 
 test("canonical normalization, fast search redirect and filtered SEO are stable", async ({
