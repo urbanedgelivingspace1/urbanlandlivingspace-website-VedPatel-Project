@@ -1,8 +1,8 @@
 # UrbanEdge Land Space V1 — Implementation Ledger
 
-**Ledger status:** M0–M13 COMPLETE; public demand conversions now enter the private M12 CRM through one server-owned, abuse-protected transactional boundary.
+**Ledger status:** M0–M14 COMPLETE; public visit requests now continue through a private, manually coordinated, history-preserving site-visit workflow integrated with the M12 CRM.
 
-**Last reconciled:** 5 September 2026 (M13: property inquiry, buyer requirement, general contact, site-visit request intake, intent analytics, consent, replay/rate/bot controls, post-commit notification handling and the complete local regression suite)
+**Last reconciled:** 5 September 2026 (M14: protected visit queue/calendar/workspace, atomic manual transitions, India-time scheduling, property conflict warnings, CRM synchronization, separate follow-up work and the complete local regression suite)
 
 This ledger is the single implementation-facing map required by `12-IMPLEMENTATION-ROADMAP.md`. It does not replace the source documents. When this ledger conflicts with a source, the source hierarchy in the owner's build brief applies.
 
@@ -190,7 +190,7 @@ Every `/admin/*` route except `/admin/login` requires server-side session verifi
 
 ## 4. Authoritative table inventory
 
-The 49 V1 application tables from `03-DATABASE-SCHEMA-ARCHITECTURE.md`, plus four additive M8 workflow tables approved by ADR-0003, are:
+The 49 V1 application tables from `03-DATABASE-SCHEMA-ARCHITECTURE.md`, plus the additive workflow and operational tables introduced through M14, are:
 
 | Domain | Tables |
 |---|---|
@@ -203,10 +203,10 @@ The 49 V1 application tables from `03-DATABASE-SCHEMA-ARCHITECTURE.md`, plus fou
 | Media/documents | `media_assets`, `private_documents`, `owner_submission_documents` |
 | Verification | `verification_check_definitions`, `property_verifications`, `verification_evidence`, `verification_public_copy_policies`, `professional_reviews`, `verification_exceptions`, `verification_history` |
 | Owner intake | `owner_submissions` |
-| CRM | `leads`, `lead_requirements`, `lead_properties`, `lead_activities`, `site_visits` |
+| CRM | `leads`, `lead_requirements`, `lead_properties`, `lead_activities`, `lead_follow_ups`, `site_visits`, `site_visit_events` |
 | Content/SEO | `guide_categories`, `guides`, `seo_pages` |
 | Administration | `admin_profiles`, `app_settings` |
-| Analytics/audit | `analytics_events`, `audit_logs` |
+| Analytics/audit | `analytics_events`, `audit_logs`, `party_consents`, `public_intake_idempotency`, `public_rate_limit_events`, `notification_deliveries` |
 
 Canonical public property identity is a sequence-backed, immutable, never-reused `UE-LS-000001` code. Category, slug and parcel/government identifiers are separate.
 
@@ -330,8 +330,9 @@ REQUESTED -> CONTACTED | CANCELLED
 CONTACTED -> PROPOSED | CANCELLED
 PROPOSED -> CONFIRMED | RESCHEDULED | CANCELLED
 CONFIRMED -> COMPLETED | RESCHEDULED | NO_SHOW | CANCELLED
-RESCHEDULED -> PROPOSED | CONFIRMED | CANCELLED
-COMPLETED | CANCELLED | NO_SHOW -> terminal for that visit record
+RESCHEDULED -> CONFIRMED | RESCHEDULED | CANCELLED
+NO_SHOW -> RESCHEDULED | CANCELLED
+COMPLETED | CANCELLED -> terminal for that visit record
 ```
 
 ADR-0001 resolves the prior conflict: `FOLLOW_UP_REQUIRED` is not a visit status. A completed visit can remain `COMPLETED` while CRM follow-up is represented by `leads.next_follow_up_at`, a `FOLLOW_UP_SCHEDULED` lead activity and purpose-built next-action context. The admin “Follow-up Required” list is a derived operational query. Re-engagement after a terminal visit creates CRM work and, where needed, a new visit record rather than rewriting the historical outcome.
@@ -606,7 +607,7 @@ Development, local migrations/tests and staging preparation may proceed only aft
 1. **SEO redirect history (deferred to M16):** the approved schema has no persistent redirect model. Before editable published slugs are supported, create a controlled ADR and additive typed `seo_redirects` migration, or explicitly lock published slugs and use a narrowly approved static redirect process. Never store redirect history in JSON/settings/process memory.
 2. **Evidence provenance lifecycle:** resolved by ADR-0003 and the M8 additive migration with typed provenance on evidence plus append-only verification history. Retain the currentness, supersession/revocation and actor-attribution regression contracts.
 3. **Professional review lifecycle:** resolved by ADR-0003 and the M8 additive migration with a dedicated typed, scoped review record. Retain the materials, outcome, attribution and completion-gate regression contracts.
-4. **Site-visit follow-up status:** resolved by ADR-0001 with no schema addition; retain as a regression-test contract through M14.
+4. **Site-visit follow-up status:** resolved by ADR-0001 with no visit-enum addition; M14 preserves and regression-tests follow-up as separately linked CRM work.
 5. **Hosted/external media locator gap:** resolved by ADR-0002 and the M7 additive constrained migration; retain as a projection and provider-allowlist regression contract.
 
 ## 16. Consistency review and open items
@@ -682,6 +683,7 @@ No unresolved M0 blocker remains.
 | M11 | COMPLETE | One normalized query contract and PostgreSQL provider power SSR keyword/Property-ID search, AND filters, category facts, strict area/budget semantics, availability/pricing classes, deterministic sorts, page-number navigation, category/transaction landings and `/search`; 334 pgTAP, 98 unit, 25 component, 26 integration and 30 E2E assertions/scenarios pass plus query-plan, security, reset, lint and build gates |
 | M12 | COMPLETE | One private CRM over parties, leads, first-class requirements, manual lead-property relations, append-oriented activities and structured follow-ups; exact twelve-stage owner pipeline, duplicate detection/contact reuse, bounded admin search/queues, privacy-safe audits and protected operational routes pass 372 pgTAP, 102 unit, 31 component, 30 integration and 32 E2E assertions/scenarios plus full QA/build |
 | M13 | COMPLETE | Published-property inquiry, structured buyer requirement, short contact, REQUESTED-only visit intake and call/WhatsApp intent events enter the M12 CRM through one service-only transactional boundary; canonical property resolution, returning-party/new-opportunity behavior, consent, bounded replay/rate protection, configured Turnstile verification, post-commit notification/analytics isolation and safe public confirmations pass 433 pgTAP, 116 unit, 38 component, 36 integration and 37 E2E assertions/scenarios plus full QA/build |
+| M14 | COMPLETE | Protected visit queue, India-time calendar and detail workspace coordinate contact, proposal, confirmation, rescheduling, completion, cancellation and no-show outcomes through optimistic service-only transactions; append-only history, property conflict warnings, truthful CRM synchronization and separate terminal follow-up work pass 479 pgTAP, 122 unit, 42 component, 40 integration and 40 E2E assertions/scenarios plus full QA/build |
 
 M9 adds no table, enum or ADR. The ninth migration adds the authoritative structured readiness function, service-only publish/unpublish and safe archive/restore semantics, an archived/off-market integrity constraint and the `public_property_indexability` view. Publication and availability remain independent; all seeded public verification copy remains unapproved.
 
@@ -691,6 +693,10 @@ M11 adds no table, enum or ADR. The eleventh migration adds an allow-listed gene
 
 M12 adds the private `lead_follow_ups` table and nine service-role-only CRM RPCs. ADR-0004 reconciles the owner-mandated `CLOSED_WON`/`CLOSED_LOST` pipeline with the legacy enum and adds typed follow-up history because `leads.next_follow_up_at` alone could not preserve type, context, completion actor/time or outcome. `leads.next_follow_up_at` remains the indexed open-work pointer. Contact identity stays in `parties`; an unambiguous normalized phone/email reuses the party while a new business intent remains a distinct lead. Requirements reuse the lead transaction/category/geography/budget taxonomy and store only requirement-specific area/frontage/road-width/notes. Matches are explicit, manual and status-bearing; no AI or automatic buyer contact exists. Activities remain distinct from privacy-minimized system audits. All CRM reads require an active admin, all writes re-authorize and execute through service-only RPCs, and public projections remain unchanged and lead-free.
 
-M13 adds four private operational tables—versioned consent events, bounded idempotency events, HMAC-only rate events and notification delivery outcomes—and three service-role-only functions. Public forms never receive a Supabase CRM client or direct mutation privilege. The server derives action/source context, resolves only active published property slugs to canonical internal IDs, normalizes India mobile/email input and calls one atomic CRM intake transaction. An unambiguous returning party is reused, while each materially separate demand event remains a distinct `NEW` lead. Property inquiries use the non-confirming `INQUIRY` relation; visit intake creates only `VISIT_REQUESTED` plus a `REQUESTED` site-visit row with no confirmed/completed times, leaving M14 lifecycle work untouched. Requirement prefill carries only editable public taxonomy from search/category/transaction context and excludes free-text keywords and property identity.
+M13 adds four private operational tables—versioned consent events, bounded idempotency events, HMAC-only rate events and notification delivery outcomes—and three service-role-only functions. Public forms never receive a Supabase CRM client or direct mutation privilege. The server derives action/source context, resolves only active published property slugs to canonical internal IDs, normalizes India mobile/email input and calls one atomic CRM intake transaction. An unambiguous returning party is reused, while each materially separate demand event remains a distinct `NEW` lead. Property inquiries use the non-confirming `INQUIRY` relation; visit intake creates only `VISIT_REQUESTED` plus a `REQUESTED` site-visit row with no confirmed/completed times, which M14 now extends through its separate protected workflow. Requirement prefill carries only editable public taxonomy from search/category/transaction context and excludes free-text keywords and property identity.
 
 All four forms enforce bounded typed input, plain-text limits, consent, origin checks, a honeypot, privacy-HMAC rate buckets and 24-hour event idempotency. Turnstile is verified server-side against exact hostname/action when both keys are configured; missing configuration is allowed only in local/test and fails closed elsewhere. CRM commit precedes Resend notification and privacy-safe analytics. Notification delivery is `SKIPPED` when provider configuration is absent and records bounded failure status when attempted; neither secondary effect can roll back or duplicate the lead. Analytics omits contact/message/CRM identifiers. Safe success responses expose only receipt wording and, where applicable, the public Property ID. Call/WhatsApp redirects reuse centralized public settings, resolve a published property and record intent rather than a completed conversation. No new ADR was required because these choices implement the existing M13 data, security and provider contracts without changing a persistent workflow model.
+
+M14 adds the private append-only `site_visit_events` table, visit versioning/coordination fields, a visit link on `lead_follow_ups`, and three service-role-only workflow functions. `transition_site_visit()` locks the visit and rejects stale versions before atomically changing state, recording old/new timing and actor-attributed history, appending the CRM activity, synchronizing the lead stage and writing a privacy-minimized audit. `add_site_visit_note()` preserves operational notes as private history. `schedule_site_visit_follow_up()` is available only for completed, cancelled or no-show visits and creates normal M12 CRM work instead of inventing a visit status.
+
+The protected queue is bounded and filters by text, state, India-time bucket, assignee and follow-up need. The calendar is a grouped operational schedule rather than an automatic booking integration. Proposal, confirmation and rescheduling require future times and active published inventory whose availability is `AVAILABLE` or `UNDER_NEGOTIATION`; overlapping non-terminal property visits produce a visible conflict warning without silently overriding the admin. Completion and no-show cannot be recorded before the confirmed time. Cancellation/no-show reasons, notes and meeting instructions remain private. `version` provides optimistic concurrency across tabs, and every mutation re-authorizes an active admin before using the service-only database boundary. No public projection, browser grant, external calendar provider, reminder provider, enum or ADR was added.
