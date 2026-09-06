@@ -1,8 +1,8 @@
 # UrbanEdge Land Space V1 — Implementation Ledger
 
-**Ledger status:** M0–M14 COMPLETE; public visit requests now continue through a private, manually coordinated, history-preserving site-visit workflow integrated with the M12 CRM.
+**Ledger status:** M0–M15 COMPLETE; owner supply now enters a private, consented, abuse-resistant review workflow and converts only by explicit active-admin action into non-public Draft inventory.
 
-**Last reconciled:** 5 September 2026 (M14: protected visit queue/calendar/workspace, atomic manual transitions, India-time scheduling, property conflict warnings, CRM synchronization, separate follow-up work and the complete local regression suite)
+**Last reconciled:** 6 September 2026 (M15 implementation checkpoint `bd0c9be`: ten-step owner intake, private documents, assignment/review history, non-destructive duplicate signals, explicit Draft-only conversion and the complete local regression suite)
 
 This ledger is the single implementation-facing map required by `12-IMPLEMENTATION-ROADMAP.md`. It does not replace the source documents. When this ledger conflicts with a source, the source hierarchy in the owner's build brief applies.
 
@@ -104,7 +104,7 @@ All listing/content reads are server-side and must consume explicit public proje
 | `/requirements/thank-you` | Static safe confirmation | No PII or record details in URL/browser state |
 | `/site-visit` | Eligible public property summary; public form options | `requestSiteVisit()` creates `REQUESTED`, never `CONFIRMED` |
 | `/site-visit/thank-you` | Static safe confirmation | No booking claim |
-| `/sell-your-land` | Public geography/options projections | `submitOwnerLandSubmission()`; never publishes |
+| `/sell-your-land` | Public geography/options projections | Same-origin bounded multipart handler; private intake only and never publishes |
 | `/sell-your-land/thank-you` | Static safe confirmation | Must not imply acceptance/publication |
 | `/guides` | Published guide/category projection | Read only |
 | `/guides/[guide-slug]` | Published guide projection | Read only |
@@ -142,6 +142,7 @@ Every `/admin/*` route except `/admin/login` requires server-side session verifi
 /admin/submissions
 /admin/submissions/[id]
 /admin/submissions/[id]/convert
+/admin/submissions/[id]/documents/[document-id]
 
 /admin/leads
 /admin/leads/pipeline
@@ -190,7 +191,7 @@ Every `/admin/*` route except `/admin/login` requires server-side session verifi
 
 ## 4. Authoritative table inventory
 
-The 49 V1 application tables from `03-DATABASE-SCHEMA-ARCHITECTURE.md`, plus the additive workflow and operational tables introduced through M14, are:
+The 49 V1 application tables from `03-DATABASE-SCHEMA-ARCHITECTURE.md`, plus the additive workflow and operational tables introduced through M15, are:
 
 | Domain | Tables |
 |---|---|
@@ -202,7 +203,7 @@ The 49 V1 application tables from `03-DATABASE-SCHEMA-ARCHITECTURE.md`, plus the
 | Parties/sourcing | `parties`, `property_parties`, `property_source_links` |
 | Media/documents | `media_assets`, `private_documents`, `owner_submission_documents` |
 | Verification | `verification_check_definitions`, `property_verifications`, `verification_evidence`, `verification_public_copy_policies`, `professional_reviews`, `verification_exceptions`, `verification_history` |
-| Owner intake | `owner_submissions` |
+| Owner intake | `owner_submissions`, `owner_submission_consents`, `owner_submission_events`, `owner_submission_idempotency`, `owner_submission_notification_deliveries` |
 | CRM | `leads`, `lead_requirements`, `lead_properties`, `lead_activities`, `lead_follow_ups`, `site_visits`, `site_visit_events` |
 | Content/SEO | `guide_categories`, `guides`, `seo_pages` |
 | Administration | `admin_profiles`, `app_settings` |
@@ -458,7 +459,7 @@ Default posture: revoke broad grants, enable RLS on every application table, den
 | Media base table | Approved public-media projection only | Deny | CRUD | CRUD |
 | Private documents/submission documents | Deny | Deny | Authorized read; mutations through approved service | CRUD |
 | Verification base/evidence tables | Deny; scoped summary projection only | Deny | CRUD through workflow services | CRUD |
-| Owner submissions | No direct insert/read; server action only | Deny | CRUD through workflow | CRUD |
+| Owner submissions | No direct insert/read; bounded same-origin server handler only | Deny | Read and workflow through active-admin services | CRUD |
 | Leads/requirements/matches/activities/site visits | No direct insert/read; server action only | Deny | CRUD through workflow | CRUD |
 | Guides/SEO | Published projection only | Deny | CRUD through editorial workflow | CRUD |
 | `admin_profiles` | Deny | Deny | Read own/authorized; no self-escalation | CRUD/provisioning |
@@ -497,7 +498,7 @@ Public actions:
 
 - `submitPropertyInquiry()`;
 - `submitBuyerRequirement()`;
-- `submitOwnerLandSubmission()`;
+- bounded same-origin owner-land multipart submission handler;
 - `requestSiteVisit()`;
 - `recordPublicInteraction()` / protected general contact action.
 
@@ -506,7 +507,7 @@ Admin/domain services:
 - property draft/update/duplicate/review/publish/unpublish/archive/restore/availability/location/offer;
 - media register/cover/reorder/archive/restore;
 - verification start/update/evidence/complete/recheck;
-- owner submission transition/convert;
+- owner submission assignment/transition/note/private-document access/explicit Draft-only conversion;
 - lead create/update/transition/match/activity/follow-up;
 - site visit contact/propose/confirm/reschedule/complete/no-show/cancel/follow-up;
 - guide/SEO/location content review/publish/unpublish/archive;
@@ -684,6 +685,7 @@ No unresolved M0 blocker remains.
 | M12 | COMPLETE | One private CRM over parties, leads, first-class requirements, manual lead-property relations, append-oriented activities and structured follow-ups; exact twelve-stage owner pipeline, duplicate detection/contact reuse, bounded admin search/queues, privacy-safe audits and protected operational routes pass 372 pgTAP, 102 unit, 31 component, 30 integration and 32 E2E assertions/scenarios plus full QA/build |
 | M13 | COMPLETE | Published-property inquiry, structured buyer requirement, short contact, REQUESTED-only visit intake and call/WhatsApp intent events enter the M12 CRM through one service-only transactional boundary; canonical property resolution, returning-party/new-opportunity behavior, consent, bounded replay/rate protection, configured Turnstile verification, post-commit notification/analytics isolation and safe public confirmations pass 433 pgTAP, 116 unit, 38 component, 36 integration and 37 E2E assertions/scenarios plus full QA/build |
 | M14 | COMPLETE | Protected visit queue, India-time calendar and detail workspace coordinate contact, proposal, confirmation, rescheduling, completion, cancellation and no-show outcomes through optimistic service-only transactions; append-only history, property conflict warnings, truthful CRM synchronization and separate terminal follow-up work pass 479 pgTAP, 122 unit, 42 component, 40 integration and 40 E2E assertions/scenarios plus full QA/build |
+| M15 | COMPLETE | Ten-step Sell Your Land intake covers sell/rent/lease and Agricultural/NA/Industrial claims, private scanned uploads, five versioned consents and abuse controls; protected queue/detail/assignment/history, non-destructive duplicate review and optimistic service-only transitions culminate only in explicit idempotent Draft conversion with NOT_STARTED verification, provenance and audit; 523 pgTAP, 129 unit, 49 component, 45 integration and 43 E2E assertions/scenarios plus full QA/build pass |
 
 M9 adds no table, enum or ADR. The ninth migration adds the authoritative structured readiness function, service-only publish/unpublish and safe archive/restore semantics, an archived/off-market integrity constraint and the `public_property_indexability` view. Publication and availability remain independent; all seeded public verification copy remains unapproved.
 
@@ -699,4 +701,8 @@ All four forms enforce bounded typed input, plain-text limits, consent, origin c
 
 M14 adds the private append-only `site_visit_events` table, visit versioning/coordination fields, a visit link on `lead_follow_ups`, and three service-role-only workflow functions. `transition_site_visit()` locks the visit and rejects stale versions before atomically changing state, recording old/new timing and actor-attributed history, appending the CRM activity, synchronizing the lead stage and writing a privacy-minimized audit. `add_site_visit_note()` preserves operational notes as private history. `schedule_site_visit_follow_up()` is available only for completed, cancelled or no-show visits and creates normal M12 CRM work instead of inventing a visit status.
 
-The protected queue is bounded and filters by text, state, India-time bucket, assignee and follow-up need. The calendar is a grouped operational schedule rather than an automatic booking integration. Proposal, confirmation and rescheduling require future times and active published inventory whose availability is `AVAILABLE` or `UNDER_NEGOTIATION`; overlapping non-terminal property visits produce a visible conflict warning without silently overriding the admin. Completion and no-show cannot be recorded before the confirmed time. Cancellation/no-show reasons, notes and meeting instructions remain private. `version` provides optimistic concurrency across tabs, and every mutation re-authorizes an active admin before using the service-only database boundary. No public projection, browser grant, external calendar provider, reminder provider, enum or ADR was added.
+The protected visit queue is bounded and filters by text, state, India-time bucket, assignee and follow-up need. Its calendar is a grouped operational schedule rather than an automatic booking integration. Proposal, confirmation and rescheduling require future times and active published inventory whose availability is `AVAILABLE` or `UNDER_NEGOTIATION`; overlapping non-terminal property visits produce a visible conflict warning without silently overriding the admin. Completion and no-show cannot be recorded before the confirmed time. Cancellation/no-show reasons, notes and meeting instructions remain private. `version` provides optimistic concurrency across tabs, and every mutation re-authorizes an active admin before using the service-only database boundary. No public projection, browser grant, external calendar provider, reminder provider, enum or ADR was added.
+
+M15 adds four private owner-intake operational tables for versioned consent, append-only events, bounded idempotency and notification delivery, while extending the approved owner-submission and private-document records. The public multipart handler enforces origin, honeypot, request/file bounds, MIME/signature validation, malware scanning, HMAC-only rate buckets, 24-hour replay semantics and server-side Turnstile when configured. It records five explicit consent purposes and treats every owner/category/location/document statement as an unverified private claim.
+
+Active admins use explicit bounded DTOs and filters for the queue, assignment, review, notes and document access; browser roles cannot call workflow RPCs or enumerate private objects. Duplicate signals compare normalized contact, survey/block, district/category and similar area without merging or deleting records. `convert_owner_submission_to_property()` row-locks and version-checks an approved submission, creates exactly one `DRAFT` property with conversion provenance, leaves all verification rows `NOT_STARTED`, links documents privately and records append-only history plus a privacy-minimized audit. It never publishes, promotes media or creates a public projection row. M16 remains unstarted.

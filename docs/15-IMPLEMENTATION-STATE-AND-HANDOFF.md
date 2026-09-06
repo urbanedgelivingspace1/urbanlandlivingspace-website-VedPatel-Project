@@ -9,13 +9,13 @@ This is the live record of what has actually happened. Update it after every mea
 | Project | UrbanEdge Land Space |
 | Repository | `/Users/vedpatel/Desktop/UrbanLand_website` |
 | Current branch | `main` |
-| Latest relevant commits | M14 implementation `cb58cd9`; this handoff checkpoint follows it; prior M13 checkpoint `e4019f5` |
-| Working tree | CLEAN after the M14 handoff commit |
-| Current milestone | M14 — Site Visit Request and Manual Coordination |
+| Latest relevant commits | M15 implementation `bd0c9be`; this handoff checkpoint follows it; prior M14 handoff `13e5af3` |
+| Working tree | CLEAN after the M15 handoff commit |
+| Current milestone | M15 — Sell Your Land Owner Submission and Conversion |
 | Current milestone status | COMPLETE |
-| Last completed milestone | M14 — Site Visit Request and Manual Coordination |
-| Next milestone | M15 — Sell Your Land Owner Submission and Conversion (not begun) |
-| Last updated | 2026-09-05 23:40:07 IST |
+| Last completed milestone | M15 — Sell Your Land Owner Submission and Conversion |
+| Next milestone | M16 — Guides, Locations, SEO and Crawl Control (not begun) |
+| Last updated | 2026-09-06 12:38:27 IST |
 | Last updating agent | Codex |
 
 ## 2. Source-of-Truth Documents
@@ -96,7 +96,7 @@ The design report governs Living Space brand/design reference only. It does not 
 | M12 CRM Core and Admin Operational Pipeline | COMPLETE | 2026-09-05 | 2026-09-05 | Private lead/party/requirement/match/activity/follow-up services, exact pipeline, protected inbox/pipeline/detail/requirements/follow-up routes, duplicate warning/contact reuse, dashboard queue, RLS/audit privacy and full local qualification pass |
 | M13 Public Inquiry, Buyer Requirement, Contact and Intent Events | COMPLETE | 2026-09-05 | 2026-09-05 | Published-property inquiry, structured requirement, short contact, REQUESTED-only visit intake, intent events, atomic M12 CRM persistence, consent, abuse controls, post-commit notifications/analytics and complete local qualification pass |
 | M14 Site Visit Request and Manual Coordination | COMPLETE | 2026-09-05 | 2026-09-05 | Protected queue/calendar/workspace, atomic manual lifecycle, India-time scheduling, conflict warnings, CRM synchronization, append-only history and separate terminal follow-up work pass complete local qualification |
-| M15 Sell Your Land Owner Submission and Conversion | NOT_STARTED | — | — | — |
+| M15 Sell Your Land Owner Submission and Conversion | COMPLETE | 2026-09-06 | 2026-09-06 | Private ten-step intake, scanned owner documents, five consents, abuse/replay controls, protected assignment/review/history, non-destructive duplicate signals and explicit idempotent Draft-only conversion pass complete local qualification |
 | M16 Guides, Locations, SEO and Crawl Control | NOT_STARTED | — | — | Redirect-history ADR/migration gate already recorded |
 | M17 Security Hardening and Privacy Regression Closure | NOT_STARTED | — | — | — |
 | M18 Full Testing and Production-Build Qualification | NOT_STARTED | — | — | — |
@@ -104,31 +104,30 @@ The design report governs Living Space brand/design reference only. It does not 
 
 ## 4. Current Work
 
-Objective achieved: M14 extends M13's `REQUESTED` intake into the complete manually coordinated visit workflow without creating a parallel booking model. The protected queue, calendar and detail workspace now handle contact, proposal, confirmation, rescheduling, completion, cancellation, no-show, private notes and separate CRM follow-up with concurrency and history controls. M15 has not begun.
+Objective achieved: M15 implements the complete owner-supply path without weakening the publication boundary. A responsive ten-step form accepts sell/rent/lease intent, all three land categories, private location/commercial/category claims, media links and bounded private uploads. The protected queue/detail workspace supports assignment, review, append-only notes/events, private document access and duplicate warnings. Only an explicit approved, version-checked conversion can create inventory, and that inventory is always `DRAFT` with verification `NOT_STARTED`. M16 has not begun.
 
 Relevant sources:
 
 - owner's implementation brief;
 - embedded master prompt and finalized architecture;
-- `12-IMPLEMENTATION-ROADMAP.md`, M14;
-- data/backend/admin/security/testing and completion contracts in documents `03`, `04`, `05`, `08`, `11` and `13`;
-- ADR-0001's separation of follow-up work from the site-visit lifecycle;
-- ADR-0004's exact terminal status and structured follow-up reconciliation;
+- `12-IMPLEMENTATION-ROADMAP.md`, M15;
+- owner-intake, data, backend, admin, storage, security, testing and completion contracts in documents `02`, `03`, `04`, `05`, `08`, `09`, `11` and `13`;
+- the existing M7 private-document and M9 publication boundaries;
 - `docs/architecture/IMPLEMENTATION-LEDGER.md`.
 
-Principal M14 files:
+Principal M15 files:
 
-- `features/site-visits/domain/*` and `server/services/site-visits.ts`
-- `app/(admin)/admin/(protected)/site-visits/*`
-- `components/admin/site-visit-queue.tsx` and `components/admin/site-visit-workspace.tsx`
-- `supabase/migrations/20260905050000_m14_site_visit_operations.sql`
-- `supabase/tests/012_m14_site_visit_operations.test.sql` and M14 unit, component, integration and E2E coverage
+- `features/owner-submissions/domain/*` and `server/services/owner-submissions.ts`
+- `app/(public)/sell-your-land/*` and `components/public/owner-submission-wizard.tsx`
+- `app/(admin)/admin/(protected)/submissions/*`
+- `supabase/migrations/20260906010000_m15_owner_submission_workflow.sql`
+- `supabase/tests/013_m15_owner_submission_workflow.test.sql` and M15 unit, component, integration and E2E coverage
 - `docs/architecture/IMPLEMENTATION-LEDGER.md`
 - this handoff file.
 
-Dependencies/blockers: M14 is complete against the isolated local Supabase stack on ports `55320`–`55327`. No production database/storage/provider operation is authorized. No external calendar, SMS or reminder provider was added; the M14 calendar is an internal operational view. Existing pre-launch provider, legal-copy and real-data inputs are not M14 blockers.
+Dependencies/blockers: M15 is complete against the isolated local Supabase stack on ports `55320`–`55327`. No production database/storage/provider operation is authorized. Resend, production Turnstile and remote malware scanning remain unconfigured; local/test adapters fail safely or record `SKIPPED` outcomes according to the existing environment policy. No real owner PII or documents were used.
 
-Required M14 checks: exact transition allow-list, future-time and property eligibility gates, India-time queue/calendar behavior, conflict warnings, optimistic concurrency, atomic CRM stage/activity/history/audit effects, private operational text, terminal follow-up separation, active-admin authorization, RLS/RPC denial, responsive/accessibility behavior, complete regression and production build. All pass locally.
+Required M15 checks: all intent/category variants, conditional claims, five consent records, payload/file/type/count/size/malware/origin/bot/rate/replay controls, private storage and signed access, queue filters/assignment/history, duplicate warning without merge, exact transition allow-list, optimistic concurrency, approved-only idempotent Draft conversion, `NOT_STARTED` verification, provenance/audit privacy, RLS/RPC denial, responsive/keyboard behavior, complete regression and production build. All pass locally.
 
 ## 5. Completed Implementation
 
@@ -138,15 +137,15 @@ Next.js 16 App Router, React 19, strict TypeScript, Tailwind 4, shadcn configura
 
 ### Database
 
-Fourteen ordered migrations implement 59 application tables and 32 enum types. M14 adds private append-only `site_visit_events`, visit version/coordination/outcome fields, a visit link on `lead_follow_ups`, request-event backfill/trigger and three service-role-only visit functions. The prior intake, CRM, search, publication projections and privacy boundaries remain intact. Applied and tested only in disposable local Supabase; never applied to production.
+Fifteen ordered migrations implement 63 application tables and 32 enum types. M15 adds private `owner_submission_consents`, append-only `owner_submission_events`, `owner_submission_idempotency` and `owner_submission_notification_deliveries`, extends owner submissions and private documents, and adds service-role-only intake, notification, assignment, transition, note and Draft-conversion functions. The CRM, search, publication projections and privacy boundaries remain intact. Applied and tested only in disposable local Supabase; never applied to production.
 
 ### Server contracts
 
-Separate public/admin/CRM/site-visit DTOs, typed Supabase rows, explicit queries, centralized privacy/formatting helpers, executable state machines and shared Zod schemas are implemented. M14 adds India-local/UTC conversion, operational bucket and property-conflict classification, bounded active-admin reads and service-only mutations. Route actions re-authorize; database functions lock rows and enforce expected versions, state prerequisites and transactional side effects. Browser, anonymous server, authenticated server, privileged server and test-actor Supabase helpers remain separate; privileged helpers import `server-only`.
+Separate public/admin/CRM/site-visit/owner-submission DTOs, typed Supabase rows, explicit queries, centralized privacy/formatting helpers, executable state machines and shared Zod schemas are implemented. M15 adds a server-only same-origin multipart processor, bounded active-admin queue/detail reads, duplicate classification and service-only assignment/review/conversion mutations. Route handlers and actions re-authorize; database functions lock rows and enforce expected versions, state prerequisites and transactional side effects. Browser, anonymous server, authenticated server, privileged server and test-actor Supabase helpers remain separate; privileged helpers import `server-only`.
 
 ### RLS
 
-All 59 application tables have RLS. Authenticated browser identities receive database-profile-gated reads only; business writes remain server-owned. `site_visit_events` permits active-admin reads and service-only writes, while all three M14 functions deny `anon` and `authenticated`. Fourteen explicit public views remain lead-free, visit-free and PII-free. Anonymous direct CRM/table mutation, private reads and operational-RPC execution remain denied.
+All 63 application tables have RLS. Authenticated browser identities receive database-profile-gated reads only; business writes remain server-owned. M15 consent/event/idempotency/notification records are private; active admins receive only intended reads and service-only writes, while owner workflow RPCs deny `anon` and `authenticated`. Fourteen explicit public views remain owner-submission-free and PII-free. Anonymous direct table/storage mutation, private reads and operational-RPC execution remain denied.
 
 ### Admin Authentication
 
@@ -214,7 +213,13 @@ Contact records a bounded private outcome. Proposal and rescheduling require a v
 
 ### Sell Your Land
 
-Not implemented.
+M15 is complete. `/sell-your-land` is a responsive ten-step owner form for sell/rent/lease intent and Agricultural, NA and Industrial land. It captures normalized contact and relationship, private location preferences/coordinates, original area unit, commercial expectations, category-specific owner claims, optional video/drone/virtual-tour links, photos, brochure/supporting documents and five explicit versioned acknowledgements. Conditional fields and uploads remain selected across validation failures, error summaries are announced/focusable, and the receipt page promises review only—not acceptance, verification or publication.
+
+The same-origin multipart route checks content length before parsing and then enforces typed body bounds, a honeypot, trusted origin, privacy-HMAC rate buckets, 24-hour payload-bound idempotency and exact Turnstile hostname/action when configured. Files are limited to PDF/JPEG/PNG, 10 files and 20 MB combined, validated by signature, scanned before registration and stored only in `owner-submissions-private` with server-generated paths. Post-commit notifications are durable and cannot roll back or duplicate intake.
+
+`/admin/submissions` provides bounded status/category/intent/district/assignee/document/date/text filters. The detail workspace exposes only an explicit admin DTO and supports assignment, exact transition actions, document requests, notes, append-only history, consent review, scan state and authorized short-lived document access. Possible duplicates are warnings based on normalized contact, survey/block, district/category and similar area; records are never automatically merged or deleted.
+
+Conversion is a separate confirmation route available only from `APPROVED`. The transaction locks and version-checks the submission, creates exactly one immutable-ID property in `DRAFT`, preserves source/owner/category/location/commercial provenance, links private documents, initializes applicable verification rows as `NOT_STARTED`, records history/audit and marks the submission `CONVERTED`. Replays return the same conversion; no media is promoted and no public projection or publication transition occurs.
 
 ### SEO
 
@@ -222,11 +227,11 @@ M11 search SEO extends the M10 baseline. Unfiltered `/properties` and valid unfi
 
 ### Security
 
-The M1–M13 protections remain intact. M14 operations require `requireActiveAdmin()` and use service-role-only functions; browser roles cannot execute them or write/read the private event table outside the active-admin policy. Expected-version checks prevent lost updates. Operational outcomes, reasons, instructions and notes stay in private visit/event/activity data and are omitted from public projections and generic audit state. Public request intake remains origin/bot/replay/rate protected and `REQUESTED`-only.
+The M1–M14 protections remain intact. M15 admin operations require `requireActiveAdmin()` and use service-role-only functions; browser roles cannot execute owner workflow RPCs, enumerate private objects or mutate intake tables. Expected-version checks prevent lost updates. Owner PII, claims, exact private coordinates, documents, notes, consent details and duplicate signals remain absent from public projections and privacy-minimized audits. Public submission uses a server-only origin/bot/replay/rate/file-validation boundary and creates private `NEW` intake only.
 
 ### Testing
 
-The complete current local suite passes: 479 pgTAP assertions, the 24-worker Property ID concurrency test, 122 Vitest unit tests, 42 component tests, 40 guarded application integration tests and 40 guarded Chromium E2E scenarios. Lint, Prettier verification, strict typecheck, 16-client server-boundary scan, 318-file secret scan, clean database reset/lint and the Next.js 16.3.4 webpack production build also pass. M14 coverage proves the transition graph, time/availability gates, calendar and filters, conflict warning, stale-write rejection, CRM synchronization, append-only history/audit privacy, terminal follow-up separation, protected role denial, responsive controls and axe accessibility.
+The complete current local suite passes: 523 pgTAP assertions, the 24-worker Property ID concurrency test, 129 Vitest unit tests, 49 component tests, 45 guarded application integration tests and 43 guarded Chromium E2E scenarios. Lint, Prettier verification, strict typecheck, 17-client server-boundary scan, 339-file secret scan, clean database reset/lint and the Next.js 16.3.4 webpack production build also pass. M15 coverage proves category/intent variants, consent and abuse controls, real multipart upload retention, private document denial/access, queue/review/assignment/history, duplicate warnings, stale-write and invalid-transition rejection, idempotent Draft-only conversion, verification/provenance/audit boundaries, responsive keyboard flow and prior M0–M14 regressions.
 
 Final mobile Lighthouse on the local production homepage scored Performance 95, Accessibility 100, Best Practices 100 and SEO 100, with FCP 1.22 s, lab LCP 2.92 s, CLS 0 and TBT 28 ms. The no-layout-shift and interaction results pass; the throttled local LCP remains above the 2.5 s field target and must be remeasured on staging/real traffic rather than represented as achieved.
 
@@ -238,8 +243,8 @@ Not implemented or configured.
 
 ```text
 app/                                       Next.js App Router
-  (public)/                                M13 public shell, discovery, property and conversion routes/actions
-  (admin)/admin/                           protected property, verification, media, CRM and M14 visit operations
+  (public)/                                public shell, discovery, property and M13/M15 intake routes
+  (admin)/admin/                           protected property, verification, media, CRM, visit and owner-intake operations
   error.tsx / global-error.tsx / not-found.tsx
 components/foundation/                     M1 shell components
 components/public/                         canonical public cards, detail/media/location/actions, conversion forms and shell
@@ -248,16 +253,18 @@ components/admin/                          protected shell, property/media/verif
 config/                                    site and environment schemas
 features/crm/                              M12 lead/follow-up contracts, validation and pipeline helpers
 features/intake/                           M13 public intake contracts, validation, prefill and abuse helpers
+features/owner-submissions/                M15 owner intake contracts, validation and duplicate signals
 features/site-visits/                      M14 visit contracts, validation, state/time/conflict helpers
 features/search/                           normalized M11 query and provider contracts
 lib/                                       shared/test/privacy/SEO/Supabase boundaries
 server/                                    server-only env and domain-layer boundaries
   services/crm.ts                          authorized M12 CRM read/write services
   services/public-intake.ts                M13 public-to-private transactional adapter and secondary effects
+  services/owner-submissions.ts            M15 private intake, review, document and conversion services
   services/site-visits.ts                  authorized M14 queue/detail and workflow services
   integrations/                            Turnstile and Resend provider boundaries
   search/                                  PostgreSQL public-search provider
-supabase/                                  local config, 14 migrations, repeatable seed and pgTAP suites
+supabase/                                  local config, 15 migrations, repeatable seed and pgTAP suites
 tests/                                     complete unit, component, integration and E2E regressions
 scripts/                                   secret and server-boundary checks
 .github/workflows/ci.yml                   M1 CI gate
@@ -293,30 +300,30 @@ docs/
     README.md                               runbook scope and production guardrails
 ```
 
-There is no `.openai/hosting.json`; no hosting/deployment is configured. The approved Living Space logo reference is present, while the old reference-app source is intentionally unavailable. Git is on `main`. The `.gitignore` excludes secrets, environment files, dependencies, generated output including the copied MapLibre worker, local Supabase runtime and provider state. M0–M14 are complete; M15 has not begun.
+There is no `.openai/hosting.json`; no hosting/deployment is configured. The approved Living Space logo reference is present, while the old reference-app source is intentionally unavailable. Git is on `main`. The `.gitignore` excludes secrets, environment files, dependencies, generated output including the copied MapLibre worker, local Supabase runtime and provider state. M0–M15 are complete; M16 has not begun.
 
 ## 7. Database State
 
 | Item | Actual state |
 |---|---|
-| Migration files | Fourteen ordered migrations through `20260905050000_m14_site_visit_operations.sql` |
-| Tables created | 59 application tables; M14 adds private append-only `site_visit_events` |
+| Migration files | Fifteen ordered migrations through `20260906010000_m15_owner_submission_workflow.sql` |
+| Tables created | 63 application tables; M15 adds four private consent/event/idempotency/notification tables |
 | Enums created | 32 enum types; M13 extends `lead_activity_type` with property-inquiry and general-contact receipt events |
-| Functions/triggers | Prior generators/integrity/domain transactions plus the M14 request-history trigger and three service-only visit functions |
+| Functions/triggers | Prior generators/integrity/domain transactions plus M15 append-only history and service-only intake, notification, review, assignment, note and conversion functions |
 | Views/public projections | 14 whitelisted public views plus one private projection-owner search view; none contains CRM data |
-| Indexes | Baseline publication/geography/offers/media/verification/content/audit indexes plus normalized contact, CRM/follow-up indexes and M14 visit queue/timeline indexes |
+| Indexes | Baseline publication/geography/offers/media/verification/content/audit indexes plus CRM/visit and M15 assignment, event, replay, delivery and document-deduplication indexes |
 | Storage buckets | Five local migration-controlled buckets: two intentional public buckets and three private buckets; no browser object mutation/list policies |
-| RLS policies | Enabled on all 59 tables; active-admin read policy on each plus narrowly scoped projection-owner policies |
+| RLS policies | Enabled on all 63 tables; active-admin read policy on each intended private workflow table plus narrowly scoped projection-owner policies |
 | Seed data | Safe repeatable India, Gujarat, Ahmedabad/Gandhinagar, 9 units and 5 non-local standard conversions |
 | Local database | Running isolated Supabase project `urbanedge-land-space-local` on `55320`–`55327` |
 | Development/staging application | Nothing applied |
 | Production | Nothing applied; no production operation authorized |
 
-The 59-table inventory, 32 enum types, fourteen-migration order, 14 explicit public-safe projections, five-bucket boundary, RLS grants and M6–M14 service transactions are implemented and validated locally.
+The 63-table inventory, 32 enum types, fifteen-migration order, 14 explicit public-safe projections, five-bucket boundary, RLS grants and M6–M15 service transactions are implemented and validated locally.
 
 ## 8. RLS / Security State
 
-Database integrity, server module boundaries, RLS, grants and privacy projections are implemented and tested locally. Browser roles cannot write business tables, execute M6–M14 mutation RPCs, list private objects, upload to controlled buckets or change bucket visibility. M13's public intake and M14's protected operations both cross server-owned boundaries; all privileged functions are service-role-only. Admin actions still require `requireActiveAdmin()`. Anonymous/non-admin path guesses fail, and visit history/outcomes/notes join CRM, consent/replay/rate/notification state, private evidence/documents, source details, exact coordinates, EXIF and contact data outside public outputs.
+Database integrity, server module boundaries, RLS, grants and privacy projections are implemented and tested locally. Browser roles cannot write business tables, execute M6–M15 mutation RPCs, list private objects, upload to controlled buckets or change bucket visibility. M15 intake and protected operations cross server-owned boundaries; all privileged functions are service-role-only and admin actions require `requireActiveAdmin()`. Anonymous/non-admin path guesses fail, and owner claims/history/consents/duplicate signals join CRM, visit history, replay/rate/notification state, private evidence/documents, source details, exact coordinates, EXIF and contact data outside public outputs.
 
 ## 9. Routes Implemented
 
@@ -337,6 +344,9 @@ Database integrity, server module boundaries, RLS, grants and privacy projection
 | `/contact` | COMPLETE / TESTED | Short general-contact conversion into the same private CRM |
 | `/site-visit` | COMPLETE / TESTED | Active-property preferred-window intake only; never auto-confirms |
 | `/site-visit/thank-you` | COMPLETE / TESTED | Safe REQUESTED-only confirmation with public Property ID where applicable |
+| `/sell-your-land` | COMPLETE / TESTED | Ten-step private owner intake for all V1 intents/categories with conditional claims, bounded uploads and five consents |
+| `/sell-your-land/submit` | COMPLETE / TESTED | Same-origin server-only multipart handler with pre-parse size gate and abuse/file validation |
+| `/sell-your-land/thank-you` | COMPLETE / TESTED | Receipt reference and review-only wording; no acceptance, verification or publication promise |
 | `/api/public/intent/[intent]` | COMPLETE / TESTED | Published-property call/WhatsApp redirect with bounded privacy-safe intent analytics |
 | Other canonical public routes | NOT_STARTED | Implemented only in their roadmap milestones; future links do not prefetch absent routes |
 
@@ -369,6 +379,10 @@ Database integrity, server module boundaries, RLS, grants and privacy projection
 | `/admin/site-visits` | COMPLETE / TESTED | Bounded protected queue with text, status, India-time bucket, assignee and follow-up filters |
 | `/admin/site-visits/calendar` | COMPLETE / TESTED | Protected India-time operational calendar grouped by day; no external booking provider |
 | `/admin/site-visits/[id]` | COMPLETE / TESTED | Contact/propose/confirm/reschedule/outcome controls, conflict warning, versioning, history, notes and separate CRM follow-up |
+| `/admin/submissions` | COMPLETE / TESTED | Protected bounded owner queue with status/category/intent/geography/assignee/document/date/search filters |
+| `/admin/submissions/[id]` | COMPLETE / TESTED | Assignment, transitions, notes, consents, claims, duplicate warnings, documents and append-only history |
+| `/admin/submissions/[id]/convert` | COMPLETE / TESTED | Explicit approved-only confirmation producing one private Draft property |
+| `/admin/submissions/[id]/documents/[documentId]` | COMPLETE / TESTED | Active-admin late-bound short-lived owner-document redirect with generic denial |
 | `/api/admin/private-documents/[id]/download` | COMPLETE / TESTED | Active-admin-only late-bound temporary signed redirect; generic denial and no-store response |
 | Other canonical admin routes | NOT_STARTED | Implemented only in their domain milestones |
 
@@ -546,12 +560,19 @@ The environment schema and `.env.example` contain names only. Never store actual
 | Complete guarded local E2E | PASS | 2026-09-05 | All 40 Chromium scenarios pass in the definitive serial M0–M14 run; M14 adds end-to-end confirmed/completed/follow-up, reschedule/no-show/cancel, filters/calendar/conflict, responsive/keyboard/axe and anonymous/non-admin denial coverage |
 | M14 application QA/build | PASS | 2026-09-05 | Lint, Prettier, strict typecheck, 16-client boundary scan, 318-file secret scan, unit/component/integration/E2E suites and Next.js 16.3.4 webpack production build pass with all visit routes dynamic |
 | Property-code concurrency regression | PASS | 2026-09-05 | 24 parallel inserts still produce 24 distinct immutable Property IDs after M14 |
+| M15 clean database rebuild/lint | PASS | 2026-09-06 | All fifteen migrations plus repeatable seed rebuild from zero; `supabase db lint --level warning` reports no schema errors or warnings |
+| M15 database/RLS suite | PASS | 2026-09-06 | 13 files / 523 pgTAP assertions cover prior contracts plus private owner schema, consent/event integrity, exact transitions, assignment/version gates, append-only history, Draft conversion, audit/provenance and browser-role denial |
+| M15 guarded integration suite | PASS | 2026-09-06 | 10 files / 45 tests cover real private submission, replay, documents, workflow authorization, duplicate warnings and one-time Draft conversion plus every prior service |
+| M15 unit/component suites | PASS | 2026-09-06 | 18 files / 129 unit tests and 14 files / 49 component tests cover validation, claims, abuse/file limits, transitions, duplicates, queue/detail/conversion rendering, preserved errors and all prior behavior |
+| Complete guarded local E2E | PASS | 2026-09-06 | All 43 Chromium scenarios pass in the definitive clean serial M0–M15 run; M15 adds Agricultural/Industrial variants, mobile keyboard/overflow and full NA upload, protected review and Draft conversion with anonymous denial |
+| M15 application QA/build | PASS | 2026-09-06 | Lint, Prettier, strict typecheck, 17-client boundary scan, 339-file secret scan, unit/component/integration/E2E suites and Next.js 16.3.4 webpack production build pass with all owner routes dynamic |
+| Property-code concurrency regression | PASS | 2026-09-06 | 24 parallel inserts still produce 24 distinct immutable Property IDs after M15 |
 
 ## 14. Known Issues
 
 ### Blocking
 
-None. Every M14 completion criterion passes locally; M15 has not begun.
+None. Every M15 completion criterion passes locally; M16 has not begun.
 
 ### Important
 
@@ -562,7 +583,7 @@ None. Every M14 completion criterion passes locally; M15 has not begun.
 
 ### Minor
 
-- Earlier parallel-regression contention remains documented in the M12/M13 evidence. The definitive serial M0–M14 run passed all 40 scenarios; no assertion was suppressed.
+- Earlier parallel-regression contention remains documented in the M12/M13 evidence. The definitive clean serial M0–M15 run passed all 43 scenarios; no assertion was suppressed.
 
 ### Deferred / Future
 
@@ -579,7 +600,7 @@ None. Every M14 completion criterion passes locally; M15 has not begun.
 
 Production migration, bucket creation, map-provider selection, contact configuration, malware-provider activation, lawyer copy approval and public deployment remain unperformed approval gates.
 
-No M14 ADR was created. The event history, optimistic version, operational functions, CRM synchronization and linked follow-up implement the accepted M14 roadmap and ADR-0001 directly without changing the approved enums or introducing a competing workflow model.
+No M14 or M15 ADR was created. M14 implements ADR-0001 directly. M15 uses the already-approved owner state model, private-document boundary and Draft publication gate; its additive persistence closes operational requirements without changing an approved enum or introducing a competing workflow model.
 
 The non-ADR M0 reconciliation decisions are recorded in `docs/DECISIONS.md`: later finalized documents refine master examples where the master describes them as recommendations/high-level guidance; the owner-designated design report is the authoritative Living Space brand/design reference; the approved Living Space logo is a reference asset rather than an automatically relabeled Land Space logo; missing photography may use only clearly marked development placeholders tracked for replacement.
 
@@ -632,15 +653,16 @@ Do not invent production values or fabricate property/geography records to popul
 
 ## 19. Exact Next Actions
 
-1. Preserve the clean M14 checkpoint; M15 remains unstarted until the owner explicitly continues it.
-2. Before M15, read the complete owner-submission sources and retain the rule that owner submissions never publish or create public inventory automatically.
-3. Preserve M14's visit state/history/concurrency boundary and ADR-0001 separation from CRM follow-up.
-4. Keep all verification public copy disabled until wording receives the recorded lawyer approval required by its policy row.
-5. Consume `public_property_indexability` only when M16 implements sitemap/robots rendering; do not reimplement publication readiness in search or public UI.
-6. Configure and validate approved map and malware-scanning providers before staging/production use; both currently fail safely when absent.
+1. Preserve implementation commit `bd0c9be` and this clean M15 handoff; M16 remains unstarted until the owner explicitly continues it.
+2. Before M16, read the complete guide/location/SEO/crawl sources and resolve the recorded redirect-history ADR/migration gate before editable published-slug redirects.
+3. Preserve M15's private owner-intake, non-destructive duplicate review and explicit Draft-only conversion boundaries; never auto-publish or promote owner uploads.
+4. Preserve M14's visit state/history/concurrency boundary and ADR-0001 separation from CRM follow-up.
+5. Keep all verification public copy disabled until wording receives the recorded lawyer approval required by its policy row.
+6. Consume `public_property_indexability` as the authoritative source when M16 implements sitemap/robots rendering; do not reimplement publication readiness in SEO or public UI.
+7. Configure and validate approved map and malware-scanning providers before staging/production use; both currently fail safely when absent.
 
 ## 20. Resume Instructions For The Next Coding Agent
 
-> You are continuing an existing UrbanEdge Land Space implementation after M14. M0–M14 are complete and M15 has not begun. Read this file, `docs/architecture/IMPLEMENTATION-LEDGER.md`, ADR-0001 through ADR-0004 and the complete M15 owner-submission sources before any M15 work. The local database is disposable and isolated; production remains untouched. Preserve M14's manually coordinated, versioned and history-preserving site-visit lifecycle and its separation from CRM follow-up. Owner submissions must remain private intake and must never auto-publish. Preserve the M13 public-intake boundary, M12 CRM semantics, M11 search contract, M9 publication boundary, public-safe projections, location privacy and scoped public-copy gate.
+> You are continuing an existing UrbanEdge Land Space implementation after M15. M0–M15 are complete and M16 has not begun. Start from implementation commit `bd0c9be` plus the following handoff commit. Read this file, `docs/architecture/IMPLEMENTATION-LEDGER.md`, ADR-0001 through ADR-0004 and the complete M16 guide/location/SEO/crawl sources before coding. Resolve the recorded redirect-history decision through the required controlled ADR/migration path. The local database is disposable and isolated; production remains untouched. Preserve M15's private owner intake, private-document authorization, append-only review history, duplicate-warning-without-merge behavior and explicit idempotent Draft-only conversion. Preserve M14 visit semantics, the M13 intake boundary, M12 CRM semantics, M11 search contract, M9 publication boundary, public-safe projections, location privacy and scoped public-copy gate.
 
 Special warning: owner submissions must never auto-publish, site-visit requests must never auto-confirm, and no public payload may contain owner PII, private documents/evidence/internal notes, unpublished inventory or exact coordinates for approximate/hidden listings.
