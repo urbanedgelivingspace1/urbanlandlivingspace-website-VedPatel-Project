@@ -16,8 +16,17 @@ const optionalUuid = z
   .union([z.uuid(), z.literal("")])
   .optional()
   .transform((value) => value || undefined);
-const optionalUrl = z
-  .union([z.url().max(1_000), z.literal("")])
+const optionalHttpsUrl = z
+  .union([
+    z
+      .url()
+      .max(1_000)
+      .refine((value) => {
+        const url = new URL(value);
+        return url.protocol === "https:" && !url.username && !url.password;
+      }, "Use a secure HTTPS link without embedded credentials."),
+    z.literal(""),
+  ])
   .optional()
   .transform((v) => v || undefined);
 
@@ -79,9 +88,9 @@ export const ownerSubmissionInputSchema = z
       .record(z.string(), z.string().max(1_000))
       .refine((value) => Object.values(value).every(isSafePlainText), "Use plain text only."),
     mediaClaims: z.object({
-      videoUrl: optionalUrl,
-      droneUrl: optionalUrl,
-      virtualTourUrl: optionalUrl,
+      videoUrl: optionalHttpsUrl,
+      droneUrl: optionalHttpsUrl,
+      virtualTourUrl: optionalHttpsUrl,
     }),
     contactConsent: z.literal(true),
     informationDeclaration: z.literal(true),

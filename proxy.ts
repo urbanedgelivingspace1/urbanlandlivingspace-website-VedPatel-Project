@@ -16,7 +16,14 @@ export async function proxy(request: NextRequest) {
         setAll: (cookies) => {
           cookies.forEach(({ name, value }) => request.cookies.set(name, value));
           response = NextResponse.next({ request });
-          cookies.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+          cookies.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, {
+              ...options,
+              httpOnly: true,
+              sameSite: "lax",
+              secure: process.env.APP_ENV === "production",
+            }),
+          );
         },
       },
     },

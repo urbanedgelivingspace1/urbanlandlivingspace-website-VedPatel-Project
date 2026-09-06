@@ -144,6 +144,9 @@ describe("M13 public demand domain", () => {
   it("requires exact trusted origins and bounded request bodies", () => {
     expect(isTrustedOrigin("https://land.example", "https://land.example/path")).toBe(true);
     expect(isTrustedOrigin("https://evil.example", "https://land.example")).toBe(false);
+    expect(isTrustedOrigin("https://land.example", "https://land.example", "cross-site")).toBe(
+      false,
+    );
     const small = new FormData();
     small.set("message", "hello");
     expect(requestPayloadIsBounded(small)).toBe(true);

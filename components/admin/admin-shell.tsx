@@ -16,7 +16,8 @@ const groups = [
     label: "Operations",
     items: ["Leads", "Requirements", "Follow-ups", "Site visits", "Owner submissions"],
   },
-  { label: "Publishing", items: ["Guides", "SEO pages", "Settings"] },
+  { label: "Publishing", items: ["Guides", "SEO pages", "SEO settings"] },
+  { label: "System", items: ["Security health"] },
 ] as const;
 
 export function AdminShell({ admin, signOutAction, children }: AdminShellProps) {
@@ -85,7 +86,8 @@ function AdminNavigation() {
                 item === "Owner submissions" ||
                 item === "Guides" ||
                 item === "SEO pages" ||
-                item === "Settings" ? (
+                item === "SEO settings" ||
+                item === "Security health" ? (
                   <Link
                     href={
                       item === "Dashboard"
@@ -108,9 +110,11 @@ function AdminNavigation() {
                                         ? "/admin/guides"
                                         : item === "SEO pages"
                                           ? "/admin/seo"
-                                          : item === "Settings"
+                                          : item === "SEO settings"
                                             ? "/admin/settings/seo"
-                                            : "/admin/properties"
+                                            : item === "Security health"
+                                              ? "/admin/settings/security"
+                                              : "/admin/properties"
                     }
                     className="block rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold"
                   >

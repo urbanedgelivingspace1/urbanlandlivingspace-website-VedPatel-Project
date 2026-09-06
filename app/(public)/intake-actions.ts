@@ -50,7 +50,9 @@ async function requestContext(formData: FormData) {
   const requestHeaders = await headers();
   const environment = getServerEnvironment();
   const origin = requestHeaders.get("origin");
-  if (!isTrustedOrigin(origin, environment.NEXT_PUBLIC_SITE_URL))
+  if (
+    !isTrustedOrigin(origin, environment.NEXT_PUBLIC_SITE_URL, requestHeaders.get("sec-fetch-site"))
+  )
     throw new PublicIntakeError("UNTRUSTED_ORIGIN");
   const ipAddress =
     requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() ||

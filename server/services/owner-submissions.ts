@@ -129,16 +129,9 @@ async function uploadPrepared(
 ) {
   const bucket = getStorageConfig().buckets.ownerSubmissionsPrivate;
   const storage = getStorageConfig();
-  const [mediaUsage, documentUsage] = await Promise.all([
-    client.from("media_assets").select("file_size_bytes"),
-    client.from("private_documents").select("file_size_bytes"),
-  ]);
-  if (mediaUsage.error || documentUsage.error)
-    throw new OwnerSubmissionError("SERVICE_UNAVAILABLE");
-  const usedBytes = [...(mediaUsage.data ?? []), ...(documentUsage.data ?? [])].reduce(
-    (total, row) => total + (row.file_size_bytes ?? 0),
-    0,
-  );
+  const usage = await client.rpc("get_storage_usage_bytes");
+  if (usage.error) throw new OwnerSubmissionError("SERVICE_UNAVAILABLE");
+  const usedBytes = usage.data ?? 0;
   const incomingBytes = prepared.reduce((total, item) => total + item.record.fileSizeBytes, 0);
   if (((usedBytes + incomingBytes) / storage.budgetBytes) * 100 >= storage.hardStopPercent)
     throw new OwnerSubmissionError("SERVICE_UNAVAILABLE");

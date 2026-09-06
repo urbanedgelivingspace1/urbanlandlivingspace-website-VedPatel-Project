@@ -57,16 +57,9 @@ const MAX_STAGED_IMAGES_PER_PROPERTY = 20;
 const MAX_ACTIVE_BROCHURES_PER_PROPERTY = 1;
 
 async function storageHealthWithClient(client: Db) {
-  const [media, documents] = await Promise.all([
-    client.from("media_assets").select("file_size_bytes").not("storage_bucket", "is", null),
-    client.from("private_documents").select("file_size_bytes"),
-  ]);
-  if (media.error) throw media.error;
-  if (documents.error) throw documents.error;
-  const usedBytes = [...media.data, ...documents.data].reduce(
-    (total, row) => total + (row.file_size_bytes ?? 0),
-    0,
-  );
+  const usage = await client.rpc("get_storage_usage_bytes");
+  if (usage.error) throw usage.error;
+  const usedBytes = usage.data ?? 0;
   const storage = getStorageConfig();
   const usagePercent = Math.min(100, (usedBytes / storage.budgetBytes) * 100);
   return {

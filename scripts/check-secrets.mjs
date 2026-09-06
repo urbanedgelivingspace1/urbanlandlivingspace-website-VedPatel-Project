@@ -36,4 +36,16 @@ if (violations.length > 0) {
   process.exit(1);
 }
 
-process.stdout.write(`Secret scan passed for ${files.length} tracked files.\n`);
+const history = execFileSync("git", ["log", "--all", "--format=", "-p", "--", "."], {
+  cwd: root,
+  encoding: "utf8",
+  maxBuffer: 64 * 1024 * 1024,
+});
+if (patterns.some((pattern) => pattern.test(history))) {
+  process.stderr.write("Potential secret pattern detected in Git history.\n");
+  process.exit(1);
+}
+
+process.stdout.write(
+  `Secret scan passed for ${files.length} current files and the reachable Git history.\n`,
+);

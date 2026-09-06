@@ -17,7 +17,12 @@ export function privacyHash(value: string, secret: string): string {
   return createHmac("sha256", secret).update(value).digest("hex");
 }
 
-export function isTrustedOrigin(origin: string | null, configuredSiteUrl: string): boolean {
+export function isTrustedOrigin(
+  origin: string | null,
+  configuredSiteUrl: string,
+  fetchSite?: string | null,
+): boolean {
+  if (fetchSite === "cross-site") return false;
   if (!origin) return false;
   try {
     return new URL(origin).origin === new URL(configuredSiteUrl).origin;

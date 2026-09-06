@@ -111,8 +111,8 @@ insert into public.app_settings (
 
 select is(
   (select count(*)::integer from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r' and c.relrowsecurity),
-  64,
-  'RLS is enabled on all 64 M16 application tables'
+  (select count(*)::integer from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r'),
+  'RLS is enabled on every current application table'
 );
 select ok(not (select rolcanlogin from pg_roles where rolname = 'urbanedge_public_projection'), 'projection owner cannot log in');
 select ok(not (select rolbypassrls from pg_roles where rolname = 'urbanedge_public_projection'), 'projection owner cannot bypass RLS');
@@ -150,7 +150,8 @@ select is((select count(*)::integer from public.property_locations), 0, 'non-adm
 select ok(not has_table_privilege(current_user, 'public.properties', 'insert'), 'non-admin cannot write admin tables');
 select throws_ok(
   $$select public.write_audit_log('CREATE'::public.audit_action, 'attack')$$,
-  '42501', 'Active admin or service role required',
+  '42501',
+  'permission denied for function write_audit_log',
   'non-admin cannot invoke trusted audit writer'
 );
 reset role;
@@ -173,11 +174,13 @@ select is((select count(*)::integer from public.private_documents where id = '45
 select is((select count(*)::integer from public.property_locations where property_id = '41000000-0000-4000-8000-000000000001'), 1, 'active admin can read M4 private location row');
 select ok(not has_table_privilege(current_user, 'public.properties', 'update'), 'admin browser cannot bypass property transition services');
 select ok(not has_table_privilege(current_user, 'public.audit_logs', 'update'), 'admin browser cannot update audit history directly');
-select ok(
-  public.write_audit_log('CREATE', 'synthetic_m4_test', null, null, null, null, 'Synthetic RLS test') is not null,
-  'active admin may write audit through trusted function'
+select throws_ok(
+  $$select public.write_audit_log('CREATE'::public.audit_action, 'synthetic_m4_test')$$,
+  '42501',
+  'permission denied for function write_audit_log',
+  'active-admin browsers cannot forge audit entries through the trusted function'
 );
-select is((select count(*)::integer from public.audit_logs where entity_type = 'synthetic_m4_test'), 1, 'trusted audit row is readable by active admin');
+select is((select count(*)::integer from public.audit_logs where entity_type = 'synthetic_m4_test'), 0, 'denied audit writer call creates no row');
 reset role;
 
 select set_config('request.jwt.claim.sub', '', true);
@@ -189,8 +192,8 @@ reset role;
 
 select is(
   (select count(distinct tablename)::integer from pg_policies where schemaname = 'public' and policyname = 'active_admin_select'),
-  64,
-  'every M16 application table has the active-admin read policy'
+  (select count(*)::integer from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r'),
+  'every current application table has the active-admin read policy'
 );
 
 select * from finish();

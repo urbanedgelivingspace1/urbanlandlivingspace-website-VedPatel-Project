@@ -80,6 +80,27 @@ describe("M15 owner submission domain", () => {
     ).toThrow();
   });
 
+  it("accepts only HTTPS media claims without embedded credentials", () => {
+    expect(
+      ownerSubmissionInputSchema.parse({
+        ...valid,
+        mediaClaims: { videoUrl: "https://video.example/watch/123" },
+      }).mediaClaims.videoUrl,
+    ).toBe("https://video.example/watch/123");
+    expect(() =>
+      ownerSubmissionInputSchema.parse({
+        ...valid,
+        mediaClaims: { videoUrl: "javascript:alert(1)" },
+      }),
+    ).toThrow();
+    expect(() =>
+      ownerSubmissionInputSchema.parse({
+        ...valid,
+        mediaClaims: { videoUrl: "https://user:secret@video.example/watch/123" },
+      }),
+    ).toThrow();
+  });
+
   it("allows conversion only from approved and only through the dedicated action", () => {
     expect(ownerSubmissionMachine.APPROVED).toContain("CONVERTED");
     expect(ownerSubmissionMachine.NEW).not.toContain("CONVERTED" as never);

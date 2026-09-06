@@ -6570,6 +6570,7 @@ export type Database = {
         Args: { requested_actor_id: string; requested_property_id: string };
         Returns: Json;
       };
+      get_storage_usage_bytes: { Args: never; Returns: number };
       initialize_property_verifications: {
         Args: { requested_actor_id: string; requested_property_id: string };
         Returns: number;

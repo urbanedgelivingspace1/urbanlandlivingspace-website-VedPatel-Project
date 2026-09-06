@@ -524,6 +524,11 @@ Public verification wording remains a launch blocker until professionally approv
 
 # 18. Security Audit
 
+M17 local engineering evidence is recorded in `docs/runbooks/m17-security-hardening.md`: the
+isolated release candidate passes the full database/actor matrix, hostile paths, dependency/static
+checks and production build. The items below intentionally remain unchecked until the deployed
+release, production provider configuration and release record are verified during M19/pre-launch.
+
 - [ ] Final security review has been run against the release build.
 - [ ] Dependency/security audit has no unresolved launch-blocking vulnerability.
 - [ ] Service-role key is absent from client bundles.

@@ -18,7 +18,14 @@ export async function createAuthenticatedServerClient() {
         getAll: () => cookieStore.getAll(),
         setAll: (values) => {
           try {
-            values.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
+            values.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, {
+                ...options,
+                httpOnly: true,
+                sameSite: "lax",
+                secure: environment.APP_ENV === "production",
+              }),
+            );
           } catch {
             // Server Components cannot set cookies. Middleware/action boundaries refresh them.
           }

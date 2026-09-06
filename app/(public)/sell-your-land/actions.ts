@@ -128,7 +128,13 @@ export async function processOwnerLandFormData(
       throw new OwnerSubmissionError("INVALID_REQUEST");
     const environment = getServerEnvironment();
     const origin = requestHeaders.get("origin");
-    if (!isTrustedOrigin(origin, environment.NEXT_PUBLIC_SITE_URL))
+    if (
+      !isTrustedOrigin(
+        origin,
+        environment.NEXT_PUBLIC_SITE_URL,
+        requestHeaders.get("sec-fetch-site"),
+      )
+    )
       throw new OwnerSubmissionError("UNTRUSTED_ORIGIN");
     const input = ownerSubmissionInputSchema.parse({
       action: "OWNER_LAND_SUBMISSION",

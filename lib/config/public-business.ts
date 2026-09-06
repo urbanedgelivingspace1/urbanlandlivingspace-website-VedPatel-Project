@@ -20,15 +20,32 @@ function asString(value: Json | undefined): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
+function asPublicEmail(value: Json | undefined): string | null {
+  const candidate = asString(value)?.toLowerCase();
+  return candidate && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(candidate) ? candidate : null;
+}
+
+export function normalizeExternalHttpsUrl(value: Json | undefined): string | null {
+  const candidate = asString(value);
+  if (!candidate) return null;
+  try {
+    const url = new URL(candidate);
+    if (url.protocol !== "https:" || url.username || url.password) return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
 export function resolvePublicBusinessConfig(
   settings: Readonly<Record<string, Json>>,
 ): PublicBusinessConfig {
   return {
     phone: asString(settings.public_phone),
     whatsappNumber: asString(settings.whatsapp_number),
-    email: asString(settings.public_email),
+    email: asPublicEmail(settings.public_email),
     officeAddress: asString(settings.office_address),
-    livingSpaceUrl: asString(settings.living_space_url),
+    livingSpaceUrl: normalizeExternalHttpsUrl(settings.living_space_url),
   };
 }
 
