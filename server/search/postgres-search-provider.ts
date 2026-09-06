@@ -127,6 +127,7 @@ export class PostgresSearchProvider implements SearchProvider {
       ...emptySearchQuery(),
       category: constraints.category ?? null,
       transaction: constraints.transaction ?? null,
+      district: constraints.district ?? null,
       pageSize,
     });
   }

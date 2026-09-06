@@ -12,6 +12,14 @@ values
   ('00000000-0000-4000-8000-000000000004', '00000000-0000-4000-8000-000000000002', 'GNR', 'Gandhinagar', true)
 on conflict (state_id, name) do update set code = excluded.code, is_service_area = true, is_active = true;
 
+update public.seo_pages
+set district_id = case
+  when slug like 'locations/ahmedabad%' then '00000000-0000-4000-8000-000000000003'::uuid
+  when slug like 'locations/gandhinagar%' then '00000000-0000-4000-8000-000000000004'::uuid
+  else district_id
+end
+where slug like 'locations/ahmedabad%' or slug like 'locations/gandhinagar%';
+
 insert into public.area_units (id, code, display_name, symbol, is_public_v1, is_metric, is_local)
 values
   ('10000000-0000-4000-8000-000000000001', 'sq_m', 'Square metre', 'm²', true, true, false),

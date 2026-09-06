@@ -43,7 +43,11 @@ export interface SearchProvider {
   search(query: SearchQuery): Promise<SearchResult>;
   facets(): Promise<SearchFacets>;
   searchFixed(
-    constraints: Readonly<{ category?: LandCategory; transaction?: SearchQuery["transaction"] }>,
+    constraints: Readonly<{
+      category?: LandCategory;
+      transaction?: SearchQuery["transaction"];
+      district?: string;
+    }>,
     limit?: number,
   ): Promise<SearchResult>;
 }

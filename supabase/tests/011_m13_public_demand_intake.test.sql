@@ -14,7 +14,7 @@ select has_table('public','public_rate_limit_events','privacy-preserving rate ev
 select has_table('public','notification_deliveries','notification outcome records exist');
 select has_function('public','submit_public_crm_intake',array['character varying','character','jsonb'],'transactional public intake function exists');
 select has_function('public','consume_public_intake_rate_limit',array['character varying','character','integer','integer'],'rate limiter function exists');
-select is((select count(*)::integer from information_schema.views where table_schema='public' and table_name like 'public_%'),14,'M13 adds no CRM public projection');
+select is((select count(*)::integer from information_schema.views where table_schema='public' and table_name like 'public_%'),15,'M13 adds no CRM projection and the later M16 redirect projection is present');
 
 create temporary table m13_inquiry as select * from public.submit_public_crm_intake(
   'PROPERTY_INQUIRY',repeat('a',64)::char(64),jsonb_build_object(

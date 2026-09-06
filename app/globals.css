@@ -1980,6 +1980,278 @@ a {
   color: var(--brand-gold-soft);
 }
 
+.location-hero,
+.guides-hero,
+.guide-article-header {
+  background:
+    radial-gradient(circle at 84% 20%, rgba(218, 186, 82, 0.16), transparent 24rem),
+    linear-gradient(135deg, #001f3f, #01043d);
+}
+.location-copy-grid,
+.information-layout,
+.guide-article-layout {
+  display: grid;
+  gap: 2rem;
+  align-items: start;
+}
+.editorial-card,
+.guide-card,
+.location-next-steps,
+.guide-action-card {
+  padding: clamp(1.4rem, 3vw, 2.25rem);
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-soft);
+}
+.safe-markdown {
+  color: #3f4754;
+  font-size: 0.98rem;
+  line-height: 1.85;
+}
+.safe-markdown > * + * {
+  margin-top: 1.3rem;
+}
+.safe-markdown h2,
+.safe-markdown h3 {
+  color: var(--brand-navy-deep);
+  font-family: var(--font-playfair), Georgia, serif;
+  line-height: 1.25;
+}
+.safe-markdown h2 {
+  margin-top: 2.1rem;
+  font-size: clamp(1.55rem, 3vw, 2rem);
+}
+.safe-markdown h3 {
+  font-size: 1.25rem;
+}
+.safe-markdown ul {
+  padding-left: 1.25rem;
+  list-style: disc;
+}
+.safe-markdown a {
+  color: var(--brand-navy);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.location-next-steps,
+.guide-action-card {
+  display: grid;
+  gap: 1rem;
+}
+.location-next-steps h2,
+.guide-action-card h2 {
+  color: var(--brand-navy-deep);
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 1.6rem;
+}
+.location-next-steps > a:not(.button) {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--brand-navy);
+  font-weight: 700;
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+}
+.location-category-links,
+.guide-grid {
+  display: grid;
+  gap: 1rem;
+}
+.location-category-links > a {
+  display: grid;
+  gap: 0.35rem;
+  min-height: 7rem;
+  align-content: center;
+  padding: 1.4rem;
+  color: var(--brand-navy-deep);
+  text-decoration: none;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  box-shadow: var(--shadow-soft);
+}
+.location-category-links strong {
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 1.3rem;
+}
+.location-category-links span {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.guide-category-nav {
+  display: flex;
+  gap: 0.6rem;
+  padding-bottom: 0.5rem;
+  overflow-x: auto;
+}
+.guide-category-nav a {
+  flex: none;
+  min-height: 2.75rem;
+  padding: 0.72rem 1rem;
+  color: var(--brand-navy);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+.guide-card {
+  display: flex;
+  min-height: 18rem;
+  flex-direction: column;
+}
+.guide-card h2 {
+  margin-top: 1rem;
+  color: var(--brand-navy-deep);
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 1.55rem;
+  line-height: 1.25;
+}
+.guide-card h2 a {
+  text-decoration: none;
+}
+.guide-card > p:not(.eyebrow) {
+  margin-block: 1rem 1.5rem;
+  color: var(--muted);
+  line-height: 1.75;
+}
+.guide-card .text-link {
+  margin-top: auto;
+}
+.guide-article-header {
+  padding-block: 3rem 4.5rem;
+  color: white;
+}
+.guide-article-header h1 {
+  max-width: 55rem;
+  margin-top: 1rem;
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  line-height: 1.05;
+}
+.guide-excerpt {
+  max-width: 46rem;
+  margin-top: 1.4rem;
+  color: #dce4ed;
+  font-size: 1.08rem;
+  line-height: 1.8;
+}
+.guide-date {
+  margin-top: 1.2rem;
+  color: #b9c5d2;
+  font-size: 0.78rem;
+}
+.guide-hero-image {
+  position: relative;
+  height: clamp(18rem, 45vw, 34rem);
+  margin-top: -2rem;
+  overflow: hidden;
+  border: 0.4rem solid white;
+  border-radius: 1rem;
+  box-shadow: var(--shadow-card);
+}
+.guide-hero-image img {
+  object-fit: cover;
+}
+.guide-article-layout {
+  padding-block: clamp(3rem, 8vw, 6rem);
+}
+.guide-article-body {
+  min-width: 0;
+}
+.guide-article-body .property-disclaimer {
+  margin-top: 2rem;
+}
+.guide-action-card {
+  height: max-content;
+}
+.information-updated {
+  margin-top: 2rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.admin-form {
+  display: grid;
+  gap: 1rem;
+}
+.admin-form label,
+.admin-form fieldset {
+  display: grid;
+  gap: 0.45rem;
+  color: #334155;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.admin-form fieldset {
+  padding: 1rem;
+  border: 1px solid #d8dee7;
+  border-radius: 0.75rem;
+}
+.admin-form input,
+.admin-form textarea,
+.admin-form select {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.7rem 0.8rem;
+  color: #0f172a;
+  font: inherit;
+  font-weight: 500;
+  background: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.55rem;
+}
+.admin-form textarea {
+  line-height: 1.6;
+  resize: vertical;
+}
+.admin-table {
+  width: 100%;
+  min-width: 42rem;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+.admin-table th,
+.admin-table td {
+  padding: 0.9rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+.admin-table th {
+  color: #64748b;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.admin-detail-list {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+  background: #e2e8f0;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.8rem;
+}
+.admin-detail-list > div {
+  display: grid;
+  gap: 0.3rem;
+  padding: 1rem;
+  background: white;
+}
+.admin-detail-list dt {
+  color: #64748b;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.admin-detail-list dd {
+  overflow-wrap: anywhere;
+}
+
 @keyframes skeleton {
   to {
     background-position: -200% 0;
@@ -2005,6 +2277,10 @@ a {
     width: min(100% - 4rem, 75rem);
   }
   .property-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .location-category-links,
+  .guide-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .category-card-grid {
@@ -2042,6 +2318,16 @@ a {
 }
 
 @media (min-width: 1024px) {
+  .location-copy-grid,
+  .information-layout,
+  .guide-article-layout {
+    grid-template-columns: minmax(0, 1fr) 20rem;
+  }
+  .guide-action-card,
+  .location-next-steps {
+    position: sticky;
+    top: 6.5rem;
+  }
   .property-gallery-main {
     height: 32rem;
   }

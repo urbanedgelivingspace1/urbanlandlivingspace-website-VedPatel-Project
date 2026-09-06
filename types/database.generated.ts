@@ -684,6 +684,11 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           excerpt: string | null;
+          hero_alt_text: string | null;
+          hero_height_px: number | null;
+          hero_object_path: string | null;
+          hero_storage_bucket: string | null;
+          hero_width_px: number | null;
           id: string;
           published_at: string | null;
           published_by: string | null;
@@ -706,6 +711,11 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           excerpt?: string | null;
+          hero_alt_text?: string | null;
+          hero_height_px?: number | null;
+          hero_object_path?: string | null;
+          hero_storage_bucket?: string | null;
+          hero_width_px?: number | null;
           id?: string;
           published_at?: string | null;
           published_by?: string | null;
@@ -728,6 +738,11 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           excerpt?: string | null;
+          hero_alt_text?: string | null;
+          hero_height_px?: number | null;
+          hero_object_path?: string | null;
+          hero_storage_bucket?: string | null;
+          hero_width_px?: number | null;
           id?: string;
           published_at?: string | null;
           published_by?: string | null;
@@ -4507,6 +4522,63 @@ export type Database = {
           },
         ];
       };
+      seo_redirects: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          destination_path: string;
+          entity_id: string | null;
+          entity_type: string;
+          id: string;
+          is_active: boolean;
+          source_path: string;
+          status_code: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          destination_path: string;
+          entity_id?: string | null;
+          entity_type: string;
+          id?: string;
+          is_active?: boolean;
+          source_path: string;
+          status_code?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          destination_path?: string;
+          entity_id?: string | null;
+          entity_type?: string;
+          id?: string;
+          is_active?: boolean;
+          source_path?: string;
+          status_code?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "seo_redirects_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "admin_profiles";
+            referencedColumns: ["user_id"];
+          },
+          {
+            foreignKeyName: "seo_redirects_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "admin_profiles";
+            referencedColumns: ["user_id"];
+          },
+        ];
+      };
       site_visit_events: {
         Row: {
           actor_admin_id: string | null;
@@ -5592,12 +5664,18 @@ export type Database = {
           category_name: string | null;
           category_slug: string | null;
           excerpt: string | null;
+          hero_alt_text: string | null;
+          hero_height_px: number | null;
+          hero_object_path: string | null;
+          hero_storage_bucket: string | null;
+          hero_width_px: number | null;
           id: string | null;
           published_at: string | null;
           seo_description: string | null;
           seo_title: string | null;
           slug: string | null;
           title: string | null;
+          updated_at: string | null;
         };
         Relationships: [
           {
@@ -6283,6 +6361,7 @@ export type Database = {
           seo_description: string | null;
           seo_title: string | null;
           slug: string | null;
+          status: Database["public"]["Enums"]["seo_page_status"] | null;
           title: string | null;
           transaction_type: Database["public"]["Enums"]["transaction_type"] | null;
         };
@@ -6299,6 +6378,7 @@ export type Database = {
           seo_description?: string | null;
           seo_title?: string | null;
           slug?: string | null;
+          status?: Database["public"]["Enums"]["seo_page_status"] | null;
           title?: string | null;
           transaction_type?: Database["public"]["Enums"]["transaction_type"] | null;
         };
@@ -6315,6 +6395,7 @@ export type Database = {
           seo_description?: string | null;
           seo_title?: string | null;
           slug?: string | null;
+          status?: Database["public"]["Enums"]["seo_page_status"] | null;
           title?: string | null;
           transaction_type?: Database["public"]["Enums"]["transaction_type"] | null;
         };
@@ -6348,6 +6429,24 @@ export type Database = {
             referencedColumns: ["locality_id"];
           },
         ];
+      };
+      public_seo_redirects: {
+        Row: {
+          destination_path: string | null;
+          source_path: string | null;
+          status_code: number | null;
+        };
+        Insert: {
+          destination_path?: string | null;
+          source_path?: string | null;
+          status_code?: number | null;
+        };
+        Update: {
+          destination_path?: string | null;
+          source_path?: string | null;
+          status_code?: number | null;
+        };
+        Relationships: [];
       };
     };
     Functions: {
@@ -6494,6 +6593,14 @@ export type Database = {
         };
         Returns: string;
       };
+      migrate_published_guide_slug: {
+        Args: {
+          requested_actor_id: string;
+          requested_guide_id: string;
+          requested_new_slug: string;
+        };
+        Returns: undefined;
+      };
       next_lead_reference: { Args: never; Returns: string };
       next_owner_submission_reference: { Args: never; Returns: string };
       next_property_code: { Args: never; Returns: string };
@@ -6531,6 +6638,16 @@ export type Database = {
           requested_actor_id: string;
           requested_document_id: string;
           requested_purpose: string;
+        };
+        Returns: string;
+      };
+      record_seo_redirect: {
+        Args: {
+          requested_actor_id: string;
+          requested_destination_path: string;
+          requested_entity_id?: string;
+          requested_entity_type: string;
+          requested_source_path: string;
         };
         Returns: string;
       };

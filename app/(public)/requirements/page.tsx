@@ -17,6 +17,7 @@ export const metadata: Metadata = {
   title: "Tell UrbanEdge Your Land Requirement",
   description: "Share a structured Agricultural, NA or Industrial land requirement with UrbanEdge.",
   alternates: { canonical: "/requirements" },
+  robots: { index: false, follow: true },
 };
 
 export default async function RequirementsPage({

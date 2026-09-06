@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 
 import { Breadcrumbs } from "@/components/public/breadcrumbs";
+import { JsonLd } from "@/components/public/json-ld";
 import { SearchActiveFilters } from "@/components/search/search-active-filters";
 import { SearchFilters } from "@/components/search/search-filters";
 import { SearchPagination } from "@/components/search/search-pagination";
@@ -15,6 +16,7 @@ import {
   type SearchParamsInput,
 } from "@/features/search/domain/search-query";
 import { loadPublicSearch } from "@/server/queries/public-search";
+import { breadcrumbJsonLd } from "@/lib/seo/breadcrumbs";
 
 export const dynamic = "force-dynamic";
 type PageProps = Readonly<{ searchParams: Promise<SearchParamsInput> }>;
@@ -66,11 +68,13 @@ export default async function PropertiesPage({ searchParams }: PageProps) {
   )
     notFound();
   const facets = data.status === "ready" ? data.facets : emptyFacets;
+  const breadcrumbs = [{ label: "Home", href: "/" }, { label: "Properties" }];
   return (
     <main>
+      <JsonLd data={breadcrumbJsonLd(breadcrumbs)} />
       <section className="collection-hero search-hero">
         <div className="site-container py-10 sm:py-14">
-          <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Properties" }]} />
+          <Breadcrumbs items={breadcrumbs} />
           <p className="eyebrow mt-7 text-[var(--brand-gold)]">Published land search</p>
           <h1 className="public-page-title mt-3 max-w-4xl text-white">
             Find land by the facts that matter.

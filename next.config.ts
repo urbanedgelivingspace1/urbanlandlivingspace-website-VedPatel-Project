@@ -17,6 +17,13 @@ function remotePatternFor(rawUrl: string | undefined) {
   }
 }
 
+function guideRemotePatternFor(rawUrl: string | undefined) {
+  const pattern = remotePatternFor(rawUrl);
+  return pattern
+    ? { ...pattern, pathname: "/storage/v1/object/public/guide-media-public/**" }
+    : null;
+}
+
 function originFor(rawUrl: string | undefined) {
   if (!rawUrl) return null;
 
@@ -28,11 +35,15 @@ function originFor(rawUrl: string | undefined) {
 }
 
 const mediaPattern = remotePatternFor(process.env.NEXT_PUBLIC_SUPABASE_URL);
+const guideMediaPattern = guideRemotePatternFor(process.env.NEXT_PUBLIC_SUPABASE_URL);
 const connectOrigins = [
   originFor(process.env.NEXT_PUBLIC_SUPABASE_URL),
   originFor(process.env.NEXT_PUBLIC_MAP_STYLE_URL),
 ].filter((value): value is string => Boolean(value));
 const isLocalBuild = ["local", "test"].includes(process.env.APP_ENV ?? "");
+const isPreviewDeployment = Boolean(
+  process.env.VERCEL_ENV && process.env.VERCEL_ENV !== "production",
+);
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
@@ -40,13 +51,25 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   images: {
     formats: ["image/avif", "image/webp"],
-    remotePatterns: mediaPattern ? [mediaPattern] : [],
+    remotePatterns: [mediaPattern, guideMediaPattern].filter(
+      (pattern): pattern is NonNullable<typeof pattern> => Boolean(pattern),
+    ),
     dangerouslyAllowLocalIP: isLocalBuild,
   },
   experimental: {
     serverActions: {
       bodySizeLimit: "22mb",
     },
+  },
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.urbanedgelandspace.com" }],
+        destination: "https://urbanedgelandspace.com/:path*",
+        permanent: true,
+      },
+    ];
   },
   async headers() {
     return [
@@ -64,6 +87,7 @@ const nextConfig: NextConfig = {
               "worker-src 'self' blob:",
             ].join("; "),
           },
+          ...(isPreviewDeployment ? [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] : []),
         ],
       },
     ];

@@ -8,13 +8,17 @@ import {
   getPublicGeographyOptions,
 } from "@/server/queries/public-reference-data";
 import { createPublicServerClient } from "@/server/supabase/public";
+import { buildPublicMetadata } from "@/lib/seo/metadata";
+import { breadcrumbJsonLd } from "@/lib/seo/breadcrumbs";
+import { JsonLd } from "@/components/public/json-ld";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPublicMetadata({
   title: "Sell, Rent or Lease Your Land",
   description: "Privately submit Agricultural, NA or Industrial land to UrbanEdge for review.",
-  alternates: { canonical: "/sell-your-land" },
-};
+  path: "/sell-your-land",
+  robots: { index: true, follow: true },
+});
 
 export default async function SellYourLandPage() {
   const client = createPublicServerClient();
@@ -34,11 +38,13 @@ export default async function SellYourLandPage() {
     value: unit.id,
     label: `${unit.display_name}${unit.symbol ? ` (${unit.symbol})` : ""}`,
   }));
+  const breadcrumbs = [{ label: "Home", href: "/" }, { label: "Sell your land" }];
   return (
     <main>
+      <JsonLd data={breadcrumbJsonLd(breadcrumbs)} />
       <section className="collection-hero">
         <div className="site-container py-12 sm:py-16">
-          <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Sell your land" }]} />
+          <Breadcrumbs items={breadcrumbs} />
           <p className="eyebrow mt-7 text-[var(--brand-gold)]">Private owner submission</p>
           <h1 className="public-page-title mt-3 max-w-4xl text-white">
             Tell us about land you want to sell, rent or lease.

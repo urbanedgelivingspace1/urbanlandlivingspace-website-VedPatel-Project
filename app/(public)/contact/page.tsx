@@ -6,24 +6,30 @@ import { Breadcrumbs } from "@/components/public/breadcrumbs";
 import { GeneralContactForm } from "@/components/public/intake-forms";
 import { loadPublicBusinessConfig } from "@/server/queries/public-page-data";
 import { buildTelephoneUrl, buildWhatsAppUrl } from "@/lib/config/public-business";
+import { buildPublicMetadata } from "@/lib/seo/metadata";
+import { breadcrumbJsonLd } from "@/lib/seo/breadcrumbs";
+import { JsonLd } from "@/components/public/json-ld";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPublicMetadata({
   title: "Contact UrbanEdge Land Space",
   description:
     "Contact UrbanEdge about land discovery and brokerage support in Ahmedabad and Gandhinagar.",
-  alternates: { canonical: "/contact" },
-};
+  path: "/contact",
+  robots: { index: true, follow: true },
+});
 
 export default async function ContactPage() {
   const config = await loadPublicBusinessConfig();
   const telephone = buildTelephoneUrl(config);
   const whatsapp = buildWhatsAppUrl(config);
+  const breadcrumbs = [{ label: "Home", href: "/" }, { label: "Contact" }];
   return (
     <main>
+      <JsonLd data={breadcrumbJsonLd(breadcrumbs)} />
       <section className="collection-hero">
         <div className="site-container py-12 sm:py-16">
-          <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Contact" }]} />
+          <Breadcrumbs items={breadcrumbs} />
           <p className="eyebrow mt-7 text-[var(--brand-gold)]">Contact UrbanEdge</p>
           <h1 className="public-page-title mt-3 max-w-4xl text-white">
             Start with a clear land conversation.

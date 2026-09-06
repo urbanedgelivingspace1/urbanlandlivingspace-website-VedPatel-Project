@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 
 import { SafeExternalMedia } from "@/components/media/safe-external-media";
 import { AvailabilityBadge } from "@/components/public/availability-badge";
@@ -31,6 +32,11 @@ import {
   transactionLabels,
 } from "@/lib/formatting/property-values";
 import { buildPublicMediaUrl } from "@/lib/media/public-media-url";
+import { buildPublicMetadata } from "@/lib/seo/metadata";
+import { propertyJsonLd } from "@/lib/seo/structured-data";
+import { safeSeoText } from "@/lib/seo/privacy-safe-seo";
+import { JsonLd } from "@/components/public/json-ld";
+import { getPublicRedirect } from "@/server/queries/public-content";
 
 type Props = Readonly<{ params: Promise<{ "property-slug": string }> }>;
 
@@ -47,39 +53,36 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!property) return { title: "Property not found", robots: { index: false, follow: false } };
   const canonical = canonicalFor(property.slug, property.seo.canonicalPath);
   const image = buildPublicMediaUrl(property.cover?.objectPath ?? null);
-  return {
-    title: property.seo.title || property.title,
-    description:
-      property.seo.description ||
-      property.summary ||
+  const description = safeSeoText(
+    property.seo.description,
+    property.summary ||
       `${formatPublicArea(property.area)} ${categoryLabels[property.category]} in ${property.location.label}.`,
-    alternates: { canonical },
-    openGraph: {
-      title: property.title,
-      description:
-        property.summary || `${categoryLabels[property.category]} — ${property.propertyCode}`,
-      url: canonical,
-      type: "website",
-      ...(image
-        ? {
-            images: [
-              {
-                url: image,
-                width: property.cover?.width ?? undefined,
-                height: property.cover?.height ?? undefined,
-                alt: property.cover?.altText || property.title,
-              },
-            ],
-          }
-        : {}),
-    },
-  };
+  );
+  return buildPublicMetadata({
+    title: safeSeoText(property.seo.title, property.title),
+    description,
+    path: canonical,
+    canonicalPath: canonical,
+    robots: { index: true, follow: true },
+    image: image
+      ? {
+          url: image,
+          width: property.cover?.width,
+          height: property.cover?.height,
+          alt: property.cover?.altText || property.title,
+        }
+      : null,
+  });
 }
 
 export default async function PropertyDetailPage({ params }: Props) {
   const slug = (await params)["property-slug"];
   const property = await loadPublicProperty(slug);
-  if (!property) notFound();
+  if (!property) {
+    const redirect = await getPublicRedirect(`/properties/${slug}`);
+    if (redirect) permanentRedirect(redirect.destinationPath);
+    notFound();
+  }
 
   const [config, relatedResult] = await Promise.all([
     loadPublicBusinessConfig(),
@@ -106,17 +109,24 @@ export default async function PropertyDetailPage({ params }: Props) {
   const brochures = property.media.filter(
     (item) => item.mediaType === "BROCHURE" && item.objectPath,
   );
+  const categoryPath =
+    property.category === "AGRICULTURAL"
+      ? "/agricultural-land"
+      : property.category === "NA"
+        ? "/na-land"
+        : "/industrial-land";
+  const breadcrumbItems = [
+    { label: "Home", href: "/" },
+    { label: categoryLabels[property.category], href: categoryPath },
+    { label: property.location.label || "Land" },
+    { label: property.title },
+  ];
 
   return (
     <main className="property-detail-page">
+      <JsonLd data={propertyJsonLd(property, breadcrumbItems)} />
       <div className="site-container py-6 sm:py-8">
-        <Breadcrumbs
-          items={[
-            { label: "Home", href: "/" },
-            { label: "Properties", href: "/properties" },
-            { label: property.title },
-          ]}
-        />
+        <Breadcrumbs items={breadcrumbItems} />
       </div>
 
       <div className="site-container">

@@ -24,6 +24,8 @@ export function SiteFooter({ config }: Readonly<{ config: PublicBusinessConfig }
           <Link href="/agricultural-land">Agricultural land</Link>
           <Link href="/na-land">NA land</Link>
           <Link href="/industrial-land">Industrial land</Link>
+          <Link href="/locations/ahmedabad">Ahmedabad</Link>
+          <Link href="/locations/gandhinagar">Gandhinagar</Link>
         </FooterGroup>
         <FooterGroup title="Transactions">
           <Link href="/buy">Buy</Link>

@@ -1,8 +1,8 @@
 # UrbanEdge Land Space V1 — Implementation Ledger
 
-**Ledger status:** M0–M15 COMPLETE; owner supply now enters a private, consented, abuse-resistant review workflow and converts only by explicit active-admin action into non-public Draft inventory.
+**Ledger status:** M0–M16 COMPLETE; curated Ahmedabad/Gandhinagar content, guide publishing, deterministic crawl controls and persistent canonical redirects are implemented without expanding arbitrary search URLs into SEO pages.
 
-**Last reconciled:** 6 September 2026 (M15 implementation checkpoint `bd0c9be`: ten-step owner intake, private documents, assignment/review history, non-destructive duplicate signals, explicit Draft-only conversion and the complete local regression suite)
+**Last reconciled:** 6 September 2026 (M16 implementation: curated location/category pages, guides, content administration, metadata/canonical/robots/sitemap/structured-data controls, ADR-0005 redirect history and the complete local regression suite)
 
 This ledger is the single implementation-facing map required by `12-IMPLEMENTATION-ROADMAP.md`. It does not replace the source documents. When this ledger conflicts with a source, the source hierarchy in the owner's build brief applies.
 
@@ -55,6 +55,8 @@ Accepted implementation decision:
 - ADR-0001 remains compatible with the master prompt: the prompt uses the simplified lifecycle labels `REQUESTED`, `CONTACTED`, `SCHEDULED`, `COMPLETED`, `CANCELLED`, `NO_SHOW`, does not define `FOLLOW_UP_REQUIRED`, and leaves detailed scheduling persistence to the later finalized architecture. Document `03` refines the conceptual `SCHEDULED` phase into `PROPOSED`, `CONFIRMED` and `RESCHEDULED` without changing the decision that follow-up belongs to CRM.
 - `docs/adr/0002-hosted-and-external-media-locators.md` resolves document `03`'s required hosted-object columns versus document `09` and the owner brief's required external video/drone/360 model. `media_assets` remains the one registry, with mutually exclusive constrained hosted and canonical external locators; no fake Storage objects or duplicate tables are introduced.
 - `docs/adr/0003-verification-provenance-and-professional-review.md` resolves the M8 persistence gaps with typed applicability, evidence provenance, exceptions, professional reviews, append-only history and lawyer-gated public copy. It expressly rejects a universal verified flag or score.
+- `docs/adr/0004-m12-crm-status-and-follow-up-reconciliation.md` preserves the owner-mandated twelve-state CRM pipeline and typed append-only follow-up history.
+- `docs/adr/0005-m16-seo-redirects-and-guide-hero-media.md` adds typed persistent redirect history, atomic published-guide slug migration and a constrained public guide hero-media relation. Redirect chains are flattened and guide imagery can reference only approved public media.
 
 ## 2. V1 boundary
 
@@ -191,7 +193,7 @@ Every `/admin/*` route except `/admin/login` requires server-side session verifi
 
 ## 4. Authoritative table inventory
 
-The 49 V1 application tables from `03-DATABASE-SCHEMA-ARCHITECTURE.md`, plus the additive workflow and operational tables introduced through M15, are:
+The 49 V1 application tables from `03-DATABASE-SCHEMA-ARCHITECTURE.md`, plus the additive workflow and operational tables introduced through M16, are:
 
 | Domain | Tables |
 |---|---|
@@ -205,7 +207,7 @@ The 49 V1 application tables from `03-DATABASE-SCHEMA-ARCHITECTURE.md`, plus the
 | Verification | `verification_check_definitions`, `property_verifications`, `verification_evidence`, `verification_public_copy_policies`, `professional_reviews`, `verification_exceptions`, `verification_history` |
 | Owner intake | `owner_submissions`, `owner_submission_consents`, `owner_submission_events`, `owner_submission_idempotency`, `owner_submission_notification_deliveries` |
 | CRM | `leads`, `lead_requirements`, `lead_properties`, `lead_activities`, `lead_follow_ups`, `site_visits`, `site_visit_events` |
-| Content/SEO | `guide_categories`, `guides`, `seo_pages` |
+| Content/SEO | `guide_categories`, `guides`, `seo_pages`, `seo_redirects` |
 | Administration | `admin_profiles`, `app_settings` |
 | Analytics/audit | `analytics_events`, `audit_logs`, `party_consents`, `public_intake_idempotency`, `public_rate_limit_events`, `notification_deliveries` |
 
@@ -605,7 +607,7 @@ Development, local migrations/tests and staging preparation may proceed only aft
 
 ## 15. Known architecture additions requiring ADR/migration
 
-1. **SEO redirect history (deferred to M16):** the approved schema has no persistent redirect model. Before editable published slugs are supported, create a controlled ADR and additive typed `seo_redirects` migration, or explicitly lock published slugs and use a narrowly approved static redirect process. Never store redirect history in JSON/settings/process memory.
+1. **SEO redirect history:** resolved by ADR-0005 and the M16 additive typed `seo_redirects` migration. Published guide slug changes use one atomic service-only function; redirects are permanent only for stable canonical migrations, chain-flattened and never stored in JSON/settings/process memory.
 2. **Evidence provenance lifecycle:** resolved by ADR-0003 and the M8 additive migration with typed provenance on evidence plus append-only verification history. Retain the currentness, supersession/revocation and actor-attribution regression contracts.
 3. **Professional review lifecycle:** resolved by ADR-0003 and the M8 additive migration with a dedicated typed, scoped review record. Retain the materials, outcome, attribution and completion-gate regression contracts.
 4. **Site-visit follow-up status:** resolved by ADR-0001 with no visit-enum addition; M14 preserves and regression-tests follow-up as separately linked CRM work.
@@ -635,7 +637,7 @@ No unresolved M0 blocker remains.
 
 | ID | Finding | Milestone |
 |---|---|---|
-| M0-D01 | Persistent SEO redirect history absent by design | M16 ADR/migration gate |
+| M0-D01 | Persistent SEO redirect history absent by design | RESOLVED in M16 by ADR-0005 |
 | M0-D02 | Evidence provenance lifecycle persistence | RESOLVED in M8 by ADR-0003 |
 | M0-D03 | Professional review lifecycle persistence | RESOLVED in M8 by ADR-0003 |
 
@@ -651,6 +653,7 @@ No unresolved M0 blocker remains.
 - The complete master prompt introduces no unresolved implementation-blocking contradiction with documents `01`–`14` under the established source hierarchy.
 - ADR-0001 remains consistent with the master prompt and the owner’s explicit site-visit/follow-up decision.
 - ADR-0003 preserves scoped verification and private evidence while requiring an explicit lawyer-approved copy policy before any public claim can project.
+- ADR-0005 preserves canonical history without route guessing, constrains guide hero media to approved public imagery and keeps all content mutations behind active-admin plus service-role authorization.
 
 ## 17. Milestone status
 
@@ -686,6 +689,7 @@ No unresolved M0 blocker remains.
 | M13 | COMPLETE | Published-property inquiry, structured buyer requirement, short contact, REQUESTED-only visit intake and call/WhatsApp intent events enter the M12 CRM through one service-only transactional boundary; canonical property resolution, returning-party/new-opportunity behavior, consent, bounded replay/rate protection, configured Turnstile verification, post-commit notification/analytics isolation and safe public confirmations pass 433 pgTAP, 116 unit, 38 component, 36 integration and 37 E2E assertions/scenarios plus full QA/build |
 | M14 | COMPLETE | Protected visit queue, India-time calendar and detail workspace coordinate contact, proposal, confirmation, rescheduling, completion, cancellation and no-show outcomes through optimistic service-only transactions; append-only history, property conflict warnings, truthful CRM synchronization and separate terminal follow-up work pass 479 pgTAP, 122 unit, 42 component, 40 integration and 40 E2E assertions/scenarios plus full QA/build |
 | M15 | COMPLETE | Ten-step Sell Your Land intake covers sell/rent/lease and Agricultural/NA/Industrial claims, private scanned uploads, five versioned consents and abuse controls; protected queue/detail/assignment/history, non-destructive duplicate review and optimistic service-only transitions culminate only in explicit idempotent Draft conversion with NOT_STARTED verification, provenance and audit; 523 pgTAP, 129 unit, 49 component, 45 integration and 43 E2E assertions/scenarios plus full QA/build pass |
+| M16 | COMPLETE | Two curated district pages and six approved district/category combinations, quality-gated category/transaction content, database-backed guide publishing, protected content administration, persistent canonical redirects, centralized metadata, deterministic robots/sitemap, accurate JSON-LD, visible/structured breadcrumbs and privacy-safe internal linking pass 567 pgTAP, 139 unit, 55 component, 49 integration and 51 E2E assertions/scenarios plus full QA/build |
 
 M9 adds no table, enum or ADR. The ninth migration adds the authoritative structured readiness function, service-only publish/unpublish and safe archive/restore semantics, an archived/off-market integrity constraint and the `public_property_indexability` view. Publication and availability remain independent; all seeded public verification copy remains unapproved.
 
@@ -705,4 +709,10 @@ The protected visit queue is bounded and filters by text, state, India-time buck
 
 M15 adds four private owner-intake operational tables for versioned consent, append-only events, bounded idempotency and notification delivery, while extending the approved owner-submission and private-document records. The public multipart handler enforces origin, honeypot, request/file bounds, MIME/signature validation, malware scanning, HMAC-only rate buckets, 24-hour replay semantics and server-side Turnstile when configured. It records five explicit consent purposes and treats every owner/category/location/document statement as an unverified private claim.
 
-Active admins use explicit bounded DTOs and filters for the queue, assignment, review, notes and document access; browser roles cannot call workflow RPCs or enumerate private objects. Duplicate signals compare normalized contact, survey/block, district/category and similar area without merging or deleting records. `convert_owner_submission_to_property()` row-locks and version-checks an approved submission, creates exactly one `DRAFT` property with conversion provenance, leaves all verification rows `NOT_STARTED`, links documents privately and records append-only history plus a privacy-minimized audit. It never publishes, promotes media or creates a public projection row. M16 remains unstarted.
+Active admins use explicit bounded DTOs and filters for the queue, assignment, review, notes and document access; browser roles cannot call workflow RPCs or enumerate private objects. Duplicate signals compare normalized contact, survey/block, district/category and similar area without merging or deleting records. `convert_owner_submission_to_property()` row-locks and version-checks an approved submission, creates exactly one `DRAFT` property with conversion provenance, leaves all verification rows `NOT_STARTED`, links documents privately and records append-only history plus a privacy-minimized audit. It never publishes, promotes media or creates a public projection row.
+
+M16 adds one RLS-protected `seo_redirects` table, extends guides with constrained approved public hero media and widens the existing public content projections only to expose eligible `PUBLISHED`/`NOINDEX` states. Two district pages and six district/category combinations are seeded as curated, public `NOINDEX` baselines: they render useful server content but require explicit editorial promotion to become indexable. Category and transaction routes use the same stable usefulness gate; inventory count never flips eligibility and arbitrary M11 filter combinations remain `noindex, follow`.
+
+Published guides use database content, safe Markdown links, topic/category presentation, public dates, controlled imagery and public-safe preview. Active-admin guide, location, SEO-page and SEO-settings workspaces use explicit DTOs and server-owned mutations for draft/edit/preview/publish/unpublish/indexability. A published guide slug migration updates the guide and records its old canonical route in one service-only transaction; redirect lookup is applied only after a canonical property, guide or location miss.
+
+Metadata, canonical construction, robots decisions, sitemap eligibility, breadcrumbs and JSON-LD are centralized server utilities. The bounded sitemap contains only approved static routes, canonical category/transaction routes, indexable curated SEO pages, published indexable properties and published indexable guides; it excludes queries, previews, admin/auth, drafts, unpublished/archived inventory and `NOINDEX` content. `robots.txt` disallows admin, preview and private route families and advertises the canonical sitemap without being treated as authorization. Structured data is limited to accurate `Organization`, `WebSite`, `CollectionPage`, `Article`, `RealEstateListing` and `BreadcrumbList` facts; private coordinates, owner/CRM/evidence data, fabricated ratings/reviews and unsupported legal claims remain absent. Closed published properties retain canonical detail pages and truthful availability while leaving active default discovery.

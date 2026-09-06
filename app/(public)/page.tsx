@@ -3,25 +3,22 @@ import Link from "next/link";
 
 import { ArrowIcon, CheckIcon, CompassIcon } from "@/components/public/icons";
 import { PropertyCollection } from "@/components/public/property-collection";
+import { JsonLd } from "@/components/public/json-ld";
 import { SectionHeading } from "@/components/public/section-heading";
 import { SearchEntryForm } from "@/components/search/search-entry-form";
-import { loadPublicInventory } from "@/server/queries/public-page-data";
+import { loadPublicBusinessConfig, loadPublicInventory } from "@/server/queries/public-page-data";
+import { organizationJsonLd, websiteJsonLd } from "@/lib/seo/structured-data";
+import { buildPublicMetadata } from "@/lib/seo/metadata";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPublicMetadata({
   title: "Curated Land in Ahmedabad & Gandhinagar",
   description:
     "Discover curated Agricultural, NA and Industrial land with UrbanEdge guidance across Ahmedabad and Gandhinagar.",
-  alternates: { canonical: "/" },
-  openGraph: {
-    title: "UrbanEdge Land Space",
-    description:
-      "Curated land discovery and local brokerage guidance across Ahmedabad and Gandhinagar.",
-    url: "/",
-    type: "website",
-  },
-};
+  path: "/",
+  robots: { index: true, follow: true },
+});
 
 const categories = [
   {
@@ -45,9 +42,14 @@ const categories = [
 ] as const;
 
 export default async function HomePage() {
-  const featured = await loadPublicInventory({ featuredOnly: true, limit: 6 });
+  const [featured, config] = await Promise.all([
+    loadPublicInventory({ featuredOnly: true, limit: 6 }),
+    loadPublicBusinessConfig(),
+  ]);
   return (
     <main>
+      <JsonLd data={organizationJsonLd(config)} />
+      <JsonLd data={websiteJsonLd()} />
       <section className="home-hero">
         <div className="survey-lines" aria-hidden="true" />
         <div className="site-container relative z-10 grid gap-10 py-16 sm:py-20 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:py-28">
@@ -225,9 +227,12 @@ export default async function HomePage() {
               title="Ahmedabad and Gandhinagar, understood locally."
               description="UrbanEdge begins with two connected land markets where local geography, access, planning and buyer intent can be discussed with useful context."
             />
-            <div className="mt-8 flex gap-3">
-              <Link href="/properties" className="button button-primary">
-                Explore both districts
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link href="/locations/ahmedabad" className="button button-primary">
+                Ahmedabad
+              </Link>
+              <Link href="/locations/gandhinagar" className="button button-outline">
+                Gandhinagar
               </Link>
             </div>
           </div>
@@ -262,10 +267,12 @@ export default async function HomePage() {
             <p className="eyebrow">Land guides</p>
             <h2>Useful context before the conversation.</h2>
             <p>
-              Our guide library will cover land categories, records, access, planning and the
-              practical questions to ask. Until reviewed guides are published, UrbanEdge will not
-              fill this space with thin or generic advice.
+              Read reviewed guidance on comparing public facts, preparing questions and planning
+              property-specific professional checks.
             </p>
+            <Link className="text-link mt-5" href="/guides">
+              Read land guides <ArrowIcon className="size-4" />
+            </Link>
           </div>
         </div>
       </section>

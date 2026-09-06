@@ -82,7 +82,10 @@ function AdminNavigation() {
                 item === "Requirements" ||
                 item === "Follow-ups" ||
                 item === "Site visits" ||
-                item === "Owner submissions" ? (
+                item === "Owner submissions" ||
+                item === "Guides" ||
+                item === "SEO pages" ||
+                item === "Settings" ? (
                   <Link
                     href={
                       item === "Dashboard"
@@ -101,7 +104,13 @@ function AdminNavigation() {
                                     ? "/admin/site-visits"
                                     : item === "Owner submissions"
                                       ? "/admin/submissions"
-                                      : "/admin/properties"
+                                      : item === "Guides"
+                                        ? "/admin/guides"
+                                        : item === "SEO pages"
+                                          ? "/admin/seo"
+                                          : item === "Settings"
+                                            ? "/admin/settings/seo"
+                                            : "/admin/properties"
                     }
                     className="block rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold"
                   >

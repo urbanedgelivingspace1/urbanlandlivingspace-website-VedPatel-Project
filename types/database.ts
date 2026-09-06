@@ -232,6 +232,59 @@ export type PublicSearchFacetRow = Readonly<{
 
 export type PublicPropertySearchRow = PublicPropertyListingRow & Readonly<{ total_count: number }>;
 
+export type PublicGuideCategoryRow = Readonly<{
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  sort_order: number;
+}>;
+
+export type PublicGuideRow = Readonly<{
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  body_markdown: string;
+  category_id: string | null;
+  category_name: string | null;
+  category_slug: string | null;
+  published_at: string;
+  seo_title: string | null;
+  seo_description: string | null;
+  canonical_url: string | null;
+  updated_at: string;
+  hero_storage_bucket: string | null;
+  hero_object_path: string | null;
+  hero_alt_text: string | null;
+  hero_width_px: number | null;
+  hero_height_px: number | null;
+}>;
+
+export type PublicSeoPageRow = Readonly<{
+  id: string;
+  page_type: string;
+  slug: string;
+  district_id: string | null;
+  locality_id: string | null;
+  land_category: LandCategory | null;
+  transaction_type: TransactionType | null;
+  title: string;
+  intro_text: string | null;
+  body_markdown: string | null;
+  seo_title: string | null;
+  seo_description: string | null;
+  canonical_url: string | null;
+  published_at: string;
+  status: "PUBLISHED" | "NOINDEX";
+}>;
+
+export type PublicSeoRedirectRow = Readonly<{
+  source_path: string;
+  destination_path: string;
+  status_code: number;
+}>;
+
 type View<Row> = {
   Row: Row;
   Insert: never;
@@ -268,6 +321,10 @@ export type Database = {
       public_area_units: View<PublicAreaUnitRow>;
       public_app_settings: View<PublicAppSettingRow>;
       public_property_search_filter_options: View<PublicSearchFacetRow>;
+      public_guide_categories: View<PublicGuideCategoryRow>;
+      public_guides: View<PublicGuideRow>;
+      public_seo_pages: View<PublicSeoPageRow>;
+      public_seo_redirects: View<PublicSeoRedirectRow>;
     };
     Functions: {
       search_public_properties: {
