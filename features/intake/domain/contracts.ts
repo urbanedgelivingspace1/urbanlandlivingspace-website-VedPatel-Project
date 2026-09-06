@@ -9,6 +9,7 @@ export const PUBLIC_INTAKE_ACTIONS = [
   "GENERAL_CONTACT",
 ] as const;
 export type PublicIntakeAction = (typeof PUBLIC_INTAKE_ACTIONS)[number];
+export type PublicRateAction = PublicIntakeAction | "OWNER_LAND_SUBMISSION";
 
 export const REQUIREMENT_SOURCE_CONTEXTS = [
   "DIRECT",

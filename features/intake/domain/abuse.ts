@@ -1,14 +1,15 @@
 import { createHmac } from "node:crypto";
 
-import type { PublicIntakeAction } from "./contracts";
+import type { PublicRateAction } from "./contracts";
 
 export const RATE_POLICIES: Readonly<
-  Record<PublicIntakeAction | "PUBLIC_INTENT", { attempts: number; windowSeconds: number }>
+  Record<PublicRateAction | "PUBLIC_INTENT", { attempts: number; windowSeconds: number }>
 > = {
   PROPERTY_INQUIRY: { attempts: 10, windowSeconds: 600 },
   BUYER_REQUIREMENT: { attempts: 5, windowSeconds: 900 },
   SITE_VISIT_REQUEST: { attempts: 5, windowSeconds: 900 },
   GENERAL_CONTACT: { attempts: 5, windowSeconds: 900 },
+  OWNER_LAND_SUBMISSION: { attempts: 3, windowSeconds: 1_800 },
   PUBLIC_INTENT: { attempts: 60, windowSeconds: 60 },
 };
 

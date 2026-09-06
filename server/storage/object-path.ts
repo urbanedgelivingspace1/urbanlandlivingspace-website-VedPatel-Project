@@ -18,3 +18,12 @@ export function propertyPublicMediaPath(propertyId: string, ext: string) {
 export function verificationDocumentPath(propertyId: string, documentId: string, ext: string) {
   return `properties/${id.parse(propertyId)}/verification/${id.parse(documentId)}.${extension.parse(ext)}`;
 }
+
+export function ownerSubmissionAttachmentPath(
+  submissionId: string,
+  documentId: string,
+  kind: "media" | "documents",
+  ext: string,
+) {
+  return `owner-submissions/${id.parse(submissionId)}/${kind}/${id.parse(documentId)}.${extension.parse(ext)}`;
+}

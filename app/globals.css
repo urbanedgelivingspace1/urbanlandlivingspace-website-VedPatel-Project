@@ -1726,6 +1726,90 @@ a {
   overflow: hidden !important;
 }
 
+.owner-wizard {
+  gap: 1.5rem;
+}
+
+.owner-wizard-step.hidden {
+  display: none;
+}
+
+.owner-progress {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.owner-progress > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: #475569;
+  font-size: 0.82rem;
+}
+
+.owner-progress strong {
+  color: var(--brand-navy);
+}
+
+.owner-progress-track {
+  height: 0.4rem;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #e2e8f0;
+}
+
+.owner-progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--brand-gold);
+  transition: width 180ms ease;
+}
+
+.choice-grid {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.public-intake-form .choice-card:not(.consent-field, .intake-honeypot) {
+  display: flex;
+  grid-template-columns: none;
+  cursor: pointer;
+  align-items: center;
+  gap: 0.7rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.8rem;
+  padding: 0.95rem 1rem;
+}
+
+.choice-card:has(input:checked) {
+  border-color: var(--brand-gold) !important;
+  background: #fffbeb;
+}
+
+.choice-card input {
+  accent-color: var(--brand-gold);
+}
+
+.form-help {
+  color: #475569;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.owner-wizard-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .choice-grid,
+  .public-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .conversion-confirmation {
   display: grid;
   gap: 1.25rem;

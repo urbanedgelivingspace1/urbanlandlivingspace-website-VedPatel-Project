@@ -3,16 +3,23 @@ import Link from "next/link";
 import { classifyFollowUp } from "@/features/crm/domain/follow-ups";
 import { listFollowUps, listLeads } from "@/server/services/crm";
 import { listSiteVisits } from "@/server/services/site-visits";
+import { listOwnerSubmissions } from "@/server/services/owner-submissions";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
 export default async function AdminDashboardPage() {
-  const [leads, followUps, visits] = await Promise.all([
+  const [leads, followUps, visits, ownerSubmissions] = await Promise.all([
     listLeads({}),
     listFollowUps(),
     listSiteVisits({}),
+    listOwnerSubmissions({ status: "NEW" }),
   ]);
   const cards = [
+    {
+      label: "New owner submissions",
+      value: ownerSubmissions.length,
+      href: "/admin/submissions?status=NEW",
+    },
     {
       label: "New leads",
       value: leads.filter((lead) => lead.status === "NEW").length,

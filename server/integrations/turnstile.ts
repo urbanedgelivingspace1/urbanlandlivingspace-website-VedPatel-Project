@@ -4,20 +4,21 @@ import {
   turnstileResponseIsValid,
   type TurnstileVerification,
 } from "@/features/intake/domain/abuse";
-import { PublicIntakeError, type PublicIntakeAction } from "@/features/intake/domain/contracts";
+import { PublicIntakeError, type PublicRateAction } from "@/features/intake/domain/contracts";
 import type { ServerEnvironment } from "@/config/environment-schema";
 
-const actionNames: Record<PublicIntakeAction, string> = {
+const actionNames: Record<PublicRateAction, string> = {
   PROPERTY_INQUIRY: "property_inquiry",
   BUYER_REQUIREMENT: "buyer_requirement",
   SITE_VISIT_REQUEST: "site_visit_request",
   GENERAL_CONTACT: "general_contact",
+  OWNER_LAND_SUBMISSION: "owner_land_submission",
 };
 
 export async function verifyTurnstile(
   environment: ServerEnvironment,
   input: Readonly<{
-    action: PublicIntakeAction;
+    action: PublicRateAction;
     token?: string;
     idempotencyKey: string;
   }>,
@@ -60,6 +61,6 @@ export async function verifyTurnstile(
   return "verified";
 }
 
-export function turnstileActionName(action: PublicIntakeAction): string {
+export function turnstileActionName(action: PublicRateAction): string {
   return actionNames[action];
 }

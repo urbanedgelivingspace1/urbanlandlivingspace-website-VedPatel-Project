@@ -81,7 +81,8 @@ function AdminNavigation() {
                 item === "Leads" ||
                 item === "Requirements" ||
                 item === "Follow-ups" ||
-                item === "Site visits" ? (
+                item === "Site visits" ||
+                item === "Owner submissions" ? (
                   <Link
                     href={
                       item === "Dashboard"
@@ -98,7 +99,9 @@ function AdminNavigation() {
                                   ? "/admin/follow-ups"
                                   : item === "Site visits"
                                     ? "/admin/site-visits"
-                                    : "/admin/properties"
+                                    : item === "Owner submissions"
+                                      ? "/admin/submissions"
+                                      : "/admin/properties"
                     }
                     className="block rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold"
                   >

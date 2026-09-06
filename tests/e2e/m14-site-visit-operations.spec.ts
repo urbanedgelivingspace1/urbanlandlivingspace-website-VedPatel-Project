@@ -258,7 +258,7 @@ test("no-show, cancellation, availability conflict, mobile layout and accessibil
   if (!conflictVisit.data) throw conflictVisit.error;
   await service().from("properties").update({ availability_status: "SOLD" }).eq("id", property.id);
   await page.goto(`/admin/site-visits/${conflictVisit.data.id}`);
-  await expect(page.getByRole("alert")).toContainText("Property is sold");
+  await expect(page.getByRole("alert").filter({ hasText: "Property is sold" })).toBeVisible();
   await page.getByLabel("Start (IST)").fill("2099-01-08T10:00");
   await page.getByLabel("End (IST)").fill("2099-01-08T12:00");
   await page.getByRole("button", { name: "Save proposal" }).click();

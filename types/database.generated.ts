@@ -1511,6 +1511,54 @@ export type Database = {
           },
         ];
       };
+      owner_submission_consents: {
+        Row: {
+          consent_source: string;
+          consented_at: string;
+          created_at: string;
+          id: string;
+          owner_submission_id: string;
+          party_id: string;
+          privacy_notice_version: string;
+          purpose: string;
+        };
+        Insert: {
+          consent_source: string;
+          consented_at?: string;
+          created_at?: string;
+          id?: string;
+          owner_submission_id: string;
+          party_id: string;
+          privacy_notice_version: string;
+          purpose: string;
+        };
+        Update: {
+          consent_source?: string;
+          consented_at?: string;
+          created_at?: string;
+          id?: string;
+          owner_submission_id?: string;
+          party_id?: string;
+          privacy_notice_version?: string;
+          purpose?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "owner_submission_consents_owner_submission_id_fkey";
+            columns: ["owner_submission_id"];
+            isOneToOne: false;
+            referencedRelation: "owner_submissions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "owner_submission_consents_party_id_fkey";
+            columns: ["party_id"];
+            isOneToOne: false;
+            referencedRelation: "parties";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       owner_submission_documents: {
         Row: {
           created_at: string;
@@ -1550,81 +1598,265 @@ export type Database = {
           },
         ];
       };
+      owner_submission_events: {
+        Row: {
+          actor_admin_id: string | null;
+          event_type: string;
+          from_status: Database["public"]["Enums"]["owner_submission_status"] | null;
+          id: number;
+          next_action_at: string | null;
+          note: string | null;
+          occurred_at: string;
+          owner_submission_id: string;
+          to_status: Database["public"]["Enums"]["owner_submission_status"] | null;
+        };
+        Insert: {
+          actor_admin_id?: string | null;
+          event_type: string;
+          from_status?: Database["public"]["Enums"]["owner_submission_status"] | null;
+          id?: never;
+          next_action_at?: string | null;
+          note?: string | null;
+          occurred_at?: string;
+          owner_submission_id: string;
+          to_status?: Database["public"]["Enums"]["owner_submission_status"] | null;
+        };
+        Update: {
+          actor_admin_id?: string | null;
+          event_type?: string;
+          from_status?: Database["public"]["Enums"]["owner_submission_status"] | null;
+          id?: never;
+          next_action_at?: string | null;
+          note?: string | null;
+          occurred_at?: string;
+          owner_submission_id?: string;
+          to_status?: Database["public"]["Enums"]["owner_submission_status"] | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "owner_submission_events_actor_admin_id_fkey";
+            columns: ["actor_admin_id"];
+            isOneToOne: false;
+            referencedRelation: "admin_profiles";
+            referencedColumns: ["user_id"];
+          },
+          {
+            foreignKeyName: "owner_submission_events_owner_submission_id_fkey";
+            columns: ["owner_submission_id"];
+            isOneToOne: false;
+            referencedRelation: "owner_submissions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      owner_submission_idempotency: {
+        Row: {
+          created_at: string;
+          expires_at: string;
+          id: string;
+          key_hash: string;
+          owner_submission_id: string;
+          payload_hash: string;
+        };
+        Insert: {
+          created_at?: string;
+          expires_at?: string;
+          id?: string;
+          key_hash: string;
+          owner_submission_id: string;
+          payload_hash: string;
+        };
+        Update: {
+          created_at?: string;
+          expires_at?: string;
+          id?: string;
+          key_hash?: string;
+          owner_submission_id?: string;
+          payload_hash?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "owner_submission_idempotency_owner_submission_id_fkey";
+            columns: ["owner_submission_id"];
+            isOneToOne: false;
+            referencedRelation: "owner_submissions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      owner_submission_notification_deliveries: {
+        Row: {
+          attempt_count: number;
+          created_at: string;
+          event_key: string;
+          id: string;
+          last_error_code: string | null;
+          owner_submission_id: string;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          attempt_count?: number;
+          created_at?: string;
+          event_key: string;
+          id?: string;
+          last_error_code?: string | null;
+          owner_submission_id: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          attempt_count?: number;
+          created_at?: string;
+          event_key?: string;
+          id?: string;
+          last_error_code?: string | null;
+          owner_submission_id?: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "owner_submission_notification_deliveri_owner_submission_id_fkey";
+            columns: ["owner_submission_id"];
+            isOneToOne: false;
+            referencedRelation: "owner_submissions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       owner_submissions: {
         Row: {
           approximate_area_unit_id: string | null;
           approximate_area_value: number | null;
           archived_at: string | null;
+          asking_price_amount: number | null;
+          asking_price_per_unit: number | null;
           asking_price_text: string | null;
+          assigned_to: string | null;
+          broad_address: string | null;
+          category_claims: Json;
           converted_property_id: string | null;
           created_at: string;
           created_by: string | null;
           district_id: string | null;
           first_contacted_at: string | null;
           id: string;
+          is_negotiable: boolean;
           land_category: Database["public"]["Enums"]["land_category"];
           locality_text: string | null;
+          location_visibility_preference: Database["public"]["Enums"]["location_visibility"];
+          media_claims: Json;
+          minimum_acceptable_price: number | null;
           next_action_at: string | null;
           notes_internal: string | null;
+          owner_intent: string;
+          owner_relationship: string;
           party_id: string;
           place_id: string | null;
+          preferred_contact: string;
+          price_mode: Database["public"]["Enums"]["price_mode"];
+          price_unit_id: string | null;
           primary_transaction_type: Database["public"]["Enums"]["transaction_type"];
+          private_latitude: number | null;
+          private_longitude: number | null;
           source_description: string | null;
           status: Database["public"]["Enums"]["owner_submission_status"];
           subdistrict_id: string | null;
           submission_reference: string;
+          taluka_text: string | null;
           updated_at: string;
           updated_by: string | null;
+          version: number;
+          village_text: string | null;
         };
         Insert: {
           approximate_area_unit_id?: string | null;
           approximate_area_value?: number | null;
           archived_at?: string | null;
+          asking_price_amount?: number | null;
+          asking_price_per_unit?: number | null;
           asking_price_text?: string | null;
+          assigned_to?: string | null;
+          broad_address?: string | null;
+          category_claims?: Json;
           converted_property_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           district_id?: string | null;
           first_contacted_at?: string | null;
           id?: string;
+          is_negotiable?: boolean;
           land_category: Database["public"]["Enums"]["land_category"];
           locality_text?: string | null;
+          location_visibility_preference?: Database["public"]["Enums"]["location_visibility"];
+          media_claims?: Json;
+          minimum_acceptable_price?: number | null;
           next_action_at?: string | null;
           notes_internal?: string | null;
+          owner_intent?: string;
+          owner_relationship?: string;
           party_id: string;
           place_id?: string | null;
+          preferred_contact?: string;
+          price_mode?: Database["public"]["Enums"]["price_mode"];
+          price_unit_id?: string | null;
           primary_transaction_type: Database["public"]["Enums"]["transaction_type"];
+          private_latitude?: number | null;
+          private_longitude?: number | null;
           source_description?: string | null;
           status?: Database["public"]["Enums"]["owner_submission_status"];
           subdistrict_id?: string | null;
           submission_reference?: string;
+          taluka_text?: string | null;
           updated_at?: string;
           updated_by?: string | null;
+          version?: number;
+          village_text?: string | null;
         };
         Update: {
           approximate_area_unit_id?: string | null;
           approximate_area_value?: number | null;
           archived_at?: string | null;
+          asking_price_amount?: number | null;
+          asking_price_per_unit?: number | null;
           asking_price_text?: string | null;
+          assigned_to?: string | null;
+          broad_address?: string | null;
+          category_claims?: Json;
           converted_property_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           district_id?: string | null;
           first_contacted_at?: string | null;
           id?: string;
+          is_negotiable?: boolean;
           land_category?: Database["public"]["Enums"]["land_category"];
           locality_text?: string | null;
+          location_visibility_preference?: Database["public"]["Enums"]["location_visibility"];
+          media_claims?: Json;
+          minimum_acceptable_price?: number | null;
           next_action_at?: string | null;
           notes_internal?: string | null;
+          owner_intent?: string;
+          owner_relationship?: string;
           party_id?: string;
           place_id?: string | null;
+          preferred_contact?: string;
+          price_mode?: Database["public"]["Enums"]["price_mode"];
+          price_unit_id?: string | null;
           primary_transaction_type?: Database["public"]["Enums"]["transaction_type"];
+          private_latitude?: number | null;
+          private_longitude?: number | null;
           source_description?: string | null;
           status?: Database["public"]["Enums"]["owner_submission_status"];
           subdistrict_id?: string | null;
           submission_reference?: string;
+          taluka_text?: string | null;
           updated_at?: string;
           updated_by?: string | null;
+          version?: number;
+          village_text?: string | null;
         };
         Relationships: [
           {
@@ -1640,6 +1872,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "public_area_units";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "owner_submissions_assigned_to_fkey";
+            columns: ["assigned_to"];
+            isOneToOne: false;
+            referencedRelation: "admin_profiles";
+            referencedColumns: ["user_id"];
           },
           {
             foreignKeyName: "owner_submissions_converted_property_id_fkey";
@@ -1717,6 +1956,20 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "public_geography_options";
             referencedColumns: ["place_id"];
+          },
+          {
+            foreignKeyName: "owner_submissions_price_unit_id_fkey";
+            columns: ["price_unit_id"];
+            isOneToOne: false;
+            referencedRelation: "area_units";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "owner_submissions_price_unit_id_fkey";
+            columns: ["price_unit_id"];
+            isOneToOne: false;
+            referencedRelation: "public_area_units";
+            referencedColumns: ["id"];
           },
           {
             foreignKeyName: "owner_submissions_subdistrict_id_fkey";
@@ -6107,6 +6360,15 @@ export type Database = {
         };
         Returns: string;
       };
+      add_owner_submission_note: {
+        Args: {
+          requested_actor_id: string;
+          requested_expected_version: number;
+          requested_note: string;
+          requested_submission_id: string;
+        };
+        Returns: number;
+      };
       add_site_visit_note: {
         Args: {
           requested_actor_id: string;
@@ -6150,6 +6412,15 @@ export type Database = {
         Args: { requested_actor_id: string; requested_media_id: string };
         Returns: string;
       };
+      assign_owner_submission: {
+        Args: {
+          requested_actor_id: string;
+          requested_assigned_to?: string;
+          requested_expected_version: number;
+          requested_submission_id: string;
+        };
+        Returns: number;
+      };
       change_property_availability: {
         Args: {
           requested_actor_id: string;
@@ -6175,6 +6446,18 @@ export type Database = {
           requested_window_seconds: number;
         };
         Returns: boolean;
+      };
+      convert_owner_submission_to_property: {
+        Args: {
+          requested_actor_id: string;
+          requested_expected_version: number;
+          requested_payload: Json;
+          requested_submission_id: string;
+        };
+        Returns: {
+          target_property_code: string;
+          target_property_id: string;
+        }[];
       };
       create_admin_lead: {
         Args: { requested_actor_id: string; requested_payload: Json };
@@ -6228,6 +6511,14 @@ export type Database = {
         Returns: Json;
       };
       record_notification_delivery_result: {
+        Args: {
+          requested_delivery_id: string;
+          requested_error_code?: string;
+          requested_status: string;
+        };
+        Returns: undefined;
+      };
+      record_owner_submission_notification_result: {
         Args: {
           requested_delivery_id: string;
           requested_error_code?: string;
@@ -6445,6 +6736,20 @@ export type Database = {
         };
         Returns: undefined;
       };
+      submit_owner_land_submission: {
+        Args: {
+          requested_documents?: Json;
+          requested_idempotency_key_hash: string;
+          requested_payload: Json;
+          requested_submission_id: string;
+        };
+        Returns: {
+          replayed: boolean;
+          target_notification_id: string;
+          target_submission_id: string;
+          target_submission_reference: string;
+        }[];
+      };
       submit_public_crm_intake: {
         Args: {
           requested_action: string;
@@ -6466,6 +6771,17 @@ export type Database = {
           requested_reason?: string;
         };
         Returns: undefined;
+      };
+      transition_owner_submission: {
+        Args: {
+          requested_actor_id: string;
+          requested_expected_version: number;
+          requested_next_action_at?: string;
+          requested_next_status: Database["public"]["Enums"]["owner_submission_status"];
+          requested_note?: string;
+          requested_submission_id: string;
+        };
+        Returns: number;
       };
       transition_property_verification: {
         Args: {

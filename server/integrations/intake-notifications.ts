@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { ServerEnvironment } from "@/config/environment-schema";
-import type { PublicIntakeAction } from "@/features/intake/domain/contracts";
+import type { PublicRateAction } from "@/features/intake/domain/contracts";
 
 export type NotificationDeliveryResult = Readonly<{
   status: "SENT" | "FAILED" | "SKIPPED";
@@ -12,7 +12,7 @@ export async function deliverAdminIntakeNotification(
   environment: ServerEnvironment,
   notification: Readonly<{
     deliveryId: string;
-    action: PublicIntakeAction;
+    action: PublicRateAction;
     propertyReference?: string;
   }>,
   fetcher: typeof fetch = fetch,
@@ -40,7 +40,7 @@ export async function deliverAdminIntakeNotification(
         to: [environment.ADMIN_NOTIFICATION_EMAIL],
         reply_to: environment.EMAIL_REPLY_TO,
         subject: `New UrbanEdge ${notification.action.toLowerCase().replaceAll("_", " ")}`,
-        text: `A new public demand submission is available in the private CRM.\n${context}\nOpen the admin CRM to review contact details and next actions.`,
+        text: `A new website submission is available in the private CRM.\n${context}\nOpen the admin CRM to review private details and next actions.`,
       }),
       signal: AbortSignal.timeout(8_000),
     });

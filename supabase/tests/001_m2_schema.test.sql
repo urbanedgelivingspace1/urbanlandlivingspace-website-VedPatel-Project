@@ -7,8 +7,8 @@ select plan(38);
 
 select is(
   (select count(*)::integer from pg_tables where schemaname = 'public'),
-  59,
-  'authoritative public table inventory contains 49 base plus 4 M8, 1 M12, 4 M13 and 1 M14 operational tables'
+  63,
+  'authoritative public table inventory contains 59 through M14 plus 4 M15 owner-workflow tables'
 );
 select is(
   (select count(*)::integer from pg_type t join pg_namespace n on n.oid = t.typnamespace where n.nspname = 'public' and t.typtype = 'e'),
