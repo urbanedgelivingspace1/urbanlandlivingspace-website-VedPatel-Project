@@ -19,9 +19,12 @@ export const publicEnvironmentSchema = z.object({
 
 export type PublicEnvironment = z.infer<typeof publicEnvironmentSchema>;
 
+let cachedPublicEnvironment: PublicEnvironment | undefined;
+
 export function getPublicEnvironment(): PublicEnvironment {
-  return publicEnvironmentSchema.parse({
+  cachedPublicEnvironment ??= publicEnvironmentSchema.parse({
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   });
+  return cachedPublicEnvironment;
 }

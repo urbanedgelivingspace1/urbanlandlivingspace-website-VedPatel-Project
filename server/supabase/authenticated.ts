@@ -1,12 +1,13 @@
 import "server-only";
 
+import { cache } from "react";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 import { getPublicEnvironment } from "@/config/public-environment-schema";
 import type { Database } from "@/types/database";
 
-export async function createAuthenticatedServerClient() {
+export const createAuthenticatedServerClient = cache(async () => {
   const environment = getPublicEnvironment();
   const cookieStore = await cookies();
 
@@ -33,4 +34,4 @@ export async function createAuthenticatedServerClient() {
       },
     },
   );
-}
+});

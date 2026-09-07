@@ -677,3 +677,15 @@ export async function convertOwnerSubmission(raw: unknown) {
   if (!row) throw new OwnerSubmissionError("SERVICE_UNAVAILABLE");
   return row;
 }
+
+export async function getDashboardOwnerSubmissionMetrics() {
+  await requireActiveAdmin();
+  const client = privilegedClient();
+  const result = await client
+    .from("owner_submissions")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "NEW")
+    .is("archived_at", null);
+  if (result.error) throw result.error;
+  return { newSubmissionsCount: result.count ?? 0 };
+}

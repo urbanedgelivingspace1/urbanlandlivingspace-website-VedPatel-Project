@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { measureAdminPerf } from "@/server/admin-perf";
 import { requireActiveAdminPage } from "@/server/auth/require-admin-page";
 import { listAdminProperties } from "@/server/services/property-drafts";
 
@@ -8,7 +9,9 @@ export default async function AdminPropertiesPage({
 }: Readonly<{ searchParams: Promise<{ q?: string; category?: string }> }>) {
   await requireActiveAdminPage();
   const filters = await searchParams;
-  const properties = await listAdminProperties({ query: filters.q, category: filters.category });
+  const properties = await measureAdminPerf("/admin/properties", () =>
+    listAdminProperties({ query: filters.q, category: filters.category }),
+  );
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">

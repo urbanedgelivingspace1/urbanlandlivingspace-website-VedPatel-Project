@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { LeadStatus } from "@/features/admin/contracts";
 import type { FollowUpType, LeadListItem, LeadWorkspace } from "@/features/crm/domain/contracts";
+import { classifyFollowUp } from "@/features/crm/domain/follow-ups";
 import {
   adminLeadInputSchema,
   followUpInputSchema,
@@ -610,4 +611,35 @@ export async function getRequirementLeadId(requirementId: string) {
     .maybeSingle();
   check(result.error);
   return result.data?.lead_id ?? null;
+}
+
+export async function getDashboardLeadMetrics() {
+  await requireActiveAdmin();
+  const client = db();
+  const result = await client
+    .from("leads")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "NEW")
+    .is("archived_at", null);
+  check(result.error);
+  return { newLeadsCount: result.count ?? 0 };
+}
+
+export async function getDashboardFollowUpMetrics() {
+  await requireActiveAdmin();
+  const client = db();
+  const result = await client
+    .from("lead_follow_ups")
+    .select("due_at,completed_at")
+    .is("completed_at", null);
+  check(result.error);
+  const rows = result.data ?? [];
+  let overdueCount = 0;
+  let todayCount = 0;
+  for (const row of rows) {
+    const status = classifyFollowUp(row.due_at, row.completed_at);
+    if (status === "OVERDUE") overdueCount++;
+    else if (status === "TODAY") todayCount++;
+  }
+  return { overdueCount, todayCount };
 }

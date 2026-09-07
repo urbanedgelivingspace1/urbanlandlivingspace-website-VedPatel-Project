@@ -170,7 +170,8 @@ export async function listAdminProperties(
       "id,property_code,listing_title,land_category,primary_transaction_type,district_id,display_area_value,display_area_unit_id,availability_status,publication_status,updated_at",
     )
     .is("deleted_at", null)
-    .order("updated_at", { ascending: false });
+    .order("updated_at", { ascending: false })
+    .limit(100);
   if (filters?.query?.trim()) {
     const safe = filters.query.trim().replaceAll(/[,%()]/g, "");
     query = query.or(`property_code.ilike.%${safe}%,listing_title.ilike.%${safe}%`);

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 
+import { measureAdminPerf } from "@/server/admin-perf";
 import { SiteVisitQueue } from "@/components/admin/site-visit-queue";
 import { getSiteVisitReferenceData, listSiteVisits } from "@/server/services/site-visits";
 
@@ -20,16 +21,18 @@ export default async function SiteVisitsPage({
     followUp: value("followUp"),
     assigned: value("assigned"),
   };
-  const [visits, refs] = await Promise.all([
-    listSiteVisits({
-      query: filters.q,
-      status: filters.status,
-      bucket: filters.bucket,
-      followUp: filters.followUp,
-      assignedTo: filters.assigned,
-    }),
-    getSiteVisitReferenceData(),
-  ]);
+  const [visits, refs] = await measureAdminPerf("/admin/site-visits", () =>
+    Promise.all([
+      listSiteVisits({
+        query: filters.q,
+        status: filters.status,
+        bucket: filters.bucket,
+        followUp: filters.followUp,
+        assignedTo: filters.assigned,
+      }),
+      getSiteVisitReferenceData(),
+    ]),
+  );
   return (
     <section aria-labelledby="site-visits-heading">
       <div className="flex flex-wrap items-end justify-between gap-4">

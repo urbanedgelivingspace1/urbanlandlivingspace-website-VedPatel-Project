@@ -24,16 +24,19 @@ describe("AdminDashboardPage", () => {
   });
 
   it("renders pipeline cards successfully when backend services fulfill", async () => {
-    vi.mocked(crmService.listLeads).mockResolvedValue([{ id: "lead-1", status: "NEW" } as never]);
-    vi.mocked(crmService.listFollowUps).mockResolvedValue([
-      { due_at: "2026-09-07T12:00:00Z", completed_at: null } as never,
-    ]);
-    vi.mocked(siteVisitsService.listSiteVisits).mockResolvedValue([
-      { status: "REQUESTED", bucket: "TODAY", hasOpenFollowUp: true } as never,
-    ]);
-    vi.mocked(ownerSubmissionsService.listOwnerSubmissions).mockResolvedValue([
-      { id: "sub-1", status: "NEW" } as never,
-    ]);
+    vi.mocked(crmService.getDashboardLeadMetrics).mockResolvedValue({ newLeadsCount: 1 });
+    vi.mocked(crmService.getDashboardFollowUpMetrics).mockResolvedValue({
+      overdueCount: 1,
+      todayCount: 1,
+    });
+    vi.mocked(siteVisitsService.getDashboardSiteVisitMetrics).mockResolvedValue({
+      requestedCount: 1,
+      visitsTodayCount: 1,
+      visitFollowUpsCount: 1,
+    });
+    vi.mocked(ownerSubmissionsService.getDashboardOwnerSubmissionMetrics).mockResolvedValue({
+      newSubmissionsCount: 1,
+    });
 
     const ui = await AdminDashboardPage();
     render(ui);
@@ -45,10 +48,14 @@ describe("AdminDashboardPage", () => {
   });
 
   it("renders gracefully with a database notice banner when upstream services reject", async () => {
-    vi.mocked(crmService.listLeads).mockRejectedValue(new Error("Invalid API key"));
-    vi.mocked(crmService.listFollowUps).mockRejectedValue(new Error("Invalid API key"));
-    vi.mocked(siteVisitsService.listSiteVisits).mockRejectedValue(new Error("Invalid API key"));
-    vi.mocked(ownerSubmissionsService.listOwnerSubmissions).mockRejectedValue(
+    vi.mocked(crmService.getDashboardLeadMetrics).mockRejectedValue(new Error("Invalid API key"));
+    vi.mocked(crmService.getDashboardFollowUpMetrics).mockRejectedValue(
+      new Error("Invalid API key"),
+    );
+    vi.mocked(siteVisitsService.getDashboardSiteVisitMetrics).mockRejectedValue(
+      new Error("Invalid API key"),
+    );
+    vi.mocked(ownerSubmissionsService.getDashboardOwnerSubmissionMetrics).mockRejectedValue(
       new Error("Invalid API key"),
     );
 

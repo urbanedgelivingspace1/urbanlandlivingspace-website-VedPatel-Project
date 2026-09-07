@@ -1,5 +1,5 @@
-import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen, within } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { Breadcrumbs } from "@/components/public/breadcrumbs";
 import { categoryLandingEditorialText } from "@/components/public/category-landing";
@@ -49,6 +49,10 @@ const location: PublicSeoPage = {
 };
 
 describe("M16 content page components", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   it("keeps every permanent category and transaction route above its inventory-supported editorial floor", () => {
     for (const category of ["AGRICULTURAL", "NA", "INDUSTRIAL"] as const)
       expect(markdownWordCount(categoryLandingEditorialText(category))).toBeGreaterThanOrEqual(250);

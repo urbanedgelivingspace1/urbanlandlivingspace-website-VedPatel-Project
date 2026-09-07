@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { measureAdminPerf } from "@/server/admin-perf";
 import { LEAD_STATUSES } from "@/features/crm/domain/contracts";
 import { formatIndiaDateTime } from "@/features/crm/domain/follow-ups";
 import { leadStatusLabel } from "@/features/crm/domain/pipeline";
@@ -13,21 +14,23 @@ export default async function LeadsPage({
 }) {
   const params = await searchParams;
   const value = (key: string) => (typeof params[key] === "string" ? params[key] : undefined);
-  const [leads, refs] = await Promise.all([
-    listLeads({
-      query: value("q"),
-      status: value("status"),
-      category: value("category"),
-      transaction: value("transaction"),
-      source: value("source"),
-      districtId: value("district"),
-      followUp: value("followUp"),
-      createdFrom: value("from"),
-      createdTo: value("to"),
-      assignedTo: value("assigned"),
-    }),
-    getCrmReferenceData(),
-  ]);
+  const [leads, refs] = await measureAdminPerf("/admin/leads", () =>
+    Promise.all([
+      listLeads({
+        query: value("q"),
+        status: value("status"),
+        category: value("category"),
+        transaction: value("transaction"),
+        source: value("source"),
+        districtId: value("district"),
+        followUp: value("followUp"),
+        createdFrom: value("from"),
+        createdTo: value("to"),
+        assignedTo: value("assigned"),
+      }),
+      getCrmReferenceData(),
+    ]),
+  );
   return (
     <section className="min-w-0" aria-labelledby="leads-heading">
       <div className="flex flex-wrap items-end justify-between gap-4">

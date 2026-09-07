@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { measureAdminPerf } from "@/server/admin-perf";
 import { formatIndiaDateTime } from "@/features/crm/domain/follow-ups";
 import { OWNER_SUBMISSION_STATUSES } from "@/features/owner-submissions/domain/contracts";
 import {
@@ -26,7 +27,9 @@ export default async function OwnerSubmissionsPage({
   }>;
 }>) {
   const filters = await searchParams;
-  const options = await getOwnerSubmissionFilterOptions();
+  const isUuid = (val?: string) =>
+    typeof val === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
   const safeFilters = {
     query: filters.query,
     status: OWNER_SUBMISSION_STATUSES.includes(filters.status as never)
@@ -36,14 +39,9 @@ export default async function OwnerSubmissionsPage({
       ? filters.category
       : undefined,
     intent: ["SELL", "RENT", "LEASE"].includes(filters.intent ?? "") ? filters.intent : undefined,
-    district: options.districts.some((item) => item.id === filters.district)
-      ? filters.district
-      : undefined,
+    district: isUuid(filters.district) ? filters.district : undefined,
     assignee:
-      filters.assignee === "UNASSIGNED" ||
-      options.admins.some((item) => item.user_id === filters.assignee)
-        ? filters.assignee
-        : undefined,
+      filters.assignee === "UNASSIGNED" || isUuid(filters.assignee) ? filters.assignee : undefined,
     documentState: ["NONE", "PENDING", "CLEAN", "INFECTED", "FAILED"].includes(
       filters.documentState ?? "",
     )
@@ -54,7 +52,11 @@ export default async function OwnerSubmissionsPage({
       : undefined,
     createdTo: /^\d{4}-\d{2}-\d{2}$/.test(filters.createdTo ?? "") ? filters.createdTo : undefined,
   };
-  const rows = await listOwnerSubmissions(safeFilters);
+
+  const [options, rows] = await measureAdminPerf("/admin/submissions", () =>
+    Promise.all([getOwnerSubmissionFilterOptions(), listOwnerSubmissions(safeFilters)]),
+  );
+
   return (
     <section>
       <p className="text-xs font-bold tracking-[.16em] text-[var(--brand-navy)] uppercase">

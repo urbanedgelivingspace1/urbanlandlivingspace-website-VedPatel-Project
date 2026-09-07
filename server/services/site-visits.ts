@@ -340,3 +340,49 @@ export async function persistSiteVisitFollowUp(
   check(result.error);
   return result.data;
 }
+
+export async function getDashboardSiteVisitMetrics() {
+  await requireActiveAdmin();
+  const client = db();
+
+  const [requestedResult, visitsResult, followUpsResult] = await Promise.all([
+    client
+      .from("site_visits")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "REQUESTED")
+      .is("archived_at", null),
+    client
+      .from("site_visits")
+      .select("confirmed_start_at, proposed_start_at, requested_start_at")
+      .is("archived_at", null)
+      .not("status", "in", "(COMPLETED,CANCELLED)"),
+    client
+      .from("lead_follow_ups")
+      .select("site_visit_id")
+      .not("site_visit_id", "is", null)
+      .is("completed_at", null),
+  ]);
+
+  check(requestedResult.error);
+  check(visitsResult.error);
+  check(followUpsResult.error);
+
+  const visitsTodayCount = (visitsResult.data ?? []).filter((visit) => {
+    const start = effectiveVisitStart({
+      confirmedStartAt: visit.confirmed_start_at,
+      proposedStartAt: visit.proposed_start_at,
+      requestedStartAt: visit.requested_start_at,
+    });
+    return classifyVisitTime(start) === "TODAY";
+  }).length;
+
+  const openFollowUpVisitIds = new Set(
+    (followUpsResult.data ?? []).map((row) => row.site_visit_id).filter(Boolean),
+  );
+
+  return {
+    requestedCount: requestedResult.count ?? 0,
+    visitsTodayCount,
+    visitFollowUpsCount: openFollowUpVisitIds.size,
+  };
+}

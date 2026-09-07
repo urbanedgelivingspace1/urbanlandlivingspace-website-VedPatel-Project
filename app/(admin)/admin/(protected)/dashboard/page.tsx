@@ -1,20 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { classifyFollowUp } from "@/features/crm/domain/follow-ups";
-import { listFollowUps, listLeads } from "@/server/services/crm";
-import { listSiteVisits } from "@/server/services/site-visits";
-import { listOwnerSubmissions } from "@/server/services/owner-submissions";
+import { measureAdminPerf } from "@/server/admin-perf";
+import { getDashboardFollowUpMetrics, getDashboardLeadMetrics } from "@/server/services/crm";
+import { getDashboardSiteVisitMetrics } from "@/server/services/site-visits";
+import { getDashboardOwnerSubmissionMetrics } from "@/server/services/owner-submissions";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
 export default async function AdminDashboardPage() {
   const [leadsResult, followUpsResult, visitsResult, ownerSubmissionsResult] =
-    await Promise.allSettled([
-      listLeads({}),
-      listFollowUps(),
-      listSiteVisits({}),
-      listOwnerSubmissions({ status: "NEW" }),
-    ]);
+    await measureAdminPerf("/admin/dashboard", () =>
+      Promise.allSettled([
+        getDashboardLeadMetrics(),
+        getDashboardFollowUpMetrics(),
+        getDashboardSiteVisitMetrics(),
+        getDashboardOwnerSubmissionMetrics(),
+      ]),
+    );
 
   const hasServiceDegradation =
     leadsResult.status === "rejected" ||
@@ -34,53 +36,50 @@ export default async function AdminDashboardPage() {
     });
   }
 
-  const leads = leadsResult.status === "fulfilled" ? leadsResult.value : [];
-  const followUps = followUpsResult.status === "fulfilled" ? followUpsResult.value : [];
-  const visits = visitsResult.status === "fulfilled" ? visitsResult.value : [];
-  const ownerSubmissions =
-    ownerSubmissionsResult.status === "fulfilled" ? ownerSubmissionsResult.value : [];
+  const leadMetrics = leadsResult.status === "fulfilled" ? leadsResult.value : null;
+  const followUpMetrics = followUpsResult.status === "fulfilled" ? followUpsResult.value : null;
+  const visitMetrics = visitsResult.status === "fulfilled" ? visitsResult.value : null;
+  const submissionMetrics =
+    ownerSubmissionsResult.status === "fulfilled" ? ownerSubmissionsResult.value : null;
 
   const cards = [
     {
       label: "New owner submissions",
-      value: ownerSubmissions.length,
+      value: submissionMetrics?.newSubmissionsCount ?? 0,
       href: "/admin/submissions?status=NEW",
     },
     {
       label: "New leads",
-      value: leads.filter((lead) => lead.status === "NEW").length,
+      value: leadMetrics?.newLeadsCount ?? 0,
       href: "/admin/leads?status=NEW",
     },
     {
       label: "Overdue follow-ups",
-      value: followUps.filter(
-        (followUp) => classifyFollowUp(followUp.due_at, followUp.completed_at) === "OVERDUE",
-      ).length,
+      value: followUpMetrics?.overdueCount ?? 0,
       href: "/admin/follow-ups",
     },
     {
       label: "Due today",
-      value: followUps.filter(
-        (followUp) => classifyFollowUp(followUp.due_at, followUp.completed_at) === "TODAY",
-      ).length,
+      value: followUpMetrics?.todayCount ?? 0,
       href: "/admin/follow-ups",
     },
     {
       label: "New visit requests",
-      value: visits.filter((visit) => visit.status === "REQUESTED").length,
+      value: visitMetrics?.requestedCount ?? 0,
       href: "/admin/site-visits?status=REQUESTED",
     },
     {
       label: "Visits today",
-      value: visits.filter((visit) => visit.bucket === "TODAY").length,
+      value: visitMetrics?.visitsTodayCount ?? 0,
       href: "/admin/site-visits?bucket=TODAY",
     },
     {
       label: "Visit follow-ups",
-      value: visits.filter((visit) => visit.hasOpenFollowUp).length,
+      value: visitMetrics?.visitFollowUpsCount ?? 0,
       href: "/admin/site-visits?followUp=required",
     },
   ];
+
   return (
     <section aria-labelledby="dashboard-heading">
       <p className="text-xs font-bold tracking-[0.16em] text-[var(--brand-navy)] uppercase">
