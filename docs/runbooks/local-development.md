@@ -7,6 +7,21 @@
 3. Run `npm run qa` before committing.
 4. Run `npm run dev` for the local application.
 
+For a complete stateful local qualification after the Supabase stack is running:
+
+```sh
+supabase db reset
+supabase db lint --level warning
+supabase test db
+npm run test:db:concurrency
+npm run test:integration:local
+npm run test:e2e:local
+npm run build
+```
+
+`npm start` serves the production build. The database, integration and E2E commands above are
+intentionally separate from the fast stateless `npm run qa` gate.
+
 ## Environment handling
 
 Copy `.env.example` to `.env.local` only when configuration is required. The local file is ignored.
@@ -15,7 +30,8 @@ documentation or shell history.
 
 ## Stateful test protection
 
-Stateful tests must run through `npm run test:integration`. The guard requires:
+Stateful application integration tests must run through `npm run test:integration:local`, and the
+browser suite through `npm run test:e2e:local`. The guarded scripts require:
 
 - `APP_ENV=test`;
 - distinct test and production Supabase project references;
@@ -27,7 +43,8 @@ target.
 
 ## Current scope
 
-M0–M14 are complete in the local repository. The database migrations, RLS, seed and the complete
+M0–M18 are complete in the local repository. M18 is the final local whole-system qualification; its
+report is `m18-final-qa.md`. M19 has not begun. Database migrations, RLS, seed and the complete
 application regression suite run only against the isolated local Supabase project unless a later
 production operation is explicitly approved.
 

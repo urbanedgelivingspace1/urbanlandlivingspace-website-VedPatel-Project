@@ -19,6 +19,11 @@ npm ci
 npm run qa
 ```
 
+For stateful database, integration and browser qualification, start the isolated local Supabase
+stack and use the guarded local commands documented in
+`docs/runbooks/local-development.md`. Those commands inject the required test-only target and safety
+values; they refuse production-shaped environments.
+
 Start the development server:
 
 ```sh
@@ -32,8 +37,14 @@ configuration. Never commit real values.
 
 - This repository never shares the Living Space database, auth, storage or deployment.
 - Stateful tests refuse production-shaped targets and require an explicit synthetic-test token.
-- Public code must use public-safe DTOs/projections once the data layer exists.
-- M1 contains foundation placeholders only; it does not contain real property inventory.
+- Public code uses explicit public-safe DTOs/projections; private base records are never browser data
+  sources.
+- The checked-in seed contains only clearly synthetic local fixtures. Real inventory, media, contact
+  destinations and production configuration remain pre-launch inputs.
+
+The complete local V1 engineering qualification is recorded in
+`docs/runbooks/m18-final-qa.md`. Its PASS is not a production launch approval; deployment and
+production-only evidence belong to M19/pre-launch.
 
 ## Public search
 
