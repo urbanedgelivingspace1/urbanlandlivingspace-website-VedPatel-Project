@@ -5,7 +5,10 @@ import { getPublicEnvironment } from "@/config/public-environment-schema";
 import type { Database } from "@/types/database";
 
 export async function proxy(request: NextRequest) {
-  if (request.method !== "GET" && request.method !== "HEAD") {
+  if (
+    request.headers.has("next-action") ||
+    (request.method === "POST" && request.nextUrl.pathname === "/admin/login")
+  ) {
     return NextResponse.next({ request });
   }
 

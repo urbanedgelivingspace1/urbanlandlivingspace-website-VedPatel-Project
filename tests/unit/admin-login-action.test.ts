@@ -32,7 +32,7 @@ vi.mock("@/server/auth/authorization", () => ({
   requireActiveAdmin: vi.fn(async () => mockRequireActiveAdmin()),
 }));
 
-describe("admin login server action error classification", () => {
+describe("admin login server action error classification and authorization", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSignInWithPassword.mockResolvedValue({ error: null });
@@ -61,7 +61,7 @@ describe("admin login server action error classification", () => {
     expect(mockSignInWithPassword).not.toHaveBeenCalled();
   });
 
-  it("redirects to invalid_credentials on auth 400 or invalid_credentials code", async () => {
+  it("redirects to invalid_credentials only on explicit invalid_credentials error code", async () => {
     mockSignInWithPassword.mockResolvedValueOnce({
       error: { status: 400, code: "invalid_credentials", message: "Invalid credentials" },
     });
@@ -70,6 +70,18 @@ describe("admin login server action error classification", () => {
       "NEXT_REDIRECT:/admin/login?reason=invalid_credentials",
     );
     expect(redirectMock).toHaveBeenCalledWith("/admin/login?reason=invalid_credentials");
+    expect(mockRequireActiveAdmin).not.toHaveBeenCalled();
+  });
+
+  it("does NOT classify unknown Supabase 400 status as invalid_credentials, routing to service_unavailable", async () => {
+    mockSignInWithPassword.mockResolvedValueOnce({
+      error: { status: 400, code: "validation_failed", message: "Bad request payload" },
+    });
+
+    await expect(callSignIn("admin@example.com", "Password123!")).rejects.toThrow(
+      "NEXT_REDIRECT:/admin/login?reason=service_unavailable",
+    );
+    expect(redirectMock).toHaveBeenCalledWith("/admin/login?reason=service_unavailable");
     expect(mockRequireActiveAdmin).not.toHaveBeenCalled();
   });
 
@@ -107,7 +119,7 @@ describe("admin login server action error classification", () => {
     expect(mockRequireActiveAdmin).not.toHaveBeenCalled();
   });
 
-  it("signs out and redirects when admin profile is inactive or non-admin", async () => {
+  it("signs out and redirects to not_active_admin when profile is inactive or non-admin", async () => {
     mockRequireActiveAdmin.mockRejectedValueOnce(new AdminAuthorizationError("NOT_ACTIVE_ADMIN"));
 
     await expect(callSignIn("admin@example.com", "Password123!")).rejects.toThrow(
@@ -117,11 +129,22 @@ describe("admin login server action error classification", () => {
     expect(redirectMock).toHaveBeenCalledWith("/admin/login?reason=not_active_admin");
   });
 
-  it("redirects to dashboard when credentials and admin authorization succeed", async () => {
+  it("signs out and redirects to service_unavailable when authorization throws an unknown infrastructure error", async () => {
+    mockRequireActiveAdmin.mockRejectedValueOnce(new Error("Database connection dropped"));
+
+    await expect(callSignIn("admin@example.com", "Password123!")).rejects.toThrow(
+      "NEXT_REDIRECT:/admin/login?reason=service_unavailable",
+    );
+    expect(mockSignOut).toHaveBeenCalledWith({ scope: "local" });
+    expect(redirectMock).toHaveBeenCalledWith("/admin/login?reason=service_unavailable");
+  });
+
+  it("preserves redirect to /admin/dashboard after successful authentication and active admin verification", async () => {
     await expect(callSignIn("admin@example.com", "Password123!")).rejects.toThrow(
       "NEXT_REDIRECT:/admin/dashboard",
     );
     expect(redirectMock).toHaveBeenCalledWith("/admin/dashboard");
+    expect(mockRequireActiveAdmin).toHaveBeenCalledTimes(1);
   });
 
   it("signs out locally and redirects when signOutAdmin is invoked", async () => {

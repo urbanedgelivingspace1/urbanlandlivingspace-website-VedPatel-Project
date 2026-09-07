@@ -27,7 +27,7 @@ describe("admin proxy / middleware request handling", () => {
     mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
   });
 
-  it("bypasses getUser on POST requests (Server Actions) without consuming body or edge delays", async () => {
+  it("bypasses getUser on POST /admin/login without consuming body or edge delays", async () => {
     const { proxy } = await import("@/proxy");
     const request = new NextRequest("http://localhost:3000/admin/login", {
       method: "POST",
@@ -40,7 +40,22 @@ describe("admin proxy / middleware request handling", () => {
     expect(mockGetUser).not.toHaveBeenCalled();
   });
 
-  it("refreshes user session and sets private no-store headers on GET requests", async () => {
+  it("bypasses getUser when next-action header is present on any admin route", async () => {
+    const { proxy } = await import("@/proxy");
+    const request = new NextRequest("http://localhost:3000/admin/properties", {
+      method: "POST",
+      headers: {
+        "next-action": "40cf2bd4602a80061b083ba296fe771c80636c3232",
+      },
+    });
+
+    const response = await proxy(request);
+    expect(response).toBeDefined();
+    expect(mockCreateServerClient).not.toHaveBeenCalled();
+    expect(mockGetUser).not.toHaveBeenCalled();
+  });
+
+  it("refreshes user session and sets private no-store headers on normal GET admin requests", async () => {
     const { proxy } = await import("@/proxy");
     const request = new NextRequest("http://localhost:3000/admin/dashboard", {
       method: "GET",
@@ -51,5 +66,17 @@ describe("admin proxy / middleware request handling", () => {
     expect(mockCreateServerClient).toHaveBeenCalled();
     expect(mockGetUser).toHaveBeenCalled();
     expect(response.headers.get("cache-control")).toBe("private, no-store");
+  });
+
+  it("does not bypass non-action non-login POST requests", async () => {
+    const { proxy } = await import("@/proxy");
+    const request = new NextRequest("http://localhost:3000/admin/properties", {
+      method: "POST",
+    });
+
+    const response = await proxy(request);
+    expect(response).toBeDefined();
+    expect(mockCreateServerClient).toHaveBeenCalled();
+    expect(mockGetUser).toHaveBeenCalled();
   });
 });

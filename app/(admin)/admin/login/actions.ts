@@ -31,7 +31,9 @@ export async function signInAdmin(formData: FormData): Promise<never> {
   } catch (error) {
     if (isRedirectSignal(error)) throw error;
     console.error("admin_sign_in_client_init_failed", {
-      error: error instanceof Error ? error.name : "UnknownError",
+      category: "CLIENT_INIT_FAILURE",
+      errorClass: error instanceof Error ? error.name : "UnknownError",
+      message: error instanceof Error ? error.message.slice(0, 200) : "Initialization failed",
     });
     redirect("/admin/login?reason=service_unavailable");
   }
@@ -43,7 +45,9 @@ export async function signInAdmin(formData: FormData): Promise<never> {
   } catch (error) {
     if (isRedirectSignal(error)) throw error;
     console.error("admin_sign_in_transport_failed", {
-      error: error instanceof Error ? error.name : "UnknownError",
+      category: "TRANSPORT_FAILURE",
+      errorClass: error instanceof Error ? error.name : "UnknownError",
+      message: error instanceof Error ? error.message.slice(0, 200) : "Transport request failed",
     });
     redirect("/admin/login?reason=service_unavailable");
   }
@@ -56,29 +60,32 @@ export async function signInAdmin(formData: FormData): Promise<never> {
 
     if (isRateLimited) {
       console.warn("admin_sign_in_rate_limited", {
-        status: authError.status,
-        code: authError.code,
+        category: "RATE_LIMITED",
+        code: authError.code ?? "over_request_rate_limit",
+        status: authError.status ?? 429,
+        errorClass: authError.name ?? "AuthApiError",
       });
       redirect("/admin/login?reason=rate_limited");
     }
 
-    const isInvalidCredentials =
-      authError.code === "invalid_credentials" ||
-      authError.code === "invalid_grant" ||
-      authError.code === "validation_failed" ||
-      authError.status === 400;
-
-    if (isInvalidCredentials) {
+    if (authError.code === "invalid_credentials") {
       console.warn("admin_sign_in_failed", {
-        reason: "INVALID_CREDENTIALS",
+        category: "INVALID_CREDENTIALS",
         code: authError.code,
+        status: authError.status ?? 400,
+        errorClass: authError.name ?? "AuthApiError",
       });
       redirect("/admin/login?reason=invalid_credentials");
     }
 
     console.error("admin_sign_in_service_error", {
-      status: authError.status ?? 500,
+      category: "SERVICE_ERROR",
       code: authError.code ?? "UNKNOWN_AUTH_ERROR",
+      status: authError.status ?? 500,
+      errorClass: authError.name ?? "AuthApiError",
+      message: authError.message
+        ? authError.message.slice(0, 200)
+        : "Authentication service failure",
     });
     redirect("/admin/login?reason=service_unavailable");
   }
@@ -88,11 +95,18 @@ export async function signInAdmin(formData: FormData): Promise<never> {
   } catch (authorizationError) {
     if (isRedirectSignal(authorizationError)) throw authorizationError;
     await client.auth.signOut({ scope: "local" });
-    const reason =
-      authorizationError instanceof AdminAuthorizationError
-        ? authorizationError.reason.toLowerCase()
-        : "unauthorized";
-    redirect(`/admin/login?reason=${reason}`);
+    if (authorizationError instanceof AdminAuthorizationError) {
+      redirect(`/admin/login?reason=${authorizationError.reason.toLowerCase()}`);
+    }
+    console.error("admin_sign_in_authorization_check_failed", {
+      category: "SERVICE_ERROR",
+      errorClass: authorizationError instanceof Error ? authorizationError.name : "UnknownError",
+      message:
+        authorizationError instanceof Error
+          ? authorizationError.message.slice(0, 200)
+          : "Authorization check error",
+    });
+    redirect("/admin/login?reason=service_unavailable");
   }
 
   redirect("/admin/dashboard");

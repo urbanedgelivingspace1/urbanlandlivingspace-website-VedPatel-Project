@@ -3,11 +3,11 @@ import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-import { getServerEnvironment } from "@/server/env";
+import { getPublicEnvironment } from "@/config/public-environment-schema";
 import type { Database } from "@/types/database";
 
 export async function createAuthenticatedServerClient() {
-  const environment = getServerEnvironment();
+  const environment = getPublicEnvironment();
   const cookieStore = await cookies();
 
   return createServerClient<Database>(
@@ -23,7 +23,7 @@ export async function createAuthenticatedServerClient() {
                 ...options,
                 httpOnly: true,
                 sameSite: "lax",
-                secure: environment.APP_ENV === "production",
+                secure: process.env.APP_ENV === "production" || process.env.APP_ENV === "preview",
               }),
             );
           } catch {
