@@ -281,7 +281,29 @@ $$;
 alter table public.properties add constraint properties_archived_off_market_check
   check (publication_status <> 'ARCHIVED' or availability_status = 'OFF_MARKET');
 
-do $$ begin execute format('grant urbanedge_public_projection to %I',current_user); end $$;
+do $$
+declare
+  grantor_role text;
+begin
+  select r.rolname into grantor_role
+  from pg_auth_members m
+  join pg_roles r on r.oid = m.member
+  where m.roleid = 'urbanedge_public_projection'::regrole
+    and m.admin_option = true
+    and (r.rolname = current_user or pg_has_role(current_user, r.oid, 'MEMBER'))
+  order by (r.rolname = current_user) desc
+  limit 1;
+
+  if grantor_role is null then
+    grantor_role := current_user;
+  end if;
+
+  execute format(
+    'grant urbanedge_public_projection to %I with inherit false, set true granted by %I',
+    current_user, grantor_role
+  );
+end;
+$$;
 grant create on schema public to urbanedge_public_projection;
 set role urbanedge_public_projection;
 create view public.public_property_indexability with (security_invoker=false) as
@@ -294,7 +316,28 @@ comment on view public.public_property_indexability is 'M9 safe source for later
 grant select on public.public_property_indexability to anon,authenticated,service_role;
 reset role;
 revoke create on schema public from urbanedge_public_projection;
-do $$ begin execute format('revoke urbanedge_public_projection from %I',current_user); end $$;
+do $$
+declare
+  grantor_role text;
+begin
+  select g.rolname into grantor_role
+  from pg_auth_members m
+  join pg_roles r on r.oid = m.roleid
+  join pg_roles u on u.oid = m.member
+  join pg_roles g on g.oid = m.grantor
+  where r.rolname = 'urbanedge_public_projection'
+    and u.rolname = current_user
+    and m.set_option = true
+  limit 1;
+
+  if grantor_role is not null then
+    execute format(
+      'revoke urbanedge_public_projection from %I granted by %I',
+      current_user, grantor_role
+    );
+  end if;
+end;
+$$;
 
 revoke all on function public.property_publication_readiness(uuid) from public,anon,authenticated;
 revoke all on function public.get_property_publication_readiness(uuid,uuid) from public,anon,authenticated;

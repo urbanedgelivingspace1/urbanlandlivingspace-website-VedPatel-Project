@@ -38,7 +38,29 @@ $$;
 -- default privileges before their owner was changed to the projection role.
 -- The migration role is intentionally not a permanent member of that locked,
 -- non-login owner role, so assume it only for the owner-issued ACL rewrite.
-do $$ begin execute format('grant urbanedge_public_projection to %I', current_user); end $$;
+do $$
+declare
+  grantor_role text;
+begin
+  select r.rolname into grantor_role
+  from pg_auth_members m
+  join pg_roles r on r.oid = m.member
+  where m.roleid = 'urbanedge_public_projection'::regrole
+    and m.admin_option = true
+    and (r.rolname = current_user or pg_has_role(current_user, r.oid, 'MEMBER'))
+  order by (r.rolname = current_user) desc
+  limit 1;
+
+  if grantor_role is null then
+    grantor_role := current_user;
+  end if;
+
+  execute format(
+    'grant urbanedge_public_projection to %I with inherit false, set true granted by %I',
+    current_user, grantor_role
+  );
+end;
+$$;
 set role urbanedge_public_projection;
 do $$
 declare
@@ -79,7 +101,28 @@ to anon, authenticated;
 -- granted directly because the function owns pagination and query limits.
 revoke all on table public.public_property_search from public, anon, authenticated;
 reset role;
-do $$ begin execute format('revoke urbanedge_public_projection from %I', current_user); end $$;
+do $$
+declare
+  grantor_role text;
+begin
+  select g.rolname into grantor_role
+  from pg_auth_members m
+  join pg_roles r on r.oid = m.roleid
+  join pg_roles u on u.oid = m.member
+  join pg_roles g on g.oid = m.grantor
+  where r.rolname = 'urbanedge_public_projection'
+    and u.rolname = current_user
+    and m.set_option = true
+  limit 1;
+
+  if grantor_role is not null then
+    execute format(
+      'revoke urbanedge_public_projection from %I granted by %I',
+      current_user, grantor_role
+    );
+  end if;
+end;
+$$;
 
 -- Remove the default PUBLIC execute privilege from every function. Only the
 -- bounded public search RPC and active-admin predicate are browser-callable.
@@ -105,7 +148,29 @@ $$;
 grant execute on function public.is_active_admin() to authenticated;
 
 -- The bounded search function is owned by the same locked projection role.
-do $$ begin execute format('grant urbanedge_public_projection to %I', current_user); end $$;
+do $$
+declare
+  grantor_role text;
+begin
+  select r.rolname into grantor_role
+  from pg_auth_members m
+  join pg_roles r on r.oid = m.member
+  where m.roleid = 'urbanedge_public_projection'::regrole
+    and m.admin_option = true
+    and (r.rolname = current_user or pg_has_role(current_user, r.oid, 'MEMBER'))
+  order by (r.rolname = current_user) desc
+  limit 1;
+
+  if grantor_role is null then
+    grantor_role := current_user;
+  end if;
+
+  execute format(
+    'grant urbanedge_public_projection to %I with inherit false, set true granted by %I',
+    current_user, grantor_role
+  );
+end;
+$$;
 set role urbanedge_public_projection;
 revoke all on function public.search_public_properties(
   text, text, public.land_category, public.transaction_type, text, text, text, text,
@@ -118,7 +183,28 @@ grant execute on function public.search_public_properties(
   text, text, text, text, text, text, text, integer, integer
 ) to anon, authenticated, service_role;
 reset role;
-do $$ begin execute format('revoke urbanedge_public_projection from %I', current_user); end $$;
+do $$
+declare
+  grantor_role text;
+begin
+  select g.rolname into grantor_role
+  from pg_auth_members m
+  join pg_roles r on r.oid = m.roleid
+  join pg_roles u on u.oid = m.member
+  join pg_roles g on g.oid = m.grantor
+  where r.rolname = 'urbanedge_public_projection'
+    and u.rolname = current_user
+    and m.set_option = true
+  limit 1;
+
+  if grantor_role is not null then
+    execute format(
+      'revoke urbanedge_public_projection from %I granted by %I',
+      current_user, grantor_role
+    );
+  end if;
+end;
+$$;
 
 -- These M16 functions already schema-qualify their data access. Empty search_path
 -- aligns them with every other SECURITY DEFINER routine and removes temp/public

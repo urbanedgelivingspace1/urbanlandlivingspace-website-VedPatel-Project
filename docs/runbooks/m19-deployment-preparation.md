@@ -555,4 +555,58 @@ sandbox. The unchanged build passed when network access was allowed; this was an
 limitation, not an application failure. All stateful tests used the guarded disposable local project.
 No real credentials or customer data were used.
 
+## Supabase Cloud migration portability remediation
+
+During the initial staging migration to Supabase Cloud project `xrqulhapgjqgymrfuclo`, migrations 1–6
+applied successfully, while migration 7 (`20260903070000_media_private_storage.sql`) failed transactionally
+and rolled back. The failure surfaced two genuine PostgreSQL 17 / Supabase Cloud portability defects:
+
+1. **Grant sequencing defect**: Migrations 7 and 8 created public-safe views under `urbanedge_public_projection`,
+   then reset the role and revoked projection membership *before* attempting `grant select ... to anon, authenticated`.
+   In local Docker, the migration user is a superuser and can grant privileges on views owned by any role; on
+   Supabase Cloud, the migration user is non-superuser and loses the authority to grant SELECT on views owned
+   by `urbanedge_public_projection` once it is no longer assuming or a member of that role.
+2. **PostgreSQL 16/17 grantor-tracking & admin-option defect**: In PostgreSQL 16+, role memberships track
+   `(roleid, member, grantor)`. A role granting membership via `GRANTED BY <role>` must ensure `<role>` has
+   `ADMIN OPTION` on the target role. On Supabase Cloud, `postgres` holds `ADMIN OPTION` on `urbanedge_public_projection`,
+   while the connecting CLI user (`cli_login_postgres`) is a member of `postgres`. Attempting a bare self-grant
+   or self-revoke without resolving a grantor with `ADMIN OPTION` resulted in `ERROR: no possible grantors (SQLSTATE XX000)`.
+
+### Why historical migrations were corrected before first cloud deployment
+
+Historical migrations 7 through 17 were corrected directly rather than patched through an incremental forward
+migration because migration 7 failed on its very first run in a fresh cloud project. A repair migration cannot
+succeed if the base migration chain cannot initialize a fresh database from zero. By standardizing the verified
+grantor resolution pattern across migrations 7, 8, 9, 10, 11, 16, and 17, the entire migration history is
+genuinely portable across local Docker, Supabase Cloud staging, and future Supabase Cloud production.
+
+### Verified grantor resolution pattern
+
+Across all affected migrations, projection role assumption and cleanup were standardized to:
+- Dynamically resolve a grantor possessing `ADMIN OPTION` on `urbanedge_public_projection` accessible to the
+  executing user:
+  ```sql
+  select r.rolname into grantor_role
+  from pg_auth_members m
+  join pg_roles r on r.oid = m.member
+  where m.roleid = 'urbanedge_public_projection'::regrole
+    and m.admin_option = true
+    and (r.rolname = current_user or pg_has_role(current_user, r.oid, 'MEMBER'))
+  order by (r.rolname = current_user) desc
+  limit 1;
+  ```
+- Issue `grant urbanedge_public_projection to <current_user> with inherit false, set true granted by <grantor_role>`.
+- Execute all view creations, replacements, and `grant select ... to anon, authenticated` calls under
+  `set role urbanedge_public_projection;` before resetting the role.
+- Deterministically revoke the exact temporary membership row by matching the recorded grantor from `pg_auth_members`.
+
+### Post-fix local verification
+
+A complete clean local rebuild (`supabase db reset`) from migration 1 through 17 plus synthetic seed passed with:
+- Database lint: PASS (0 schema errors)
+- pgTAP test suite: PASS (15 files, 600/600 assertions passed)
+- Property code concurrency: PASS (24 parallel inserts)
+- Static, boundary, secret, unit, and component tests: PASS
+- Next.js webpack production build: PASS
+
 **PRODUCTION LAUNCH AUTHORIZED: NO**
