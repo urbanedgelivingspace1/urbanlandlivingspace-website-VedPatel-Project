@@ -6,7 +6,7 @@ import FollowUpsPage from "@/app/(admin)/admin/(protected)/follow-ups/page";
 import LeadDetailPage from "@/app/(admin)/admin/(protected)/leads/[id]/page";
 import LeadsPage from "@/app/(admin)/admin/(protected)/leads/page";
 import PipelinePage from "@/app/(admin)/admin/(protected)/leads/pipeline/page";
-import { RequirementList } from "@/app/(admin)/admin/(protected)/requirements/page";
+import { RequirementList } from "@/components/admin/requirement-list";
 import { LeadForm } from "@/components/admin/lead-form";
 import type { LeadListItem, LeadWorkspace } from "@/features/crm/domain/contracts";
 
