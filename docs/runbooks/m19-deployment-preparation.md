@@ -19,7 +19,7 @@ billing without the approvals identified below.
 |---|---|
 | M18 QA commit | `bc68a2c` |
 | M18 handoff commit | `e8d6258` |
-| M19 implementation/runbook commit | Recorded in `docs/15-IMPLEMENTATION-STATE-AND-HANDOFF.md` after commit |
+| M19 implementation/runbook commit | `b8ffaa0` |
 | Release convention | `urbanedge-v1-rc.<n>` for candidates; `urbanedge-v1.0.0` only after explicit launch approval |
 | Deployment identity | Git SHA + Netlify deploy ID + latest applied Supabase migration |
 | Latest migration | `20260906030000_m17_security_hardening.sql` |

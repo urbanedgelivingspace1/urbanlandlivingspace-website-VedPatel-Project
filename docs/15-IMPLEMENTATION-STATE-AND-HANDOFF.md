@@ -9,12 +9,12 @@ This is the live record of what has actually happened. Update it after every mea
 | Project | UrbanEdge Land Space |
 | Repository | `/Users/vedpatel/Desktop/UrbanLand_website` |
 | Current branch | `main` |
-| Latest relevant commits | M18 QA/report `bc68a2c`; this handoff checkpoint follows it; qualified application source `6b112b8` |
-| Working tree | CLEAN after the M18 handoff commit |
-| Current milestone | M18 — Full Testing and Production-Build Qualification |
-| Current milestone status | COMPLETE |
+| Latest relevant commits | M18 QA/report `bc68a2c`; M18 handoff `e8d6258`; M19 implementation/runbook `b8ffaa0`; this handoff checkpoint follows it |
+| Working tree | CLEAN after the M19 handoff commit |
+| Current milestone | M19 — Deployment Preparation, Staging Validation and Production Approval Gate |
+| Current milestone status | CONDITIONAL HOLD — local preparation complete; external launch gates remain |
 | Last completed milestone | M18 — Full Testing and Production-Build Qualification |
-| Next milestone | M19 — Deployment Preparation, Staging Validation and Production Approval Gate (not begun) |
+| Next milestone | Resolve the named staging/provider/owner/legal/device gates; production remains unauthorized |
 | Last updated | 2026-09-07 |
 | Last updating agent | Codex |
 
@@ -101,37 +101,53 @@ The design report governs Living Space brand/design reference only. It does not 
 | M16 Guides, Locations, SEO and Crawl Control | COMPLETE | 2026-09-06 | 2026-09-06 | Curated Ahmedabad/Gandhinagar location architecture, guide publishing/admin, centralized metadata/canonicals, robots/sitemap, structured data, redirects, internal linking and privacy/crawl regression pass complete local qualification |
 | M17 Security Hardening and Privacy Regression Closure | COMPLETE | 2026-09-06 | 2026-09-06 | Forced RLS, least-privilege view/RPC ACLs, SECURITY DEFINER review, storage/upload/admin/public-action/browser/session hardening, actor/hostile-path matrix and complete local regression pass |
 | M18 Full Testing and Production-Build Qualification | COMPLETE | 2026-09-07 | 2026-09-07 | Clean zero-state qualification, exhaustive 702-criterion DoD reconciliation, integrated journeys, responsive/accessibility/browser/performance/SEO/privacy/security/recovery review and definitive full regression/build pass |
-| M19 Deployment Preparation, Staging Validation and Production Approval Gate | NOT_STARTED | — | — | Production operations remain approval-gated |
+| M19 Deployment Preparation, Staging Validation and Production Approval Gate | CONDITIONAL HOLD | 2026-09-07 | — | Local deployment preparation, restore drill, current provider review and full release-candidate qualification pass; staging/provider/owner/legal/device/field evidence remains unavailable and production operations remain approval-gated |
 
 ## 4. Current Work
 
-Objective achieved: M18 qualifies the complete M0–M17 product as one integrated local system. A clean locked install, zero-state database rebuild, full static/database/unit/component/integration/E2E/security suite, production build, cross-browser/responsive/accessibility review, representative Lighthouse run and exhaustive 702-criterion Definition-of-Done reconciliation pass. Every inherently deployed/provider/legal/device/field criterion is transferred to M19/pre-launch without being marked passed. M19 has not begun.
+M19 local engineering preparation is complete under a conditional hold. The release candidate has a
+strict local/preview/production environment contract, Netlify/Supabase staging plan, current provider
+and quota review, ordered migration/storage/admin bootstrap checks, successful isolated restore drill,
+rollback/DNS/TLS/CSP procedures, staged smoke/performance/device plans, business/legal/content/SEO/
+analytics/operations gates and an exhaustive pre-launch checklist reconciliation. No staging or
+production target, real credential, DNS control, legal approval, approved launch content or physical
+device was available, so no such item is marked PASS and production is not authorized.
 
 Relevant sources:
 
 - owner's implementation brief;
 - embedded master prompt and finalized architecture;
-- `11-TESTING-QA-PLAN.md`, `12-IMPLEMENTATION-ROADMAP.md` M18, `13-DEFINITION-OF-DONE.md` and `14-PRE-LAUNCH-CHECKLIST.md`;
+- `10-INFRASTRUCTURE-DEPLOYMENT.md`, `12-IMPLEMENTATION-ROADMAP.md` M19 and `14-PRE-LAUNCH-CHECKLIST.md`;
 - route, data, backend, media, infrastructure, testing, completion and pre-launch contracts in documents `01` through `14`;
-- the complete M0–M17 application, privacy, publication, workflow, crawl and security boundaries;
+- the M18 transfer register and complete M0–M18 application, privacy, publication, workflow, crawl and security boundaries;
 - `docs/architecture/IMPLEMENTATION-LEDGER.md`.
 
-Principal M18 files:
+Principal M19 files:
 
-- `docs/runbooks/m18-final-qa.md`
-- `docs/runbooks/local-development.md` and `README.md`
+- `docs/runbooks/m19-deployment-preparation.md`
+- `config/environment-schema.ts`, `next.config.ts` and `lib/seo/robots.ts`
+- `docs/PRE-LAUNCH-PLACEHOLDERS.md`, `supabase/migrations/README.md` and `README.md`
 - `docs/architecture/IMPLEMENTATION-LEDGER.md`
 - this handoff file.
 
-Dependencies/blockers: no local M18 blocker remains. No production database/storage/provider/domain operation was performed. Deployed TLS/HSTS/CSP, production Supabase/Auth/Storage, Turnstile hostname, Resend identity, malware scanner, logs, backup/restore, DNS, provider callbacks, approved production content/configuration, legal copy, physical-device and field-performance evidence remain M19/pre-launch gates.
+Dependencies/blockers: no local engineering blocker remains. Staging and production Netlify/Supabase
+targets, provider credentials and recovery ownership, real Turnstile/Resend/scanner behavior, encrypted
+production backup scheduling, deployed TLS/HSTS/CSP/logs/rollback, DNS control, approved business
+configuration/inventory/media/brand/editorial copy, qualified legal approval, physical devices and
+staging/field performance evidence remain blocking or explicit approval gates.
 
-Required M18 checks: full clean-state qualification, all critical journeys, cross-milestone invariants, public/admin/forms/data integrity, eight-width responsive coverage, accessibility, Chromium/WebKit, representative performance, SEO, privacy, M17 security regression, recovery, configuration/provider/audit/isolation/flakiness/code/documentation review, exhaustive Definition-of-Done mapping and production build. All locally executable checks pass; production-only checks are explicitly transferred, not marked passed.
+Required M19 checks: launch-gate transfer/reconciliation; authoritative environment/provider/migration/
+storage/admin/backup/restore/rollback/DNS/security/operations procedures; local restore proof; clean
+database/static/unit/component/integration/E2E/build regression; and honest classification of every
+unavailable staging/owner/legal/device/field criterion. All locally executable checks pass; external
+criteria retain `BLOCKED`, `OWNER APPROVAL REQUIRED`, `LEGAL APPROVAL REQUIRED` or
+`DEPLOYMENT-TIME CHECK` status.
 
 ## 5. Completed Implementation
 
 ### Foundation
 
-Next.js 16 App Router, React 19, strict TypeScript, Tailwind 4, shadcn configuration, ESLint, Prettier, environment validation, server-only graph enforcement, secret scanning, public/admin route-group shells, error/not-found foundations, Vitest/component/Playwright scaffolds, synthetic builders, a stateful-test production guard, local Supabase structure and GitHub Actions CI are implemented and validated.
+Next.js 16 App Router, React 19, strict TypeScript, Tailwind 4, shadcn configuration, ESLint, Prettier, environment validation, server-only graph enforcement, secret scanning, public/admin route-group shells, error/not-found foundations, Vitest/component/Playwright scaffolds, synthetic builders, a stateful-test production guard, local Supabase structure and GitHub Actions CI are implemented and validated. M19 makes deployment validation fail closed for unsafe origins, incomplete security/provider pairs and Netlify/application-environment mismatches; only explicit `APP_ENV=production` is indexable.
 
 ### Database
 
@@ -309,9 +325,10 @@ docs/
     local-development.md                    isolated local workflow and guarded qualification commands
     m17-security-hardening.md               actor/resource matrix and production-only security gates
     m18-final-qa.md                         final local QA evidence and M19/pre-launch transfer
+    m19-deployment-preparation.md           authoritative deployment and launch-gate register
 ```
 
-There is no `.openai/hosting.json`; no hosting/deployment is configured. The approved Living Space logo reference is present, while the old reference-app source is intentionally unavailable. Git is on `main`. The `.gitignore` excludes secrets, environment files, dependencies, generated output including the copied MapLibre worker, local Supabase runtime and provider state. M0–M18 are complete; M19 has not begun.
+There is no `.openai/hosting.json`; no hosting/deployment is configured. The approved Living Space logo reference is present, while the old reference-app source is intentionally unavailable. Git is on `main`. The `.gitignore` excludes secrets, environment files, dependencies, generated output including the copied MapLibre worker, local Supabase runtime and provider state. M0–M18 are complete; M19 local engineering preparation is complete under a conditional hold and production remains unauthorized.
 
 ## 7. Database State
 
@@ -608,16 +625,24 @@ The environment schema and `.env.example` contain names only. Never store actual
 | M18 manual/cross-browser/responsive/a11y | PASS | 2026-09-07 | Semantic production-build review plus Chromium/WebKit smoke at 390/1728; exact E2E widths cover 320/375/390/430/768/1024/1440/1728; axe and keyboard assertions pass |
 | M18 performance/SEO | PASS | 2026-09-07 | Five-page local Lighthouse sample records Perf 92–97, A11y/BP 100, indexable-page SEO 100, CLS 0 and TBT ≤55 ms; 3.09 s home median LCP transferred to staging/field validation |
 | M18 Definition of Done | PASS | 2026-09-07 | All 702 identifiers are exhaustively reconciled in `docs/runbooks/m18-final-qa.md`; every local MUST PASS succeeds and inherently external evidence is explicitly transferred |
+| M19 environment/deployment safety | PASS | 2026-09-07 | Preview/production validation, canonical separation, Turnstile/HMAC/email/map/scanner pairing, Netlify context matching, non-production noindex and empty sitemap are implemented and regression-tested |
+| M19 database/recovery preparation | PASS | 2026-09-07 | All 17 migrations are checksummed/audited; five buckets and secure initial-admin bootstrap are documented; local full restore matches row/Auth/storage/RLS/policy evidence and its isolated artifacts were removed |
+| M19 complete automated matrix | PASS | 2026-09-07 | Clean 17-migration reset and lint, 600 pgTAP assertions, 24-way concurrency, 151 unit, 55 component, 52 guarded integration and definitive 56-scenario Chromium E2E pass |
+| M19 static/security/build | PASS | 2026-09-07 | Lint, Prettier, strict TypeScript, 17-client boundary scan, 404-file/current-history secret scan and Next.js 16.3.4 production-context webpack build/client-output scan pass |
+| M19 external launch gates | CONDITIONAL HOLD | 2026-09-07 | No staging/deployed/provider/legal/content/device/field evidence was available; exact owners, evidence, actions and approvals are recorded in `docs/runbooks/m19-deployment-preparation.md` |
 
 ## 14. Known Issues
 
 ### Blocking
 
-None. Every locally executable M18 completion criterion passes; M19 has not begun.
+Production launch is blocked by the external gates named in the M19 transfer register: staging and
+production provider targets/credentials, staged smoke and rollback evidence, DNS and deployed
+security observation, owner-approved business/content/analytics/operations inputs, qualified legal
+approval, physical-device checks and staging/field performance. No local code or test blocker remains.
 
 ### Important
 
-1. **Provider facts are dated.** Revalidate current terms/free limits before configuration or launch.
+1. **Provider facts are current only as of 2026-09-07.** M19 revalidated the official Netlify, Supabase, Resend, Turnstile, OpenFreeMap and Cloudflare Web Analytics terms/limits; recheck them again at configuration or launch.
 2. **ESLint compatibility warning.** Clean install succeeds, but npm reports ESLint 9 as deprecated; Next 16's bundled lint plugins do not yet declare ESLint 10 peer compatibility. Upgrade when the dependency set supports it without overrides.
 3. **Supabase CLI update available.** Local validation used pinned CLI `2.104.0`; `2.116.0` is available. Upgrade only with a reviewed migration/reset regression run.
 4. **Field performance still needs staging evidence.** The M18 three-sample local homepage Lighthouse LCP median was 3.09 s against the 2.5 s field target; CLS and TBT were healthy. Recheck with the selected host/CDN, approved imagery and real-user monitoring before launch.
@@ -644,7 +669,7 @@ None. Every locally executable M18 completion criterion passes; M19 has not begu
 
 Production migration, bucket creation, map-provider selection, contact configuration, malware-provider activation, lawyer copy approval and public deployment remain unperformed approval gates.
 
-No M14, M15, M17 or M18 ADR was created. M14 implements ADR-0001 directly. M15 uses the already-approved owner state model, private-document boundary and Draft publication gate. M16 creates ADR-0005 to close the explicitly recorded redirect-history and guide-media persistence gaps. M17 hardens those approved boundaries without changing the domain architecture. M18 adds qualification evidence and documentation corrections only.
+No M14, M15, M17, M18 or M19 ADR was created. M14 implements ADR-0001 directly. M15 uses the already-approved owner state model, private-document boundary and Draft publication gate. M16 creates ADR-0005 to close the explicitly recorded redirect-history and guide-media persistence gaps. M17 hardens those approved boundaries without changing the domain architecture. M18 adds qualification evidence and documentation corrections only. M19 adds deployment guardrails and operational evidence without changing the approved topology or domain model.
 
 The non-ADR M0 reconciliation decisions are recorded in `docs/DECISIONS.md`: later finalized documents refine master examples where the master describes them as recommendations/high-level guidance; the owner-designated design report is the authoritative Living Space brand/design reference; the approved Living Space logo is a reference asset rather than an automatically relabeled Land Space logo; missing photography may use only clearly marked development placeholders tracked for replacement.
 
@@ -660,7 +685,7 @@ Build-tooling note: the default production build uses Next's supported webpack b
 
 ## 17. Pending Owner Decisions / Approval Gates
 
-Future explicit approval gates (not currently requested):
+Open explicit approval gates:
 
 - public legal/verification terminology requires qualified Gujarat property-lawyer approval under the verification architecture;
 - production infrastructure and production deployment;
@@ -697,16 +722,16 @@ Do not invent production values or fabricate property/geography records to popul
 
 ## 19. Exact Next Actions
 
-1. Preserve M18 QA commit `bc68a2c` and this clean handoff. M19 remains unstarted until the owner explicitly continues it.
-2. Use `docs/runbooks/m18-final-qa.md` as the M18 disposition/transfer record and `docs/runbooks/m17-security-hardening.md` as the security matrix; never convert an external gate into PASS without its evidence.
-3. Begin M19 only with a separate staging/production plan and the required owner approvals; keep staging noindex and production operations approval-gated.
-4. Verify deployed TLS/HSTS/CSP, Supabase/Auth/Storage isolation, Turnstile, Resend, malware scanning, logs, backup/restore, rollback, DNS/callbacks, devices and staging/field performance.
-5. Replace or explicitly approve every real inventory/media/contact/map/brand/legal item in the pre-launch register without importing real private data before authorization.
-6. Preserve forced RLS/default-deny ACLs, streamed upload bounds, origin/Fetch Metadata, rate/replay, secure cookies, secret scans and every public privacy/publication/verification invariant.
-7. Keep all verification public copy disabled until its exact wording receives recorded qualified lawyer approval.
+1. Preserve M19 implementation/runbook commit `b8ffaa0` and this clean handoff; use `docs/runbooks/m19-deployment-preparation.md` as the authoritative launch register.
+2. Obtain owner-controlled Netlify and separate staging/production Supabase access, then execute only the staging procedure with synthetic data and `APP_ENV=preview`.
+3. Collect the required staging TLS/HSTS/CSP/log, Supabase/Auth/Storage, Turnstile, approved-email/scanner, rollback, smoke, performance and physical-device evidence.
+4. Obtain explicit owner approvals for provider/cost/recovery/DNS/business/content/analytics/operations values and qualified Gujarat property-counsel approval for legal/verification/consent wording.
+5. Reconcile every remaining `BLOCKED`, `OWNER APPROVAL REQUIRED`, `LEGAL APPROVAL REQUIRED` and `DEPLOYMENT-TIME CHECK` row before seeking one explicit production-launch approval.
+6. Preserve forced RLS/default-deny ACLs, streamed upload bounds, origin/Fetch Metadata, rate/replay, secure cookies, non-production noindex and every public privacy/publication/verification invariant.
+7. Do not deploy production, run its migrations, change DNS, enter real credentials/data or activate paid providers without the exact approval named in the register.
 
 ## 20. Resume Instructions For The Next Coding Agent
 
-> You are continuing an existing UrbanEdge Land Space implementation after M18. M0–M18 are complete and M19 has not begun. Start from M18 QA commit `bc68a2c` plus the following handoff commit. Read this file, `docs/architecture/IMPLEMENTATION-LEDGER.md`, `docs/runbooks/m18-final-qa.md`, `docs/runbooks/m17-security-hardening.md` and ADR-0001 through ADR-0005 before acting. The local database is disposable and isolated; production remains untouched. M19 is deployment preparation/staging validation and remains owner-approval gated. Preserve M17's forced-RLS/default ACL, explicit projection/RPC, upload/origin/session/header/secret and hostile-path boundaries, plus every earlier privacy/publication/workflow/crawl invariant. Do not invent PASS evidence for the external criteria transferred by M18.
+> You are continuing UrbanEdge Land Space after M19 implementation/runbook commit `b8ffaa0` and the following clean handoff commit. M0–M18 are complete; M19 is on a CONDITIONAL HOLD because local engineering preparation passes but staging/provider/owner/legal/device/field evidence remains unavailable. Read this file, `docs/runbooks/m19-deployment-preparation.md`, `docs/architecture/IMPLEMENTATION-LEDGER.md`, the M18/M17 runbooks and ADR-0001 through ADR-0005 before acting. Treat the M19 transfer register and pre-launch reconciliation as authoritative. The local database is disposable and production remains untouched. Do not convert any external row to PASS without its named evidence and approval; do not launch, migrate production, change DNS, enter real secrets/data, enable billing or submit search properties without explicit authorization. Preserve forced RLS/default ACLs, explicit projections/RPCs, upload/origin/session/header/secret defenses, non-production noindex and all privacy/publication/workflow/verification invariants.
 
 Special warning: owner submissions must never auto-publish, site-visit requests must never auto-confirm, and no public payload may contain owner PII, private documents/evidence/internal notes, unpublished inventory or exact coordinates for approximate/hidden listings.
