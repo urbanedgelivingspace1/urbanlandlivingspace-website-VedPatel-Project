@@ -2,7 +2,7 @@
 
 import { describe, expect, it, vi } from "vitest";
 
-import { serverEnvironmentSchema } from "@/config/environment-schema";
+import { serverEnvironmentSchema, type ServerEnvironment } from "@/config/environment-schema";
 import {
   isTrustedOrigin,
   privacyHash,
@@ -30,14 +30,23 @@ const base = {
   idempotencyKey: "93000000-0000-4000-8000-000000000099",
 };
 
-const environment = (app: "local" | "production" = "local") =>
-  serverEnvironmentSchema.parse({
-    APP_ENV: app,
+const environment = (app: "local" | "production" = "local"): ServerEnvironment => {
+  const local = serverEnvironmentSchema.parse({
+    APP_ENV: "local",
     NEXT_PUBLIC_SITE_URL: "https://land.example",
     NEXT_PUBLIC_SUPABASE_URL: "https://synthetic.supabase.co",
     NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon",
     SUPABASE_SERVICE_ROLE_KEY: "service",
   });
+  return app === "production"
+    ? {
+        ...local,
+        APP_ENV: "production",
+        NEXT_PUBLIC_SITE_URL: "https://urbanedgelandspace.com",
+        HMAC_SECRET: "synthetic-production-hmac",
+      }
+    : local;
+};
 
 describe("M13 public demand domain", () => {
   it("normalizes valid Indian mobile formats and rejects unsupported numbers", () => {
@@ -262,14 +271,16 @@ describe("M13 public demand domain", () => {
       NEXT_PUBLIC_TURNSTILE_SITE_KEY: "site-key",
       TURNSTILE_SECRET_KEY: "secret-key",
     });
-    const fetcher = vi
-      .fn<typeof fetch>()
-      .mockResolvedValue(
-        new Response(
-          JSON.stringify({ success: true, hostname: "land.example", action: "property_inquiry" }),
-          { status: 200 },
-        ),
-      );
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          success: true,
+          hostname: "urbanedgelandspace.com",
+          action: "property_inquiry",
+        }),
+        { status: 200 },
+      ),
+    );
     await expect(
       verifyTurnstile(
         configured,
@@ -297,6 +308,7 @@ describe("M13 public demand domain", () => {
       ...environment(),
       RESEND_API_KEY: "resend-key",
       EMAIL_FROM: "UrbanEdge <notifications@example.com>",
+      EMAIL_REPLY_TO: "replies@example.com",
       ADMIN_NOTIFICATION_EMAIL: "admin@example.com",
     });
     await expect(

@@ -43,8 +43,10 @@ configuration. Never commit real values.
   destinations and production configuration remain pre-launch inputs.
 
 The complete local V1 engineering qualification is recorded in
-`docs/runbooks/m18-final-qa.md`. Its PASS is not a production launch approval; deployment and
-production-only evidence belong to M19/pre-launch.
+`docs/runbooks/m18-final-qa.md`. M19 deployment preparation and the authoritative launch-gate
+register are recorded in `docs/runbooks/m19-deployment-preparation.md`. M19 is on a conditional
+hold: no staging or production deployment, DNS change, real credential, or production operation has
+been authorized.
 
 ## Public search
 

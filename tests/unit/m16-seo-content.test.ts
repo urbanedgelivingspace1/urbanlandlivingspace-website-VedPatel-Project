@@ -50,6 +50,8 @@ describe("M16 canonical, metadata and crawl policy", () => {
       url: "https://urbanedgelandspace.com/guides/useful",
     });
     expect(effectiveRobots(INDEX_FOLLOW, "preview")).toEqual(NOINDEX_NOFOLLOW);
+    expect(effectiveRobots(INDEX_FOLLOW, undefined)).toEqual(NOINDEX_NOFOLLOW);
+    expect(effectiveRobots(INDEX_FOLLOW, "production")).toEqual(INDEX_FOLLOW);
   });
 
   it("keeps filters, private surfaces and query URLs out of the sitemap", () => {

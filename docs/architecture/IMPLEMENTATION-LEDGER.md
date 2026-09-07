@@ -1,8 +1,8 @@
 # UrbanEdge Land Space V1 — Implementation Ledger
 
-**Ledger status:** M0–M18 COMPLETE; the full V1 implementation has passed clean-state local release qualification, with deployment/provider/legal/device/field checks explicitly transferred to M19/pre-launch.
+**Ledger status:** M0–M18 COMPLETE; M19 engineering preparation is complete under a CONDITIONAL HOLD. Production remains blocked by staging/provider/owner/legal/device/field gates.
 
-**Last reconciled:** 7 September 2026 (M18: clean rebuild, exhaustive Definition-of-Done audit, whole-system journeys, responsive/accessibility/browser/performance/SEO/privacy/security/recovery qualification and production build)
+**Last reconciled:** 7 September 2026 (M19: deployment contract, staging/production isolation plan, current provider review, migration/storage/admin/backup/restore/rollback/DNS/security/smoke/operations gates and final local release-candidate qualification)
 
 This ledger is the single implementation-facing map required by `12-IMPLEMENTATION-ROADMAP.md`. It does not replace the source documents. When this ledger conflicts with a source, the source hierarchy in the owner's build brief applies.
 
@@ -656,6 +656,7 @@ No unresolved M0 blocker remains.
 - ADR-0005 preserves canonical history without route guessing, constrains guide hero media to approved public imagery and keeps all content mutations behind active-admin plus service-role authorization.
 - The M17 negative matrix verifies forced RLS, deny-by-default RPCs, projection/storage privacy, active-admin authorization and hostile public inputs without changing the approved domain architecture; no new ADR is required.
 - The M18 clean-state qualification reconciles all 702 Definition-of-Done identifiers, passes every locally executable MUST PASS gate and transfers only inherently deployed/provider/legal/device/field requirements to M19/pre-launch; no new ADR is required.
+- M19 closes every locally actionable transfer item with an explicit environment contract, deployment and rollback procedures, a successful isolated restore drill, current provider/quota evidence and a full `14-PRE-LAUNCH-CHECKLIST.md` reconciliation. External evidence remains blocked or approval-gated and is not represented as PASS.
 
 ## 17. Milestone status
 
@@ -694,6 +695,7 @@ No unresolved M0 blocker remains.
 | M16 | COMPLETE | Two curated district pages and six approved district/category combinations, quality-gated category/transaction content, database-backed guide publishing, protected content administration, persistent canonical redirects, centralized metadata, deterministic robots/sitemap, accurate JSON-LD, visible/structured breadcrumbs and privacy-safe internal linking pass 567 pgTAP, 139 unit, 55 component, 49 integration and 51 E2E assertions/scenarios plus full QA/build |
 | M17 | COMPLETE | All 64 application tables force RLS; 14 public views and two browser-callable functions are explicitly allowlisted; 58 SECURITY DEFINER functions use an empty search path; storage/uploads, admin auth, public actions, CSRF, Turnstile, rate/replay, URL/redirect, headers/CSP, cookies, secrets, client boundaries, cache/SEO privacy, dependencies, concurrency and business abuse pass 600 pgTAP, 147 unit, 55 component, 52 integration and 56 E2E assertions/scenarios plus full QA/build |
 | M18 | COMPLETE | Clean lockfile install and zero-state 17-migration rebuild; 600 pgTAP assertions, 24-way concurrency, 147 unit, 55 component, 52 integration and definitive 56-scenario E2E pass; static/boundary/current-history/client-secret/dependency/build gates pass; Chromium/WebKit, exact-width responsive, accessibility, representative Lighthouse, SEO/privacy/security/recovery and all 702 Definition-of-Done identifiers are reconciled in `docs/runbooks/m18-final-qa.md` |
+| M19 | CONDITIONAL HOLD | Authoritative transfer/launch-gate register, strict environment/build validation, separate Netlify/Supabase staging plan, current provider/quota review, 17-migration checksum audit, five-bucket/admin/backup/restore/rollback/DNS/TLS/CSP/smoke/operations plans, successful isolated local restore and complete checklist reconciliation are recorded in `docs/runbooks/m19-deployment-preparation.md`; local regression/build passes, but no staging/production account, credential, deployment, DNS action, legal approval, real content or device evidence was available |
 
 M9 adds no table, enum or ADR. The ninth migration adds the authoritative structured readiness function, service-only publish/unpublish and safe archive/restore semantics, an archived/off-market integrity constraint and the `public_property_indexability` view. Publication and availability remain independent; all seeded public verification copy remains unapproved.
 
@@ -726,3 +728,15 @@ M17 adds no table, enum or ADR. Its migration forces RLS on all 64 application t
 Application hardening adds a streamed 21 MiB multipart ceiling, explicit multipart-only handling, Fetch Metadata defense alongside exact-origin checks, credential-free HTTPS validation, comprehensive environment-aware security headers, production HSTS, `HttpOnly`/`SameSite=Lax` admin cookies and a safe active-admin-only health page. Storage usage is computed by one service-only aggregate rather than returning unbounded private rows. Secret scanning covers the current tree and reachable history, and production builds scan client output for server-only secret names/values. The complete evidence, actor/resource matrix, accepted risks and production-only gates are recorded in `docs/runbooks/m17-security-hardening.md`.
 
 M18 adds no application feature, table, enum, migration or ADR. It qualifies the integrated M0–M17 system from a clean disposable state and records the complete evidence in `docs/runbooks/m18-final-qa.md`. Actual database inspection reports 64 RLS-forced application tables, 15 views, 181 indexes, 7 sequences, 32 enums, 71 functions, 58 definer functions, 57 non-internal triggers and 95 policies. One duplicate-column-order non-unique verification index is retained as a recommended future query-plan-reviewed cleanup rather than introducing release risk. All locally executable release gates pass; production infrastructure, provider delivery/scanning, legal approval, backup/rollback, deployed browser/device and field-performance evidence remain approval-gated M19/pre-launch work.
+
+M19 adds no table, enum, migration or ADR. It fixes the deployment contract so preview/production
+builds reject unsafe origins, incomplete Turnstile/email/map/scanner configuration and missing HMAC
+secrets; Netlify context cannot be paired with the wrong application environment. Crawl behavior now
+keys from `APP_ENV`, so only explicit production is indexable and every other environment has an
+empty sitemap. The authoritative M19 runbook preserves Netlify + Supabase as the accepted topology,
+records current free-tier/terms risks, checksums all 17 migrations, defines the five-bucket and secure
+initial-admin contracts, proves a full isolated local restore, and supplies staging, backup, rollback,
+DNS/TLS/CSP, smoke, performance, device, legal, content, analytics, operations and quota gates. The
+local candidate passes 600 pgTAP assertions, 24-way concurrency, 151 unit, 55 component, 52
+integration and 56 E2E tests plus all static/security/build checks. M19 remains a conditional hold;
+production launch is not authorized.

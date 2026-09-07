@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 import { buildSecurityHeaders } from "./config/security-headers";
+import { serverEnvironmentSchema } from "./config/environment-schema";
 
 function remotePatternFor(rawUrl: string | undefined) {
   if (!rawUrl) return null;
@@ -42,10 +43,28 @@ const connectOrigins = [
   originFor(process.env.NEXT_PUBLIC_SUPABASE_URL),
   originFor(process.env.NEXT_PUBLIC_MAP_STYLE_URL),
 ].filter((value): value is string => Boolean(value));
+const applicationEnvironment = process.env.APP_ENV;
+const netlifyContext = process.env.CONTEXT;
+
+if (applicationEnvironment === "preview" || applicationEnvironment === "production") {
+  serverEnvironmentSchema.parse(process.env);
+}
+if (netlifyContext === "production" && applicationEnvironment !== "production") {
+  throw new Error("Netlify production builds require APP_ENV=production.");
+}
+if (
+  netlifyContext &&
+  netlifyContext !== "production" &&
+  netlifyContext !== "dev" &&
+  applicationEnvironment === "production"
+) {
+  throw new Error("Netlify non-production deploy contexts must not use APP_ENV=production.");
+}
+
 const isLocalBuild = ["local", "test"].includes(process.env.APP_ENV ?? "");
-const isPreviewDeployment = Boolean(
-  process.env.VERCEL_ENV && process.env.VERCEL_ENV !== "production",
-);
+const isPreviewDeployment =
+  applicationEnvironment === "preview" ||
+  Boolean(netlifyContext && netlifyContext !== "production" && netlifyContext !== "dev");
 const isProduction = process.env.APP_ENV === "production";
 const isDevelopment = process.env.NODE_ENV !== "production";
 

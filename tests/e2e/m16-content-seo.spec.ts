@@ -215,13 +215,11 @@ test("all six approved location-category routes work and link to relevant discov
   }
 });
 
-test("quality-gated category, transaction and filtered-search robots remain intentional", async ({
-  request,
-}) => {
+test("guarded test deployments keep routes non-indexable", async ({ request }) => {
   const agricultural = await request.get("/agricultural-land");
-  expect(await agricultural.text()).toContain('name="robots" content="index, follow"');
+  expect(await agricultural.text()).toContain('name="robots" content="noindex, nofollow"');
   const buy = await request.get("/buy");
-  expect(await buy.text()).toContain('name="robots" content="index, follow"');
+  expect(await buy.text()).toContain('name="robots" content="noindex, nofollow"');
   const filtered = await request.get("/properties?category=na&district=ahmedabad");
   const filteredHtml = await filtered.text();
   expect(filteredHtml).toContain('name="robots" content="noindex, follow"');
@@ -237,19 +235,15 @@ test("property metadata and JSON-LD never expose hidden exact location", async (
   expect(html).not.toContain(privateCanary);
   expect(html).not.toContain("23.022505");
   expect(html).not.toContain("72.571365");
+  expect((await request.get(`/properties/${draftPropertySlug}`)).status()).toBe(404);
 });
 
-test("sitemap contains only approved canonical content", async ({ request }) => {
+test("guarded test deployments expose an empty sitemap", async ({ request }) => {
   const response = await request.get("/sitemap.xml");
   const xml = await response.text();
-  expect(xml).toContain("/locations/ahmedabad/agricultural-land");
-  expect(xml).toContain(`/properties/${publishedPropertySlug}`);
-  expect(xml).toContain("/guides/practical-checklist-before-enquiring-about-land");
-  expect(xml).not.toContain(draftPropertySlug);
-  expect(xml).not.toContain(draftGuideSlug);
-  expect(xml).not.toContain("/locations/gandhinagar/na-land");
-  expect(xml).not.toMatch(/<loc>[^<]*\?/);
-  expect(xml).not.toContain("/admin");
+  expect(response.status()).toBe(200);
+  expect(xml).toContain("<urlset");
+  expect(xml).not.toContain("<url>");
 });
 
 test("published guide renders while draft guide and admin content remain inaccessible", async ({
