@@ -5,6 +5,10 @@ import { getPublicEnvironment } from "@/config/public-environment-schema";
 import type { Database } from "@/types/database";
 
 export async function proxy(request: NextRequest) {
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    return NextResponse.next({ request });
+  }
+
   const environment = getPublicEnvironment();
   let response = NextResponse.next({ request });
   const client = createServerClient<Database>(

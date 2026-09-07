@@ -7,6 +7,9 @@ export const metadata: Metadata = { title: "Admin sign in" };
 const messages: Readonly<Record<string, string>> = {
   invalid_input: "Check the email and password format and try again.",
   invalid_credentials: "The credentials could not be verified.",
+  rate_limited: "Too many sign-in attempts. Please wait a moment and try again.",
+  service_unavailable:
+    "Authentication service is temporarily unavailable. Please try again shortly.",
   no_session: "Your session has expired. Sign in again.",
   not_active_admin: "This account is not authorized for the admin workspace.",
   unauthorized: "Admin authorization could not be verified.",
