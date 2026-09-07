@@ -86,4 +86,72 @@ describe("serverEnvironmentSchema", () => {
       }),
     ).toThrow(/configured together/);
   });
+
+  it("sanitizes accidental outer quotes and whitespace from environment values", () => {
+    const parsed = serverEnvironmentSchema.parse({
+      ...validEnvironment,
+      NEXT_PUBLIC_SITE_URL: ' "http://localhost:3000" ',
+      SUPABASE_SERVICE_ROLE_KEY: ' "synthetic-service-role-key" ',
+    });
+    expect(parsed.NEXT_PUBLIC_SITE_URL).toBe("http://localhost:3000");
+    expect(parsed.SUPABASE_SERVICE_ROLE_KEY).toBe("synthetic-service-role-key");
+  });
+
+  it("validates JWT project ref and role matching in deployed environments", () => {
+    const makeJwt = (payload: object) =>
+      "eyJhbGciOiJIUzI1NiJ9." + Buffer.from(JSON.stringify(payload)).toString("base64") + ".sig";
+
+    const baseDeployed = {
+      ...validEnvironment,
+      APP_ENV: "preview" as const,
+      NEXT_PUBLIC_SITE_URL: "https://preview.urbanedge.app",
+      NEXT_PUBLIC_SUPABASE_URL: "https://staging-proj.supabase.co",
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: "site-key",
+      TURNSTILE_SECRET_KEY: "secret-key",
+      HMAC_SECRET: "hmac-secret",
+    };
+
+    // Mismatched project ref
+    expect(() =>
+      serverEnvironmentSchema.parse({
+        ...baseDeployed,
+        SUPABASE_SERVICE_ROLE_KEY: makeJwt({
+          iss: "supabase",
+          ref: "wrong-project",
+          role: "service_role",
+        }),
+      }),
+    ).toThrow(
+      /belongs to project 'wrong-project', but NEXT_PUBLIC_SUPABASE_URL is for 'staging-proj'/,
+    );
+
+    // Wrong role (e.g. anon key provided where service role is required)
+    expect(() =>
+      serverEnvironmentSchema.parse({
+        ...baseDeployed,
+        SUPABASE_SERVICE_ROLE_KEY: makeJwt({
+          iss: "supabase",
+          ref: "staging-proj",
+          role: "anon",
+        }),
+      }),
+    ).toThrow(/SUPABASE_SERVICE_ROLE_KEY role must be 'service_role', but got 'anon'/);
+
+    // Valid matching service_role key
+    expect(() =>
+      serverEnvironmentSchema.parse({
+        ...baseDeployed,
+        SUPABASE_SERVICE_ROLE_KEY: makeJwt({
+          iss: "supabase",
+          ref: "staging-proj",
+          role: "service_role",
+        }),
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: makeJwt({
+          iss: "supabase",
+          ref: "staging-proj",
+          role: "anon",
+        }),
+      }),
+    ).not.toThrow();
+  });
 });

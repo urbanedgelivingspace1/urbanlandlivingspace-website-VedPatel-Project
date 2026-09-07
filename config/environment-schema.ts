@@ -2,10 +2,40 @@ import { z } from "zod";
 
 const CANONICAL_PRODUCTION_ORIGIN = "https://urbanedgelandspace.com";
 
-const emptyToUndefined = (value: unknown) => (value === "" ? undefined : value);
+const cleanString = (value: unknown) => {
+  if (typeof value !== "string") return value;
+  const trimmed = value.trim();
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1).trim();
+  }
+  return trimmed;
+};
+
+const emptyToUndefined = (value: unknown) => {
+  const cleaned = cleanString(value);
+  return cleaned === "" ? undefined : cleaned;
+};
 const optionalString = z.preprocess(emptyToUndefined, z.string().min(1).optional());
 const optionalEmail = z.preprocess(emptyToUndefined, z.email().optional());
 const optionalUrl = z.preprocess(emptyToUndefined, z.url().optional());
+const sanitizedRequiredString = z.preprocess(cleanString, z.string().min(1));
+const sanitizedUrl = z.preprocess(cleanString, z.url());
+
+function extractJwtPayload(token: string): { ref?: string; role?: string } | null {
+  try {
+    const parts = token.split(".");
+    const payloadPart = parts[1];
+    if (!payloadPart) return null;
+    const json = Buffer.from(payloadPart, "base64").toString("utf8");
+    const payload = JSON.parse(json);
+    return typeof payload === "object" && payload !== null ? payload : null;
+  } catch {
+    return null;
+  }
+}
 
 function addRequiredIssue(
   context: z.core.$RefinementCtx<Record<string, unknown>>,
@@ -18,10 +48,10 @@ function addRequiredIssue(
 export const serverEnvironmentSchema = z
   .object({
     APP_ENV: z.enum(["local", "preview", "production", "test"]),
-    NEXT_PUBLIC_SITE_URL: z.url(),
-    NEXT_PUBLIC_SUPABASE_URL: z.url(),
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
-    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+    NEXT_PUBLIC_SITE_URL: sanitizedUrl,
+    NEXT_PUBLIC_SUPABASE_URL: sanitizedUrl,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: sanitizedRequiredString,
+    SUPABASE_SERVICE_ROLE_KEY: sanitizedRequiredString,
     RESEND_API_KEY: optionalString,
     EMAIL_FROM: optionalString,
     EMAIL_REPLY_TO: optionalString,
@@ -36,17 +66,16 @@ export const serverEnvironmentSchema = z
     ),
     HMAC_SECRET: optionalString,
     WEBHOOK_SIGNING_SECRET: optionalString,
-    STORAGE_PROPERTY_MEDIA_PUBLIC_BUCKET: z.string().min(1).default("property-media-public"),
-    STORAGE_PROPERTY_MEDIA_PRIVATE_BUCKET: z.string().min(1).default("property-media-private"),
-    STORAGE_VERIFICATION_DOCUMENTS_PRIVATE_BUCKET: z
-      .string()
-      .min(1)
-      .default("verification-documents-private"),
-    STORAGE_OWNER_SUBMISSIONS_PRIVATE_BUCKET: z
-      .string()
-      .min(1)
-      .default("owner-submissions-private"),
-    STORAGE_GUIDE_MEDIA_PUBLIC_BUCKET: z.string().min(1).default("guide-media-public"),
+    STORAGE_PROPERTY_MEDIA_PUBLIC_BUCKET: sanitizedRequiredString.default("property-media-public"),
+    STORAGE_PROPERTY_MEDIA_PRIVATE_BUCKET:
+      sanitizedRequiredString.default("property-media-private"),
+    STORAGE_VERIFICATION_DOCUMENTS_PRIVATE_BUCKET: sanitizedRequiredString.default(
+      "verification-documents-private",
+    ),
+    STORAGE_OWNER_SUBMISSIONS_PRIVATE_BUCKET: sanitizedRequiredString.default(
+      "owner-submissions-private",
+    ),
+    STORAGE_GUIDE_MEDIA_PUBLIC_BUCKET: sanitizedRequiredString.default("guide-media-public"),
     STORAGE_SIGNED_URL_TTL_SECONDS: z.coerce.number().int().min(60).max(300).default(120),
     MEDIA_STORAGE_BUDGET_BYTES: z.coerce.number().int().positive().default(1_073_741_824),
     MEDIA_STORAGE_WARNING_PERCENT: z.coerce.number().min(1).max(89).default(70),
@@ -68,6 +97,34 @@ export const serverEnvironmentSchema = z
         "NEXT_PUBLIC_SUPABASE_URL",
         "Deployed environments require an HTTPS Supabase URL.",
       );
+    }
+    if (deployed) {
+      const expectedRef = supabaseUrl.hostname.split(".")[0];
+      const serviceRoleJwt = extractJwtPayload(environment.SUPABASE_SERVICE_ROLE_KEY);
+      if (serviceRoleJwt) {
+        if (serviceRoleJwt.ref && serviceRoleJwt.ref !== expectedRef) {
+          addRequiredIssue(
+            context,
+            "SUPABASE_SERVICE_ROLE_KEY",
+            `SUPABASE_SERVICE_ROLE_KEY belongs to project '${serviceRoleJwt.ref}', but NEXT_PUBLIC_SUPABASE_URL is for '${expectedRef}'.`,
+          );
+        }
+        if (serviceRoleJwt.role && serviceRoleJwt.role !== "service_role") {
+          addRequiredIssue(
+            context,
+            "SUPABASE_SERVICE_ROLE_KEY",
+            `SUPABASE_SERVICE_ROLE_KEY role must be 'service_role', but got '${serviceRoleJwt.role}'.`,
+          );
+        }
+      }
+      const anonJwt = extractJwtPayload(environment.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+      if (anonJwt?.ref && anonJwt.ref !== expectedRef) {
+        addRequiredIssue(
+          context,
+          "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+          `NEXT_PUBLIC_SUPABASE_ANON_KEY belongs to project '${anonJwt.ref}', but NEXT_PUBLIC_SUPABASE_URL is for '${expectedRef}'.`,
+        );
+      }
     }
     if (environment.APP_ENV === "production") {
       if (
