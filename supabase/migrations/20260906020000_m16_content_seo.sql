@@ -104,7 +104,7 @@ where status in ('PUBLISHED', 'NOINDEX') and published_at is not null and archiv
 alter view public.public_seo_pages set (security_invoker = false);
 alter view public.public_seo_pages owner to urbanedge_public_projection;
 grant select on public.public_seo_pages to anon, authenticated;
-reset role;
+set role postgres;
 revoke create on schema public from urbanedge_public_projection;
 do $$
 declare
@@ -188,7 +188,7 @@ where guide.status = 'PUBLISHED' and guide.published_at is not null and guide.ar
 alter view public.public_guides set (security_invoker = false);
 alter view public.public_guides owner to urbanedge_public_projection;
 grant select on public.public_guides to anon, authenticated;
-reset role;
+set role postgres;
 revoke create on schema public from urbanedge_public_projection;
 do $$
 declare

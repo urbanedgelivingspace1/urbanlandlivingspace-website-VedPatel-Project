@@ -100,7 +100,7 @@ to anon, authenticated;
 -- public_property_search stays behind its bounded RPC; it is intentionally not
 -- granted directly because the function owns pagination and query limits.
 revoke all on table public.public_property_search from public, anon, authenticated;
-reset role;
+set role postgres;
 do $$
 declare
   grantor_role text;
@@ -182,7 +182,7 @@ grant execute on function public.search_public_properties(
   numeric, numeric, numeric, numeric, text, public.property_availability_status,
   text, text, text, text, text, text, text, integer, integer
 ) to anon, authenticated, service_role;
-reset role;
+set role postgres;
 do $$
 declare
   grantor_role text;

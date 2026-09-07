@@ -674,7 +674,7 @@ create policy projection_clean_linked_private_documents on public.private_docume
 );
 set role urbanedge_public_projection;
 grant select on public.public_property_verification_summaries to anon, authenticated;
-reset role;
+set role postgres;
 revoke create on schema public from urbanedge_public_projection;
 do $$
 declare

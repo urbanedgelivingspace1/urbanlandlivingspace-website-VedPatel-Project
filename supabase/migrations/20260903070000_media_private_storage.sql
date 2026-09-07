@@ -204,7 +204,7 @@ where p.publication_status = 'PUBLISHED' and p.deleted_at is null and p.archived
 
 grant select on public.public_property_listings, public.public_property_media to anon, authenticated;
 
-reset role;
+set role postgres;
 revoke create on schema public from urbanedge_public_projection;
 do $$
 declare

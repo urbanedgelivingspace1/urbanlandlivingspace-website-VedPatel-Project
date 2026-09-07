@@ -314,7 +314,7 @@ where publication_status='PUBLISHED' and archived_at is null and deleted_at is n
   and public_slug is not null and published_at is not null;
 comment on view public.public_property_indexability is 'M9 safe source for later sitemap/canonical consumers; only published, non-archived inventory.';
 grant select on public.public_property_indexability to anon,authenticated,service_role;
-reset role;
+set role postgres;
 revoke create on schema public from urbanedge_public_projection;
 do $$
 declare

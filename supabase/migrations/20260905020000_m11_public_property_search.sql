@@ -316,7 +316,7 @@ grant execute on function public.search_public_properties(text,text,public.land_
   public.property_availability_status,text,text,text,text,text,text,text,integer,integer)
   to anon, authenticated, service_role;
 
-reset role;
+set role postgres;
 revoke create on schema public from urbanedge_public_projection;
 do $$
 declare

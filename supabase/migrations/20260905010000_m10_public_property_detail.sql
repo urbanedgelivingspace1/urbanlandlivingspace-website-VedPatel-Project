@@ -177,7 +177,7 @@ comment on view public.public_property_parcel_identifiers is
 grant select on public.public_property_details, public.public_property_parcel_identifiers
   to anon, authenticated, service_role;
 
-reset role;
+set role postgres;
 revoke create on schema public from urbanedge_public_projection;
 do $$
 declare
