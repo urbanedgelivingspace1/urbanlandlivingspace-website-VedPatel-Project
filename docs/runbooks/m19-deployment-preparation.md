@@ -609,4 +609,18 @@ A complete clean local rebuild (`supabase db reset`) from migration 1 through 17
 - Static, boundary, secret, unit, and component tests: PASS
 - Next.js webpack production build: PASS
 
+### Staging deployment verification (`xrqulhapgjqgymrfuclo`)
+
+Following local qualification and preflight cleanup:
+- Residual diagnostic grant to `cli_login_postgres` revoked using recorded grantor (`postgres`).
+- Active migration role restored deterministically via `set role postgres;` across all 7 projection migrations.
+- `supabase db push --dry-run`: cleanly identified migrations 7–17.
+- `supabase db push`: all 11 remaining migrations (7 through 17) applied without manual SQL intervention.
+- `supabase migration list --linked`: all 17 migrations verified synchronized.
+- Application tables: 64 total tables, 64 with RLS enabled, 64 forcing RLS (100%).
+- Public projections: 15 views owned by `urbanedge_public_projection`; SELECT-only for `anon`/`authenticated`; `public_property_search` restricted behind RPC.
+- Function execution: `search_public_properties` executable by `anon`/`authenticated`; `is_active_admin` restricted to `authenticated`; 0 unauthorized public functions; 0 SECURITY DEFINER functions without empty search_path.
+- Storage buckets: 5 buckets verified (`guide-media-public` [public], `property-media-public` [public], `property-media-private` [private], `verification-documents-private` [private], `owner-submissions-private` [private]).
+- Role memberships: 0 unexpected temporary memberships; permanent cluster-wide admin option preserved.
+
 **PRODUCTION LAUNCH AUTHORIZED: NO**
