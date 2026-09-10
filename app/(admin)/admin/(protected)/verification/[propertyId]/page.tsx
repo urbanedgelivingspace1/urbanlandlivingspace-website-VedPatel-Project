@@ -17,6 +17,7 @@ import {
   retireEvidenceAction,
   transitionVerificationAction,
   updateProfessionalReviewAction,
+  uploadVerificationDocumentAction,
 } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -76,6 +77,7 @@ export default async function VerificationDetailPage({
         retireEvidenceAction={retireEvidenceAction.bind(null, propertyId)}
         resolveExceptionAction={resolveExceptionAction.bind(null, propertyId)}
         updateProfessionalReviewAction={updateProfessionalReviewAction.bind(null, propertyId)}
+        uploadDocumentAction={uploadVerificationDocumentAction.bind(null, propertyId)}
       />
     </div>
   );

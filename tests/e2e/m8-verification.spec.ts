@@ -29,7 +29,8 @@ test("admin completes a scoped evidence workflow while publication stays blocked
 }) => {
   await signIn(page);
   await createAgriculturalDraft(page);
-  await page.getByRole("link", { name: "Manage media" }).click();
+  await page.getByRole("link", { name: /Media/ }).click();
+  await page.getByRole("link", { name: "Upload & manage media" }).click();
   const pdf = Buffer.from(
     "%PDF-1.4\n1 0 obj << /Type /Catalog >> endobj\n2 0 obj << /Type /Page >> endobj\n%%EOF",
   );
@@ -42,9 +43,11 @@ test("admin completes a scoped evidence workflow while publication stays blocked
   await upload.getByRole("button", { name: "Upload" }).click();
   await expect(upload.getByRole("status")).toContainText("scanned clean");
   await page.getByRole("link", { name: "Back to property" }).click();
-  await page.getByRole("main").getByRole("link", { name: "Verification" }).click();
+  await page.getByRole("link", { name: "Review", exact: true }).click();
+  await page.getByRole("link", { name: "Advanced Review ↗" }).click();
   await expect(page).toHaveURL(/\/admin\/verification\/[0-9a-f-]+/);
-  await page.getByRole("button", { name: "Initialize checks" }).click();
+  await page.getByRole("button", { name: "Set up verification checks" }).click();
+  await page.getByRole("button", { name: /View \d+ optional checks/ }).click();
   await expect(
     page.getByRole("heading", { name: "Property identity / parcel references" }),
   ).toBeVisible();
@@ -52,43 +55,26 @@ test("admin completes a scoped evidence workflow while publication stays blocked
   const check = page
     .getByRole("article")
     .filter({ has: page.getByRole("heading", { name: "Property identity / parcel references" }) });
-  await check.getByRole("button", { name: "Apply guarded transition" }).click();
-  await expect(check.getByText("IN REVIEW", { exact: true })).toBeVisible();
-
-  await check.getByRole("combobox", { name: "Private document" }).selectOption({ index: 1 });
-  await check.locator('select[name="evidenceType"]').selectOption("OWNER_DOCUMENT");
-  await check.locator('select[name="sourceClass"]').selectOption("URBANEDGE_OPERATIONAL_POLICY");
-  await check.getByRole("button", { name: "Link as received" }).click();
-  await expect(check.getByText(/OWNER DOCUMENT · RECEIVED/)).toBeVisible();
-  await check.getByRole("button", { name: "Advance to REVIEWED" }).click();
-  await expect(check.getByText(/OWNER DOCUMENT · REVIEWED/)).toBeVisible();
-
-  await check.locator('select[name="target"]').selectOption("PASSED_WITH_NOTE");
+  await check.getByRole("button", { name: "Start check" }).click();
+  await check.getByRole("button", { name: "Continue to proof →" }).click();
+  await check.getByLabel("Available property documents").selectOption({ index: 1 });
+  await check.getByRole("button", { name: "Link document as proof" }).click();
+  await expect(check.getByRole("status")).toContainText("linked and marked as reviewed");
+  await check.getByRole("button", { name: "Continue to review method →" }).click();
+  await check.getByLabel("I reviewed the document").check();
+  await check.getByRole("button", { name: "Continue to review outcome →" }).click();
+  await check.getByLabel(/Something needs attention/).check();
+  await check.getByRole("button", { name: "Continue to summary & save →" }).click();
   await check
-    .getByPlaceholder(/What records, parcel, use/)
-    .fill("Survey number and parcel identity were compared for the named synthetic property.");
-  await check
-    .getByPlaceholder("Explicit limitations")
-    .fill("Identity correspondence only; no title, boundary, or permission conclusion.");
-  await check
-    .getByPlaceholder("Internal notes / exception context")
-    .fill("Owner-provided document was reviewed but was not source-verified.");
-  await check.getByLabel("Recheck date").fill("2099-01-01T00:00");
-  await check.getByRole("button", { name: "Apply guarded transition" }).click();
-  await expect(check.getByText("PASSED WITH NOTE", { exact: true })).toBeVisible();
-  await expect(
-    check.getByText(/lawyer-approved public-copy policy is intentionally absent/),
-  ).toBeVisible();
-
-  await check.getByPlaceholder(/Specific mismatch/).fill("Owner record is not source-verified.");
-  await check
-    .getByPlaceholder("Limitation created by this exception")
-    .fill("Official source confirmation remains outstanding.");
-  await check.getByRole("button", { name: "Record exception" }).click();
-  await expect(check.getByText("Owner record is not source-verified.")).toBeVisible();
+    .getByLabel("Note explaining what needs attention (required)")
+    .fill("Owner record was reviewed; official source confirmation remains outstanding.");
+  await check.getByRole("button", { name: "Save review", exact: true }).click();
+  await expect(check).toContainText("Complete — note attached");
+  await expect(check.getByRole("status")).toContainText("completed successfully");
 
   await page.getByRole("link", { name: "Property" }).click();
   await expect(page.getByText("DRAFT").first()).toBeVisible();
+  await page.getByRole("link", { name: "Review", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Publication readiness" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Publish property" })).toBeDisabled();
 });
@@ -96,19 +82,23 @@ test("admin completes a scoped evidence workflow while publication stays blocked
 test("invalid transitions and unauthorized access remain blocked", async ({ page }) => {
   await signIn(page);
   await createAgriculturalDraft(page);
-  await page.getByRole("main").getByRole("link", { name: "Verification" }).click();
-  await page.getByRole("button", { name: "Initialize checks" }).click();
+  await page.getByRole("link", { name: "Review", exact: true }).click();
+  await page.getByRole("link", { name: "Advanced Review ↗" }).click();
+  await page.getByRole("button", { name: "Set up verification checks" }).click();
+  await page.getByRole("button", { name: /View \d+ optional checks/ }).click();
   const check = page
     .getByRole("article")
     .filter({ has: page.getByRole("heading", { name: "Property identity / parcel references" }) });
-  await check.locator('select[name="target"]').selectOption("IN_REVIEW");
-  await check.getByRole("button", { name: "Apply guarded transition" }).click();
-  await check.locator('select[name="target"]').selectOption("PASSED");
-  await check
-    .getByPlaceholder(/What records, parcel, use/)
-    .fill("Attempted pass without any eligible evidence for the scoped property identity check.");
-  await check.getByRole("button", { name: "Apply guarded transition" }).click();
-  await expect(check.getByRole("status").last()).toContainText("eligible evidence");
+  await check.getByRole("button", { name: "Start check" }).click();
+  await check.getByRole("button", { name: "Continue to proof →" }).click();
+  await check.getByRole("button", { name: "Continue to review method →" }).click();
+  await check.getByRole("button", { name: "Continue to review outcome →" }).click();
+  await check.getByLabel(/Everything looks consistent/).check();
+  await check.getByRole("button", { name: "Continue to summary & save →" }).click();
+  await check.getByRole("button", { name: "Save review", exact: true }).click();
+  await expect(check.getByRole("status")).toContainText(
+    "requires confirmation against an official source",
+  );
 
   await page.context().clearCookies();
   await page.goto("/admin/verification/queue");

@@ -137,6 +137,10 @@ export function PropertyPublicationPanel({
                 guarantee.
               </span>
             </label>
+            <p className="text-xs text-slate-500">
+              Successful publication/update triggers the configured Next.js cache/path revalidation
+              so the public website reflects the change.
+            </p>
             <Submit disabled={!readiness.ready}>Publish property</Submit>
             <Result state={publishState} />
           </form>

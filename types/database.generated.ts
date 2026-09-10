@@ -6664,6 +6664,10 @@ export type Database = {
         Args: { requested_actor_id: string; requested_payload: Json };
         Returns: string;
       };
+      register_lead_private_document: {
+        Args: { requested_actor_id: string; requested_payload: Json };
+        Returns: string;
+      };
       register_property_media: {
         Args: { requested_actor_id: string; requested_payload: Json };
         Returns: string;
@@ -7063,7 +7067,8 @@ export type Database = {
         | "CALL_CLICK"
         | "BUYER_REQUIREMENT"
         | "SITE_VISIT_REQUEST"
-        | "GENERAL_CONTACT";
+        | "GENERAL_CONTACT"
+        | "SELLER_LEAD";
       lead_status:
         | "NEW"
         | "CONTACT_ATTEMPTED"
@@ -7363,6 +7368,7 @@ export const Constants = {
         "BUYER_REQUIREMENT",
         "SITE_VISIT_REQUEST",
         "GENERAL_CONTACT",
+        "SELLER_LEAD",
       ],
       lead_status: [
         "NEW",

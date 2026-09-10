@@ -185,17 +185,19 @@ test("M9 publishes and unpublishes only a complete public-safe property", async 
   await expect(page).toHaveURL(/\/admin\/properties\/[0-9a-f-]+$/);
   const propertyId = page.url().split("/").at(-1) as string;
 
+  await page.getByRole("link", { name: "Review", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Publication readiness" })).toBeVisible();
   await expect(
     page.getByText("Choose one approved public cover image with alt text."),
   ).toBeVisible();
   await expect(page.getByRole("button", { name: "Publish property" })).toBeDisabled();
 
-  await page.getByRole("link", { name: "Public-safe preview" }).click();
+  await page.getByRole("link", { name: "Public preview" }).click();
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   await expect(page.getByText("PRIVATE_M9_E2E_LOCATION_CANARY")).toHaveCount(0);
   await page.getByRole("link", { name: "Back to publication readiness" }).click();
-  await page.getByRole("link", { name: "Manage media" }).click();
+  await page.getByRole("link", { name: /Media/ }).click();
+  await page.getByRole("link", { name: "Upload & manage media" }).click();
   const image = await sharp({
     create: { width: 1200, height: 800, channels: 3, background: "#8d724d" },
   })
@@ -226,9 +228,9 @@ test("M9 publishes and unpublishes only a complete public-safe property", async 
 
   const { client, actorId } = await serviceContext();
   await completeRequiredChecks(client, actorId, propertyId);
-  await page.goto(`/admin/properties/${propertyId}`);
+  await page.goto(`/admin/properties/${propertyId}?tab=review`);
   await expect(page.getByText("NO BLOCKERS")).toBeVisible();
-  await expect(page.getByText(/no gated verification label will appear/)).toBeVisible();
+  await expect(page.getByText(/does not block standard marketing publication/)).toBeVisible();
   await page
     .getByLabel(
       /I reviewed every readiness group and understand publication is not a legal guarantee/,
@@ -259,8 +261,9 @@ test("M9 publishes and unpublishes only a complete public-safe property", async 
   });
   expect(JSON.stringify(published.data)).not.toContain("PRIVATE_M9");
 
-  await page.getByLabel("Next availability").selectOption("SOLD");
-  await page.getByRole("button", { name: "Change availability" }).click();
+  await page.getByRole("link", { name: "Activity" }).click();
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "Mark Property Sold" }).click();
   await expect(page.getByText("SOLD", { exact: true }).first()).toBeVisible();
   const sold = await anonymous
     .from("public_property_listings")
@@ -269,7 +272,7 @@ test("M9 publishes and unpublishes only a complete public-safe property", async 
     .single();
   expect(sold.data?.availability_status).toBe("SOLD");
 
-  await page.reload();
+  await page.getByRole("link", { name: "Review", exact: true }).click();
   await page.getByLabel("Reason for unpublishing").fill("Synthetic M9 E2E removal check");
   await page.getByRole("button", { name: "Unpublish property" }).click();
   await expect(page.getByText("UNPUBLISHED").first()).toBeVisible();

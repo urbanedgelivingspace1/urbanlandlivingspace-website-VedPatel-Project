@@ -7,7 +7,9 @@ import {
   evidenceTypes,
   type VerificationFormState,
 } from "@/features/verification/domain/contracts";
+import { formatTeachingError } from "@/features/verification/domain/guided-verification-config";
 import { requireActiveAdmin } from "@/server/auth/authorization";
+import { uploadPrivatePropertyDocument } from "@/server/services/property-media";
 import {
   advanceVerificationEvidence,
   createVerificationSourceReference,
@@ -55,15 +57,13 @@ function result(
   error?: unknown,
   message = "Verification workflow updated.",
 ): VerificationFormState {
-  return error
-    ? {
-        ok: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : "The verification operation could not be completed.",
-      }
-    : { ok: true, message };
+  if (!error) return { ok: true, message };
+  const rawMessage =
+    error instanceof Error ? error.message : "The verification operation could not be completed.";
+  return {
+    ok: false,
+    message: formatTeachingError(rawMessage),
+  };
 }
 
 export async function initializeVerificationAction(
@@ -75,7 +75,7 @@ export async function initializeVerificationAction(
   try {
     const count = await initializePropertyVerifications(propertyId);
     refresh(propertyId);
-    return result(undefined, `${count} scoped check definitions added.`);
+    return result(undefined, `${count} check requirements initialized.`);
   } catch (error) {
     return result(error);
   }
@@ -89,7 +89,21 @@ export async function transitionVerificationAction(
   await requireActiveAdmin();
   try {
     const target = verificationStatus.parse(String(formData.get("target") ?? ""));
-    await transitionVerification(uuid.parse(String(formData.get("verificationId") ?? "")), target, {
+    const verificationId = uuid.parse(String(formData.get("verificationId") ?? ""));
+    const currentStatus = String(formData.get("currentStatus") ?? "");
+
+    // If starting from NOT_STARTED and moving towards review outcomes (PASSED, etc.)
+    if (currentStatus === "NOT_STARTED" && target !== "IN_REVIEW") {
+      await transitionVerification(verificationId, "IN_REVIEW", {
+        scopeStatement: String(formData.get("scopeStatement") ?? ""),
+        notes: String(formData.get("notes") ?? ""),
+        limitations: String(formData.get("limitations") ?? ""),
+        riskLevel: String(formData.get("riskLevel") ?? "NONE"),
+        reason: "Admin started review",
+      });
+    }
+
+    await transitionVerification(verificationId, target, {
       scopeStatement: String(formData.get("scopeStatement") ?? ""),
       notes: String(formData.get("notes") ?? ""),
       limitations: String(formData.get("limitations") ?? ""),
@@ -97,10 +111,15 @@ export async function transitionVerificationAction(
       riskLevel: String(formData.get("riskLevel") ?? "NONE"),
       referralRequired: formData.get("referralRequired") === "on",
       referralType: String(formData.get("referralType") ?? ""),
-      reason: `Admin requested scoped transition to ${target}`,
+      reason: `Admin recorded review outcome: ${target}`,
     });
     refresh(propertyId);
-    return result(undefined, `Check moved to ${target.replaceAll("_", " ")}.`);
+    return result(
+      undefined,
+      target === "PASSED" || target === "PASSED_WITH_NOTE"
+        ? "Check completed successfully."
+        : `Review updated (${target.replaceAll("_", " ").toLowerCase()}).`,
+    );
   } catch (error) {
     return result(error);
   }
@@ -113,20 +132,64 @@ export async function linkEvidenceAction(
 ): Promise<VerificationFormState> {
   await requireActiveAdmin();
   try {
+    const verificationId = uuid.parse(String(formData.get("verificationId") ?? ""));
     const documentId = String(formData.get("privateDocumentId") ?? "");
     const sourceId = String(formData.get("sourceReferenceId") ?? "");
-    await linkVerificationEvidence(uuid.parse(String(formData.get("verificationId") ?? "")), {
+    const evidenceTypeStr = String(formData.get("evidenceType") ?? "OFFICIAL_RECORD");
+    const sourceClassStr = String(
+      formData.get("sourceClass") ?? "OFFICIAL_ADMINISTRATIVE_PRACTICE",
+    );
+    const advanceTo = String(formData.get("advanceTo") ?? "");
+
+    const newEvidenceId = await linkVerificationEvidence(verificationId, {
       ...(documentId ? { privateDocumentId: uuid.parse(documentId) } : {}),
       ...(sourceId ? { sourceReferenceId: uuid.parse(sourceId) } : {}),
-      evidenceType: z.enum(evidenceTypes).parse(String(formData.get("evidenceType") ?? "")),
-      sourceClass: sourceClass.parse(String(formData.get("sourceClass") ?? "")),
+      evidenceType: z.enum(evidenceTypes).parse(evidenceTypeStr),
+      sourceClass: sourceClass.parse(sourceClassStr),
       evidenceReference: String(formData.get("evidenceReference") ?? ""),
       observedDate: String(formData.get("observedDate") ?? ""),
-      supportsCheck: formData.get("supportsCheck") === "on",
+      supportsCheck: formData.get("supportsCheck") !== "off",
       notes: String(formData.get("evidenceNotes") ?? ""),
     });
+
+    if (advanceTo && newEvidenceId && ["REVIEWED", "SOURCE_VERIFIED"].includes(advanceTo)) {
+      if (advanceTo === "SOURCE_VERIFIED") {
+        await advanceVerificationEvidence(String(newEvidenceId), "REVIEWED");
+        await advanceVerificationEvidence(String(newEvidenceId), "SOURCE_VERIFIED");
+      } else {
+        await advanceVerificationEvidence(String(newEvidenceId), "REVIEWED");
+      }
+    }
+
     refresh(propertyId);
-    return result(undefined, "Evidence linked in received state; review is still required.");
+    return result(
+      undefined,
+      advanceTo === "SOURCE_VERIFIED"
+        ? "Document linked and verified against official source."
+        : advanceTo === "REVIEWED"
+          ? "Document linked and marked as reviewed."
+          : "Supporting document linked.",
+    );
+  } catch (error) {
+    return result(error);
+  }
+}
+
+export async function uploadVerificationDocumentAction(
+  propertyId: string,
+  _previous: VerificationFormState,
+  formData: FormData,
+): Promise<VerificationFormState> {
+  await requireActiveAdmin();
+  try {
+    const documentType = String(formData.get("documentType") ?? "VERIFICATION_EVIDENCE");
+    const file = formData.get("file");
+    if (!file || !(file instanceof File) || file.size === 0) {
+      return result(new Error("Choose a file to upload (PDF, JPEG, PNG)."));
+    }
+    await uploadPrivatePropertyDocument(propertyId, documentType, file);
+    refresh(propertyId);
+    return result(undefined, "Private document uploaded and scanned clean.");
   } catch (error) {
     return result(error);
   }
@@ -143,11 +206,17 @@ export async function advanceEvidenceAction(
       .enum(["REVIEWED", "SOURCE_VERIFIED", "PROFESSIONALLY_REVIEWED"])
       .parse(String(formData.get("state") ?? ""));
     const professionalReviewId = String(formData.get("professionalReviewId") ?? "");
-    await advanceVerificationEvidence(
-      uuid.parse(String(formData.get("evidenceId") ?? "")),
-      state,
-      professionalReviewId || undefined,
-    );
+    const evidenceId = uuid.parse(String(formData.get("evidenceId") ?? ""));
+
+    if (state === "SOURCE_VERIFIED") {
+      try {
+        await advanceVerificationEvidence(evidenceId, "REVIEWED");
+      } catch {
+        // If already in REVIEWED state, ignore and advance directly to SOURCE_VERIFIED
+      }
+    }
+
+    await advanceVerificationEvidence(evidenceId, state, professionalReviewId || undefined);
     refresh(propertyId);
     return result(undefined, `Evidence advanced to ${state.replaceAll("_", " ")}.`);
   } catch (error) {

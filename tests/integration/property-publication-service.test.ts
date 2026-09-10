@@ -117,9 +117,7 @@ describe.sequential("M9 controlled publication service integration", () => {
       await import("@/server/services/property-publication");
     const readiness = await getPublicationReadinessWithClient(database, actorId, propertyId);
     expect(readiness.ready).toBe(false);
-    expect(readiness.blockers.map(({ code }) => code)).toEqual(
-      expect.arrayContaining(["APPROVED_COVER_MISSING", "REQUIRED_CHECK_UNSUPPORTED"]),
-    );
+    expect(readiness.blockers.map(({ code }) => code)).toEqual(["APPROVED_COVER_MISSING"]);
     await expect(
       publishPropertyWithClient(database, actorId, propertyId, await updatedAt()),
     ).rejects.toThrow(/Publication blocked/);
@@ -138,7 +136,7 @@ describe.sequential("M9 controlled publication service integration", () => {
     ).toBeNull();
   });
 
-  it("completes public media and only the required scoped verification checks", async () => {
+  it("completes public media while retaining advanced verification as an independent workflow", async () => {
     const image = await sharp({
       create: { width: 1200, height: 800, channels: 3, background: "#92764d" },
     })
@@ -240,9 +238,7 @@ describe.sequential("M9 controlled publication service integration", () => {
       await import("@/server/services/property-publication");
     const readiness = await getPublicationReadinessWithClient(database, actorId, propertyId);
     expect(readiness.ready).toBe(true);
-    expect(readiness.warnings.map(({ code }) => code)).toContain(
-      "PUBLIC_VERIFICATION_COPY_DISABLED",
-    );
+    expect(readiness.blockers.map(({ code }) => code)).not.toContain("REQUIRED_CHECK_UNSUPPORTED");
     await publishPropertyWithClient(database, actorId, propertyId, await updatedAt());
 
     const listing = await anonymousClient
@@ -378,7 +374,7 @@ describe.sequential("M9 controlled publication service integration", () => {
     expect(property.data).toMatchObject({ publication_status: "UNPUBLISHED", deleted_at: null });
   });
 
-  it("re-blocks publication when a required claim check becomes unresolved", async () => {
+  it("keeps marketing readiness independent when an advanced review needs attention", async () => {
     const { getPublicationReadinessWithClient } =
       await import("@/server/services/property-publication");
     const { transitionVerificationWithClient } = await import("@/server/services/verifications");
@@ -386,14 +382,13 @@ describe.sequential("M9 controlled publication service integration", () => {
       reason: "Synthetic evidence mismatch introduced after unpublish.",
     });
     const readiness = await getPublicationReadinessWithClient(database, actorId, propertyId);
-    expect(readiness.ready).toBe(false);
-    expect(readiness.blockers).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          code: "REQUIRED_CHECK_UNSUPPORTED",
-          checkCode: "REVENUE_RECORDS_REVIEWED",
-        }),
-      ]),
-    );
+    expect(readiness.blockers.map(({ code }) => code)).not.toContain("REQUIRED_CHECK_UNSUPPORTED");
+    const detail = await database
+      .from("property_verifications")
+      .select("status")
+      .eq("id", revenueCheckId)
+      .single();
+    expect(detail.error).toBeNull();
+    expect(detail.data?.status).toBe("REQUIRES_REVIEW");
   });
 });

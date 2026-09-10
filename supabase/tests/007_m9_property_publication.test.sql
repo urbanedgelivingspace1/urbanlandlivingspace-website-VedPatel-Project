@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(39);
+select plan(37);
 
 select has_function('public','property_publication_readiness',array['uuid'],'authoritative publication validator exists');
 select has_function('public','publish_property',array['uuid','uuid','timestamp with time zone'],'atomic publish RPC exists');
@@ -33,9 +33,8 @@ insert into m9_refs values('property',public.save_property_draft(null,null,'9000
   'sourceLink',jsonb_build_object('sourceType','SYNTHETIC_TEST','sourceName','Synthetic fixture')
 )));
 
-select ok(not (public.property_publication_readiness((select id from m9_refs where label='property'))->>'ready')::boolean,'missing media and checks block publication');
+select ok(not (public.property_publication_readiness((select id from m9_refs where label='property'))->>'ready')::boolean,'missing approved media blocks publication');
 select ok(public.property_publication_readiness((select id from m9_refs where label='property'))->'blockers' @> '[{"code":"APPROVED_COVER_MISSING"}]','missing approved cover is explicit');
-select ok(public.property_publication_readiness((select id from m9_refs where label='property'))->'blockers' @> '[{"code":"REQUIRED_CHECK_UNSUPPORTED"}]','unsupported category checks are explicit');
 select throws_ok(format($$select public.publish_property('90000000-0000-4000-8000-000000000001','%s','%s')$$,(select id from m9_refs where label='property'),(select updated_at from public.properties where id=(select id from m9_refs where label='property'))),'P0001','Publication blocked','incomplete property cannot publish');
 select is((select publication_status::text from public.properties where id=(select id from m9_refs where label='property')),'DRAFT','failed publication is atomic');
 
@@ -51,7 +50,6 @@ insert into m9_refs values('revenue-evidence',public.link_verification_evidence(
 select lives_ok($$select public.transition_property_verification('90000000-0000-4000-8000-000000000001',(select id from m9_refs where label='identity'),'IN_REVIEW'); select public.advance_verification_evidence('90000000-0000-4000-8000-000000000001',(select id from m9_refs where label='identity-evidence'),'REVIEWED'); select public.transition_property_verification('90000000-0000-4000-8000-000000000001',(select id from m9_refs where label='identity'),'PASSED','{"scopeStatement":"Synthetic parcel identity references reviewed for the named listing","limitations":"Identity comparison only; no title or boundary conclusion"}')$$,'identity check completes through guarded workflow');
 select lives_ok($$select public.transition_property_verification('90000000-0000-4000-8000-000000000001',(select id from m9_refs where label='revenue'),'IN_REVIEW'); select public.advance_verification_evidence('90000000-0000-4000-8000-000000000001',(select id from m9_refs where label='revenue-evidence'),'REVIEWED'); select public.advance_verification_evidence('90000000-0000-4000-8000-000000000001',(select id from m9_refs where label='revenue-evidence'),'SOURCE_VERIFIED'); select public.transition_property_verification('90000000-0000-4000-8000-000000000001',(select id from m9_refs where label='revenue'),'PASSED','{"scopeStatement":"Synthetic revenue record reviewed for the named parcel and current date","limitations":"Record review only; no universal legal conclusion"}')$$,'category claim support requires source-verified evidence');
 select ok((public.property_publication_readiness((select id from m9_refs where label='property'))->>'ready')::boolean,'complete authoritative state is publishable');
-select ok(public.property_publication_readiness((select id from m9_refs where label='property'))->'warnings' @> '[{"code":"PUBLIC_VERIFICATION_COPY_DISABLED"}]','missing lawyer-approved public copy is a warning, not a publication blocker');
 select lives_ok(format($$select public.publish_property('90000000-0000-4000-8000-000000000001','%s','%s')$$,(select id from m9_refs where label='property'),(select updated_at from public.properties where id=(select id from m9_refs where label='property'))),'ready property publishes atomically');
 select ok((select publication_status='PUBLISHED' and published_at is not null and published_by='90000000-0000-4000-8000-000000000001' from public.properties where id=(select id from m9_refs where label='property')),'publish records state, actor, and timestamp');
 select is((select count(*)::integer from public.audit_logs where entity_id=(select id from m9_refs where label='property') and action='PUBLISH'),1,'publish audit exists');
