@@ -180,11 +180,25 @@ export const generalContactInputSchema = z.object({
   message: plainText(5, 2_000),
 });
 
+export const sellerLeadInputSchema = z.object({
+  action: z.literal("SELLER_LEAD"),
+  ...contact,
+  preferredTransaction: z.enum(["BUY", "RENT", "LEASE"]).default("BUY"),
+  landCategory: z.enum(["AGRICULTURAL", "NA", "INDUSTRIAL"]).optional(),
+  districtId: optionalUuid,
+  localityText: optionalPlainText(180),
+  areaValue: z.number().finite().positive().max(1_000_000_000).optional(),
+  areaUnitId: optionalUuid,
+  expectedPrice: optionalPlainText(120),
+  message: optionalPlainText(2_000),
+});
+
 export const publicIntakeInputSchema = z.discriminatedUnion("action", [
   propertyInquiryInputSchema,
   buyerRequirementInputSchema,
   siteVisitRequestInputSchema,
   generalContactInputSchema,
+  sellerLeadInputSchema,
 ]);
 export type PublicIntakeInput = z.infer<typeof publicIntakeInputSchema>;
 

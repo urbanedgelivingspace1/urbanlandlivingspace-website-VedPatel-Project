@@ -1,4 +1,5 @@
 import type { LeadStatus } from "@/features/admin/contracts";
+import type { AdminPrivateDocumentDto } from "@/features/media/domain/contracts";
 import type { LandCategory, TransactionType } from "@/types/database";
 
 export const LEAD_STATUSES: readonly LeadStatus[] = [
@@ -59,6 +60,7 @@ export type LeadListItem = Readonly<{
   email: string | null;
   status: LeadStatus;
   sourceType: string;
+  inquiryType?: string;
   buyerType: string | null;
   transaction: TransactionType | null;
   category: LandCategory | null;
@@ -105,6 +107,17 @@ export type LeadWorkspace = Readonly<{
     notes: string | null;
     matchedAt: string | null;
   }>[];
+  sellerProperties?: readonly Readonly<{
+    id: string;
+    propertyCode: string;
+    title: string | null;
+    category: string;
+    transaction: string;
+    availability: string;
+    publicationStatus: string;
+    createdAt: string;
+  }>[];
+  documents: readonly AdminPrivateDocumentDto[];
   followUps: readonly Readonly<{
     id: string;
     type: string;
@@ -123,5 +136,27 @@ export type LeadWorkspace = Readonly<{
     metadata: string | null;
     actorName: string;
     propertyId: string | null;
+  }>[];
+}>;
+
+export type PropertyInterestedBuyers = Readonly<{
+  matches: readonly Readonly<{
+    id: string;
+    leadId: string;
+    leadReference: string;
+    leadName: string;
+    leadPhone: string | null;
+    leadStatus: LeadStatus;
+    matchedAt: string | null;
+    notes: string | null;
+  }>[];
+  siteVisits: readonly Readonly<{
+    id: string;
+    leadId: string;
+    leadReference: string;
+    leadName: string;
+    scheduledAt: string;
+    status: string;
+    notes: string | null;
   }>[];
 }>;

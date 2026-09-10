@@ -7,6 +7,7 @@ export const PUBLIC_INTAKE_ACTIONS = [
   "BUYER_REQUIREMENT",
   "SITE_VISIT_REQUEST",
   "GENERAL_CONTACT",
+  "SELLER_LEAD",
 ] as const;
 export type PublicIntakeAction = (typeof PUBLIC_INTAKE_ACTIONS)[number];
 export type PublicRateAction = PublicIntakeAction | "OWNER_LAND_SUBMISSION";

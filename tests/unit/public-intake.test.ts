@@ -15,6 +15,7 @@ import {
   generalContactInputSchema,
   normalizeIndiaPhone,
   propertyInquiryInputSchema,
+  sellerLeadInputSchema,
   siteVisitRequestInputSchema,
   visitWindowToUtc,
 } from "@/features/intake/domain/validation";
@@ -139,6 +140,21 @@ describe("M13 public demand domain", () => {
         ...base,
         intendedUse: "Other",
         message: "https://a.invalid https://b.invalid https://c.invalid",
+      }),
+    ).toThrow(/plain text/i);
+  });
+
+  it("accepts a minimal seller contact while keeping land context optional", () => {
+    expect(sellerLeadInputSchema.parse({ action: "SELLER_LEAD", ...base })).toMatchObject({
+      action: "SELLER_LEAD",
+      phone: "+919876543210",
+      preferredTransaction: "BUY",
+    });
+    expect(() =>
+      sellerLeadInputSchema.parse({
+        action: "SELLER_LEAD",
+        ...base,
+        localityText: "<script>not land</script>",
       }),
     ).toThrow(/plain text/i);
   });

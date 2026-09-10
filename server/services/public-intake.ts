@@ -108,6 +108,7 @@ async function recordConversionAnalytics(
     BUYER_REQUIREMENT: "buyer_requirement_success",
     SITE_VISIT_REQUEST: "site_visit_request_success",
     GENERAL_CONTACT: "general_contact_success",
+    SELLER_LEAD: "seller_lead_success",
   } as const;
   const pagePath =
     input.action === "PROPERTY_INQUIRY"
@@ -116,7 +117,9 @@ async function recordConversionAnalytics(
         ? "/site-visit"
         : input.action === "BUYER_REQUIREMENT"
           ? "/requirements"
-          : "/contact";
+          : input.action === "SELLER_LEAD"
+            ? "/sell-your-land"
+            : "/contact";
   const result = await client.from("analytics_events").insert({
     event_name: eventNames[input.action],
     page_path: pagePath,

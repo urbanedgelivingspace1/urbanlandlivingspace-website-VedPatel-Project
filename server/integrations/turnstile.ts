@@ -13,6 +13,7 @@ const actionNames: Record<PublicRateAction, string> = {
   SITE_VISIT_REQUEST: "site_visit_request",
   GENERAL_CONTACT: "general_contact",
   OWNER_LAND_SUBMISSION: "owner_land_submission",
+  SELLER_LEAD: "seller_lead",
 };
 
 export async function verifyTurnstile(

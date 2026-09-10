@@ -167,6 +167,30 @@ test("admin operates the complete lead, demand, matching, follow-up and closure 
   await page.getByLabel("Reason or outcome").fill("Transaction confirmed");
   await page.getByRole("button", { name: "Change stage" }).click();
   await expect(page.getByText("Closed won", { exact: true })).toBeVisible();
+
+  // Explicitly verify CLOSED_WON does NOT change property availability
+  const propCheck = await service()
+    .from("properties")
+    .select("availability_status")
+    .eq("id", propertyId)
+    .single();
+  expect(propCheck.data?.availability_status).toBe("AVAILABLE");
+
+  // Explicitly verify only the explicit [Mark Property Sold] action changes property availability to SOLD
+  await page.goto(`/admin/properties/${propertyId}`);
+  await page.getByRole("link", { name: "Activity" }).click();
+  await expect(page.getByRole("button", { name: "Mark Property Sold" })).toBeVisible();
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "Mark Property Sold" }).click();
+  await expect(page.getByText("SOLD", { exact: true }).first()).toBeVisible();
+
+  const soldCheck = await service()
+    .from("properties")
+    .select("availability_status")
+    .eq("id", propertyId)
+    .single();
+  expect(soldCheck.data?.availability_status).toBe("SOLD");
+
   await page.goto(`/admin/leads?q=${encodeURIComponent(leadName)}`);
   await expect(page.getByRole("link", { name: leadName })).toBeVisible();
   await page.getByLabel("Pipeline stage").selectOption("CLOSED_WON");

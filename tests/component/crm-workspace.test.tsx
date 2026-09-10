@@ -27,6 +27,7 @@ vi.mock("@/app/(admin)/admin/(protected)/leads/actions", () => ({
   transitionLeadAction: vi.fn(),
   unmatchPropertyAction: vi.fn(),
   updateLeadAction: vi.fn(),
+  uploadSellerLeadDocumentsAction: vi.fn(),
 }));
 
 const lead: LeadListItem = {
@@ -100,6 +101,7 @@ const workspace: LeadWorkspace = {
       matchedAt: "2026-09-05T06:00:00.000Z",
     },
   ],
+  documents: [],
   followUps: [
     {
       id: "follow-up-1",
@@ -202,6 +204,102 @@ describe("M12 CRM components", () => {
     expect(screen.getByRole("button", { name: "Remove match" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Complete follow-up" })).toBeEnabled();
     expect(screen.getByLabelText("Private note")).toHaveAccessibleName("Private note");
+  });
+
+  it("prefills a draft from only the seller information that is actually known", async () => {
+    const sellerWorkspace: LeadWorkspace = {
+      ...workspace,
+      lead: {
+        ...workspace.lead,
+        id: "seller-lead-1",
+        leadReference: "UE-LD-000002",
+        name: "M12 Seller",
+        inquiryType: "SELLER_LEAD",
+        transaction: "LEASE",
+        category: "NA",
+        districtName: "Ahmedabad",
+        localityText: "Sanand",
+        budgetMin: 12_500_000,
+        budgetMax: 12_500_000,
+      },
+      requirement: {
+        ...workspace.requirement!,
+        minAreaValue: 2,
+        maxAreaValue: 2,
+      },
+      matches: [],
+      sellerProperties: [
+        {
+          id: "property-1",
+          propertyCode: "UE-LS-000001",
+          title: "Existing parcel",
+          category: "NA",
+          transaction: "LEASE",
+          availability: "AVAILABLE",
+          publicationStatus: "DRAFT",
+          createdAt: "2026-09-05T06:00:00.000Z",
+        },
+      ],
+    };
+    service.getLeadWorkspace.mockResolvedValue(sellerWorkspace);
+    service.getCrmReferenceData.mockResolvedValue(refs);
+
+    render(
+      await LeadDetailPage({
+        params: Promise.resolve({ id: sellerWorkspace.lead.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Seller Land Offering & Properties" }),
+    ).toBeVisible();
+    expect(screen.getByRole("link", { name: /UE-LS-000001/ })).toBeVisible();
+    const createLink = screen.getByRole("link", { name: /Create Property from Lead/ });
+    const href = createLink.getAttribute("href");
+    expect(href).toBeTruthy();
+    const draftUrl = new URL(href!, "https://admin.example.invalid");
+    expect(draftUrl.pathname).toBe("/admin/properties/new");
+    expect(Object.fromEntries(draftUrl.searchParams)).toMatchObject({
+      partyId: "party-1",
+      sourceType: "SELLER_LEAD",
+      sourceName: "UE-LD-000002",
+      sourceReference: "seller-lead-1",
+      category: "NA",
+      transaction: "LEASE",
+      districtId: "district-1",
+      localityText: "Sanand",
+      areaValue: "2",
+      areaUnitId: "unit-1",
+      priceMode: "EXACT_TOTAL",
+      priceAmount: "12500000",
+    });
+    expect(draftUrl.searchParams.has("title")).toBe(false);
+  });
+
+  it("supports the canonical unmatched buyer preset without showing sellers", async () => {
+    service.listLeads.mockResolvedValue([
+      { ...lead, id: "buyer-unmatched", matchCount: 0 },
+      { ...lead, id: "buyer-matched", name: "Matched Buyer", matchCount: 1 },
+      {
+        ...lead,
+        id: "seller-unmatched",
+        name: "Unmatched Seller",
+        inquiryType: "SELLER_LEAD",
+        matchCount: 0,
+      },
+    ]);
+    service.getCrmReferenceData.mockResolvedValue(refs);
+
+    render(await LeadsPage({ searchParams: Promise.resolve({ view: "unmatched_buyers" }) }));
+
+    expect(screen.getByRole("link", { name: "M12 Buyer" })).toBeVisible();
+    expect(screen.queryByRole("link", { name: "Matched Buyer" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Unmatched Seller" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Unmatched Buyers" })).toHaveAttribute(
+      "href",
+      "/admin/leads?view=unmatched_buyers",
+    );
   });
 
   it("separates follow-up buckets and exposes completion controls", async () => {

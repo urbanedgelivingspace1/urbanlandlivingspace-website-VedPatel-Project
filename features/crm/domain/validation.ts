@@ -28,6 +28,7 @@ export const adminLeadInputSchema = z
       "BUYER_REQUIREMENT",
       "SITE_VISIT_REQUEST",
       "GENERAL_CONTACT",
+      "SELLER_LEAD",
     ]),
     buyerType: z
       .enum([

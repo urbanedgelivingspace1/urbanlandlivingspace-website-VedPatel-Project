@@ -14,7 +14,11 @@ export default async function LeadsPage({
 }) {
   const params = await searchParams;
   const value = (key: string) => (typeof params[key] === "string" ? params[key] : undefined);
-  const [leads, refs] = await measureAdminPerf("/admin/leads", () =>
+  const isUnmatchedBuyerView =
+    value("view") === "unmatched_buyers" || value("unmatched") === "true";
+  const activeType = value("type") ?? (isUnmatchedBuyerView ? "UNMATCHED" : "ALL");
+
+  const [rawLeads, refs] = await measureAdminPerf("/admin/leads", () =>
     Promise.all([
       listLeads({
         query: value("q"),
@@ -22,6 +26,10 @@ export default async function LeadsPage({
         category: value("category"),
         transaction: value("transaction"),
         source: value("source"),
+        inquiryType:
+          value("type") === "SELLER_LEAD" || value("type") === "BUYER_LEAD"
+            ? value("type")
+            : undefined,
         districtId: value("district"),
         followUp: value("followUp"),
         createdFrom: value("from"),
@@ -31,6 +39,11 @@ export default async function LeadsPage({
       getCrmReferenceData(),
     ]),
   );
+
+  const leads = isUnmatchedBuyerView
+    ? rawLeads.filter((l) => l.inquiryType !== "SELLER_LEAD" && l.matchCount === 0)
+    : rawLeads;
+
   return (
     <section className="min-w-0" aria-labelledby="leads-heading">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -42,7 +55,7 @@ export default async function LeadsPage({
             Lead inbox
           </h1>
           <p className="mt-2 text-slate-600">
-            Private, bounded operational search. Up to 100 recent matches.
+            People & demand management: Seller leads, buyer requirements, and match pipeline.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -54,8 +67,57 @@ export default async function LeadsPage({
           </Link>
         </div>
       </div>
+
+      {/* Quick View Tabs */}
+      <div className="mt-6 flex flex-wrap gap-2 border-b border-slate-200 pb-3">
+        <Link
+          href="/admin/leads"
+          style={activeType === "ALL" ? { color: "#ffffff" } : undefined}
+          className={`rounded-lg px-3.5 py-1.5 text-xs font-bold transition-colors ${
+            activeType === "ALL"
+              ? "bg-[var(--brand-navy)] text-white"
+              : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
+          }`}
+        >
+          All Leads ({rawLeads.length})
+        </Link>
+        <Link
+          href="/admin/leads?type=SELLER_LEAD"
+          style={activeType === "SELLER_LEAD" ? { color: "#ffffff" } : undefined}
+          className={`rounded-lg px-3.5 py-1.5 text-xs font-bold transition-colors ${
+            activeType === "SELLER_LEAD"
+              ? "bg-emerald-700 text-white"
+              : "bg-white text-emerald-800 hover:bg-emerald-50 border border-emerald-200"
+          }`}
+        >
+          Seller Leads
+        </Link>
+        <Link
+          href="/admin/leads?type=BUYER_LEAD"
+          style={activeType === "BUYER_LEAD" ? { color: "#ffffff" } : undefined}
+          className={`rounded-lg px-3.5 py-1.5 text-xs font-bold transition-colors ${
+            activeType === "BUYER_LEAD"
+              ? "bg-blue-700 text-white"
+              : "bg-white text-blue-800 hover:bg-blue-50 border border-blue-200"
+          }`}
+        >
+          Buyer Leads
+        </Link>
+        <Link
+          href="/admin/leads?view=unmatched_buyers"
+          style={activeType === "UNMATCHED" ? { color: "#ffffff" } : undefined}
+          className={`rounded-lg px-3.5 py-1.5 text-xs font-bold transition-colors ${
+            activeType === "UNMATCHED"
+              ? "bg-amber-700 text-white"
+              : "bg-white text-amber-800 hover:bg-amber-50 border border-amber-200"
+          }`}
+        >
+          Unmatched Buyers
+        </Link>
+      </div>
+
       <form
-        className="mt-6 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 xl:grid-cols-5"
+        className="mt-4 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 xl:grid-cols-5"
         aria-label="Lead filters"
       >
         <input
@@ -168,13 +230,13 @@ export default async function LeadsPage({
               <tr>
                 {[
                   "Lead",
+                  "Type",
                   "Stage",
-                  "Source",
-                  "Demand",
+                  "Demand / Intent",
                   "Location",
                   "Matches",
                   "Next follow-up",
-                  "Updated",
+                  "Actions",
                 ].map((h) => (
                   <th key={h} className="px-4 py-3">
                     {h}
@@ -183,36 +245,67 @@ export default async function LeadsPage({
               </tr>
             </thead>
             <tbody>
-              {leads.map((lead) => (
-                <tr key={lead.id} className="border-t border-slate-200">
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/admin/leads/${lead.id}`}
-                      className="font-bold text-[var(--brand-navy)] underline-offset-2 hover:underline"
-                    >
-                      {lead.name}
-                    </Link>
-                    <span className="block text-xs text-slate-500">
-                      {lead.leadReference} · {lead.phone ?? lead.email}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">{leadStatusLabel(lead.status)}</td>
-                  <td className="px-4 py-3">{lead.sourceType}</td>
-                  <td className="px-4 py-3">
-                    {[lead.transaction, lead.category].filter(Boolean).join(" · ") || "Not set"}
-                  </td>
-                  <td className="px-4 py-3">
-                    {lead.districtName ?? lead.localityText ?? "Not set"}
-                  </td>
-                  <td className="px-4 py-3">{lead.matchCount}</td>
-                  <td className="px-4 py-3">
-                    {lead.nextFollowUpAt
-                      ? formatIndiaDateTime(lead.nextFollowUpAt)
-                      : "Not scheduled"}
-                  </td>
-                  <td className="px-4 py-3">{formatIndiaDateTime(lead.updatedAt)}</td>
-                </tr>
-              ))}
+              {leads.map((lead) => {
+                const isSeller = lead.inquiryType === "SELLER_LEAD";
+                return (
+                  <tr key={lead.id} className="border-t border-slate-200 hover:bg-slate-50/50">
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/admin/leads/${lead.id}`}
+                        className="font-bold text-[var(--brand-navy)] underline-offset-2 hover:underline"
+                      >
+                        {lead.name}
+                      </Link>
+                      <span className="block text-xs text-slate-500">
+                        {lead.leadReference} · {lead.phone ?? lead.email}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {isSeller ? (
+                        <span className="inline-flex rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold text-emerald-900 uppercase tracking-wide">
+                          Seller
+                        </span>
+                      ) : (
+                        <span className="inline-flex rounded-full bg-blue-100 px-2.5 py-0.5 text-[10px] font-bold text-blue-900 uppercase tracking-wide">
+                          Buyer
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="rounded-md bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-800">
+                        {leadStatusLabel(lead.status)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-xs">
+                      {[lead.transaction, lead.category].filter(Boolean).join(" · ") || "General"}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-slate-700">
+                      {lead.districtName ?? lead.localityText ?? "Not set"}
+                    </td>
+                    <td className="px-4 py-3 text-xs font-semibold">{lead.matchCount}</td>
+                    <td className="px-4 py-3 text-xs text-slate-600">
+                      {lead.nextFollowUpAt ? formatIndiaDateTime(lead.nextFollowUpAt) : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-xs font-semibold">
+                      {isSeller ? (
+                        <Link
+                          href={`/admin/leads/${lead.id}`}
+                          className="rounded-md bg-emerald-50 border border-emerald-300 px-2 py-1 text-emerald-800 hover:bg-emerald-100 transition-colors"
+                        >
+                          Open seller workspace →
+                        </Link>
+                      ) : (
+                        <Link
+                          href={`/admin/leads/${lead.id}`}
+                          className="text-[var(--brand-navy)] hover:underline"
+                        >
+                          View workspace →
+                        </Link>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         ) : (

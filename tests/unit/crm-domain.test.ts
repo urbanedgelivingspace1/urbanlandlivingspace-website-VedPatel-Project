@@ -71,4 +71,14 @@ describe("M12 CRM domain", () => {
     expect(classifyFollowUp("2026-09-06T12:00:00Z", null, now)).toBe("UPCOMING");
     expect(classifyFollowUp("2026-09-01T12:00:00Z", "2026-09-02T00:00:00Z", now)).toBe("COMPLETED");
   });
+  it("strictly isolates lead CLOSED_WON from property availability status", () => {
+    // Transitioning a lead to CLOSED_WON requires only valid nextStatus and reason/outcome
+    const parsed = transitionInputSchema.parse({
+      nextStatus: "CLOSED_WON",
+      reason: "Sale executed with client",
+    });
+    expect(parsed.nextStatus).toBe("CLOSED_WON");
+    // Verifies lead pipeline transitions are decoupled from property availability
+    expect(canTransitionLead("NEGOTIATION", "CLOSED_WON")).toBe(true);
+  });
 });

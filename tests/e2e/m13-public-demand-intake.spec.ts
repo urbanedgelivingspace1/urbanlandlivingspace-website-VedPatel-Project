@@ -177,7 +177,11 @@ test("published-property inquiry creates private CRM state, safe output, and a d
 
   await signIn(page);
   await page.goto(`/admin/leads?q=${encodeURIComponent(returningName)}`);
-  await page.locator(`a[href="/admin/leads/${returningLead.id}"]`).click();
+  await page
+    .locator(`a[href="/admin/leads/${returningLead.id}"]`)
+    .filter({ hasText: returningName })
+    .first()
+    .click();
   await expect(page.getByText(`WEBSITE · PROPERTY_DETAIL:${published.code}`)).toBeVisible();
   await expect(page.getByRole("link", { name: new RegExp(published.title) })).toBeVisible();
 

@@ -96,9 +96,11 @@ export function OwnerSubmissionWizard({
             "powerInfrastructure",
           ].flatMap((name) => {
             const control = form.elements.namedItem(name);
-            return control instanceof HTMLInputElement && control.value.trim()
-              ? [[name, control.value.trim()]]
-              : [];
+            const isField =
+              control instanceof HTMLInputElement ||
+              control instanceof HTMLSelectElement ||
+              control instanceof HTMLTextAreaElement;
+            return isField && control.value.trim() ? [[name, control.value.trim()]] : [];
           }),
         ),
       );

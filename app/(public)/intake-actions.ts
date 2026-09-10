@@ -15,6 +15,7 @@ import {
   buyerRequirementInputSchema,
   generalContactInputSchema,
   propertyInquiryInputSchema,
+  sellerLeadInputSchema,
   siteVisitRequestInputSchema,
   visitWindowToUtc,
 } from "@/features/intake/domain/validation";
@@ -205,6 +206,34 @@ export async function submitGeneralContactAction(
     return {
       status: "success",
       message: "Your message has been received. UrbanEdge will review it and contact you.",
+    };
+  } catch (error) {
+    return formError(error, formData);
+  }
+}
+
+export async function submitSellerLeadAction(
+  _previous: PublicIntakeFormState,
+  formData: FormData,
+): Promise<PublicIntakeFormState> {
+  try {
+    const input = sellerLeadInputSchema.parse({
+      action: "SELLER_LEAD",
+      ...common(formData),
+      preferredTransaction: optional(formData, "preferredTransaction") || "BUY",
+      landCategory: optional(formData, "landCategory"),
+      districtId: optional(formData, "districtId"),
+      localityText: optional(formData, "localityText"),
+      areaValue: number(formData, "areaValue"),
+      areaUnitId: optional(formData, "areaUnitId"),
+      expectedPrice: optional(formData, "expectedPrice"),
+      message: optional(formData, "message"),
+    });
+    await submitPublicIntake(input, await requestContext(formData));
+    return {
+      status: "success",
+      message:
+        "Thank you! Your land details have been received privately. An UrbanEdge land advisor will contact you shortly.",
     };
   } catch (error) {
     return formError(error, formData);

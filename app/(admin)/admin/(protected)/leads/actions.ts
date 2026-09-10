@@ -18,6 +18,7 @@ import {
   unmatchLeadFromProperty,
 } from "@/server/services/crm";
 import { createPrivilegedServerClient } from "@/server/supabase/privileged";
+import { uploadPrivateLeadDocument } from "@/server/services/property-media";
 import type { LeadStatus } from "@/features/admin/contracts";
 import type { LeadFormState } from "@/features/crm/domain/contracts";
 import type { Database } from "@/types/database.generated";
@@ -163,4 +164,18 @@ export async function unmatchPropertyAction(leadId: string, form: FormData) {
   await requireActiveAdmin();
   await unmatchLeadFromProperty(leadId, text(form, "propertyId"), optional(form, "reason"));
   revalidatePath(`/admin/leads/${leadId}`);
+}
+
+export async function uploadSellerLeadDocumentsAction(leadId: string, form: FormData) {
+  await requireActiveAdmin();
+  const files = form
+    .getAll("documents")
+    .filter((value): value is File => value instanceof File && value.size > 0);
+  if (!files.length) throw new Error("Choose at least one document to upload.");
+  const documentType = text(form, "documentType") || "OTHER";
+  for (const file of files) {
+    await uploadPrivateLeadDocument(leadId, documentType, file);
+  }
+  revalidatePath(`/admin/leads/${leadId}`);
+  redirect(`/admin/leads/${leadId}?saved=documents`);
 }

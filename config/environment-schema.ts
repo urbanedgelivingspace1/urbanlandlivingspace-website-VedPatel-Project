@@ -45,9 +45,22 @@ function addRequiredIssue(
   context.addIssue({ code: "custom", path: [path], message });
 }
 
+export const appEnvSchema = z.enum(["local", "preview", "production", "test"]);
+export type AppEnv = z.infer<typeof appEnvSchema>;
+
+/**
+ * Returns true only when running in verified non-production environments (local, preview, test).
+ * Fails closed (returns false) for production, undefined, or unknown environments.
+ */
+export function isNonProductionEnvironment(environment = process.env.APP_ENV): boolean {
+  const result = appEnvSchema.safeParse(environment);
+  if (!result.success) return false;
+  return result.data === "local" || result.data === "preview" || result.data === "test";
+}
+
 export const serverEnvironmentSchema = z
   .object({
-    APP_ENV: z.enum(["local", "preview", "production", "test"]),
+    APP_ENV: appEnvSchema,
     NEXT_PUBLIC_SITE_URL: sanitizedUrl,
     NEXT_PUBLIC_SUPABASE_URL: sanitizedUrl,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: sanitizedRequiredString,

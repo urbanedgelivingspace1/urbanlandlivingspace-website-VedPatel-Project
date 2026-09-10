@@ -3,7 +3,12 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { LeadStatus } from "@/features/admin/contracts";
-import type { FollowUpType, LeadListItem, LeadWorkspace } from "@/features/crm/domain/contracts";
+import type {
+  FollowUpType,
+  LeadListItem,
+  LeadWorkspace,
+  PropertyInterestedBuyers,
+} from "@/features/crm/domain/contracts";
 import { classifyFollowUp } from "@/features/crm/domain/follow-ups";
 import {
   adminLeadInputSchema,
@@ -219,6 +224,7 @@ export type LeadFilters = Readonly<{
   category?: string;
   transaction?: string;
   source?: string;
+  inquiryType?: string;
   districtId?: string;
   followUp?: string;
   createdFrom?: string;
@@ -248,6 +254,13 @@ export async function listLeads(filters: LeadFilters = {}): Promise<LeadListItem
     .limit(100);
   if (partyIds) query = query.in("party_id", partyIds);
   if (filters.status) query = query.eq("status", filters.status as LeadStatus);
+  if (filters.inquiryType) {
+    if (filters.inquiryType === "SELLER_LEAD") {
+      query = query.eq("inquiry_type", "SELLER_LEAD");
+    } else if (filters.inquiryType === "BUYER_LEAD") {
+      query = query.neq("inquiry_type", "SELLER_LEAD");
+    }
+  }
   if (filters.category)
     query = query.eq(
       "land_category",
@@ -319,6 +332,7 @@ export async function listLeads(filters: LeadFilters = {}): Promise<LeadListItem
       email: party?.email ?? null,
       status: lead.status,
       sourceType: lead.source_type,
+      inquiryType: lead.inquiry_type,
       buyerType: lead.buyer_type,
       transaction: lead.preferred_transaction,
       category: lead.land_category,
@@ -347,41 +361,76 @@ export async function getLeadWorkspace(leadId: string): Promise<LeadWorkspace | 
   check(leadResult.error);
   const row = leadResult.data;
   if (!row) return null;
-  const [party, requirement, matches, followUps, activities, district, units, admins, properties] =
-    await Promise.all([
-      client.from("parties").select("id,display_name,phone,email").eq("id", row.party_id).single(),
-      client.from("lead_requirements").select("*").eq("lead_id", leadId).maybeSingle(),
-      client
-        .from("lead_properties")
-        .select("*")
-        .eq("lead_id", leadId)
-        .order("created_at", { ascending: false }),
-      client
-        .from("lead_follow_ups")
-        .select("*")
-        .eq("lead_id", leadId)
-        .order("created_at", { ascending: false }),
-      client
-        .from("lead_activities")
-        .select("*")
-        .eq("lead_id", leadId)
-        .order("activity_at", { ascending: false })
-        .limit(200),
-      row.district_id
-        ? client.from("districts").select("id,name").eq("id", row.district_id).maybeSingle()
-        : Promise.resolve({ data: null, error: null }),
-      client.from("area_units").select("id,display_name,symbol"),
-      client.from("admin_profiles").select("user_id,display_name"),
-      client
-        .from("properties")
-        .select(
-          "id,property_code,listing_title,land_category,primary_transaction_type,availability_status",
-        )
-        .is("deleted_at", null),
-    ]);
-  [party, requirement, matches, followUps, activities, district, units, admins, properties].forEach(
-    (r) => check(r.error),
-  );
+  const [
+    party,
+    requirement,
+    matches,
+    followUps,
+    activities,
+    district,
+    units,
+    admins,
+    properties,
+    sellerLinks,
+    documents,
+  ] = await Promise.all([
+    client.from("parties").select("id,display_name,phone,email").eq("id", row.party_id).single(),
+    client.from("lead_requirements").select("*").eq("lead_id", leadId).maybeSingle(),
+    client
+      .from("lead_properties")
+      .select("*")
+      .eq("lead_id", leadId)
+      .order("created_at", { ascending: false }),
+    client
+      .from("lead_follow_ups")
+      .select("*")
+      .eq("lead_id", leadId)
+      .order("created_at", { ascending: false }),
+    client
+      .from("lead_activities")
+      .select("*")
+      .eq("lead_id", leadId)
+      .order("activity_at", { ascending: false })
+      .limit(200),
+    row.district_id
+      ? client.from("districts").select("id,name").eq("id", row.district_id).maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+    client.from("area_units").select("id,display_name,symbol"),
+    client.from("admin_profiles").select("user_id,display_name"),
+    client
+      .from("properties")
+      .select(
+        "id,property_code,listing_title,land_category,primary_transaction_type,availability_status,publication_status,created_at",
+      )
+      .is("deleted_at", null),
+    client
+      .from("property_source_links")
+      .select("property_id")
+      .eq("source_type", "SELLER_LEAD")
+      .eq("source_reference", leadId),
+    client
+      .from("private_documents")
+      .select(
+        "id,property_id,document_type,mime_type,file_size_bytes,original_file_name,page_count,scan_status,created_at,archived_at",
+      )
+      .eq("party_id", row.party_id)
+      .eq("document_reference", `LEAD:${leadId}`)
+      .is("archived_at", null)
+      .order("created_at", { ascending: false }),
+  ]);
+  [
+    party,
+    requirement,
+    matches,
+    followUps,
+    activities,
+    district,
+    units,
+    admins,
+    properties,
+    sellerLinks,
+    documents,
+  ].forEach((result) => check(result.error));
   if (!party.data) return null;
   const base: LeadListItem = {
     id: row.id,
@@ -445,6 +494,34 @@ export async function getLeadWorkspace(leadId: string): Promise<LeadWorkspace | 
         matchedAt: m.matched_at,
       };
     }),
+    sellerProperties: (sellerLinks.data ?? [])
+      .map((link) => {
+        const p = properties.data?.find((v) => v.id === link.property_id);
+        if (!p) return null;
+        return {
+          id: link.property_id,
+          propertyCode: p.property_code,
+          title: p.listing_title,
+          category: p.land_category,
+          transaction: p.primary_transaction_type,
+          availability: p.availability_status,
+          publicationStatus: p.publication_status,
+          createdAt: p.created_at,
+        };
+      })
+      .filter((v): v is NonNullable<typeof v> => v !== null),
+    documents: (documents.data ?? []).map((document) => ({
+      id: document.id,
+      propertyId: document.property_id,
+      documentType: document.document_type,
+      mimeType: document.mime_type,
+      fileSizeBytes: document.file_size_bytes,
+      originalFileName: document.original_file_name,
+      pageCount: document.page_count,
+      scanStatus: document.scan_status,
+      createdAt: document.created_at,
+      archivedAt: document.archived_at,
+    })),
     followUps: (followUps.data ?? []).map((f) => ({
       id: f.id,
       type: f.follow_up_type,
@@ -467,6 +544,21 @@ export async function getLeadWorkspace(leadId: string): Promise<LeadWorkspace | 
   };
 }
 
+const FALLBACK_CRM_DISTRICTS = [
+  { id: "00000000-0000-4000-8000-000000000003", name: "Ahmedabad" },
+  { id: "00000000-0000-4000-8000-000000000004", name: "Gandhinagar" },
+];
+
+const FALLBACK_CRM_UNITS = [
+  { id: "10000000-0000-4000-8000-000000000002", display_name: "Square foot", symbol: "ft²" },
+  { id: "10000000-0000-4000-8000-000000000001", display_name: "Square metre", symbol: "m²" },
+  { id: "10000000-0000-4000-8000-000000000003", display_name: "Square yard", symbol: "yd²" },
+  { id: "10000000-0000-4000-8000-000000000004", display_name: "Var", symbol: "var" },
+  { id: "10000000-0000-4000-8000-000000000005", display_name: "Guntha", symbol: "guntha" },
+  { id: "10000000-0000-4000-8000-000000000006", display_name: "Acre", symbol: "ac" },
+  { id: "10000000-0000-4000-8000-000000000007", display_name: "Hectare", symbol: "ha" },
+];
+
 export async function getCrmReferenceData() {
   await requireActiveAdmin();
   const client = db();
@@ -484,9 +576,15 @@ export async function getCrmReferenceData() {
     client.from("admin_profiles").select("user_id,display_name").eq("is_active", true),
   ]);
   [districts, units, properties, admins].forEach((r) => check(r.error));
+
+  const resolvedDistricts =
+    districts.data && districts.data.length > 0 ? districts.data : FALLBACK_CRM_DISTRICTS;
+
+  const resolvedUnits = units.data && units.data.length > 0 ? units.data : FALLBACK_CRM_UNITS;
+
   return {
-    districts: districts.data ?? [],
-    units: units.data ?? [],
+    districts: resolvedDistricts,
+    units: resolvedUnits,
     properties: properties.data ?? [],
     admins: admins.data ?? [],
   };
@@ -642,4 +740,102 @@ export async function getDashboardFollowUpMetrics() {
     else if (status === "TODAY") todayCount++;
   }
   return { overdueCount, todayCount };
+}
+
+export async function getPropertyInterestedBuyers(
+  propertyId: string,
+): Promise<PropertyInterestedBuyers> {
+  await requireActiveAdmin();
+  const client = db();
+  const [matchRows, visitRows] = await Promise.all([
+    client
+      .from("lead_properties")
+      .select("id,lead_id,property_id,notes_internal,created_at")
+      .eq("property_id", propertyId)
+      .order("created_at", { ascending: false }),
+    client
+      .from("site_visits")
+      .select(
+        "id,lead_id,property_id,confirmed_start_at,requested_start_at,status,notes_internal,created_at",
+      )
+      .eq("property_id", propertyId)
+      .is("archived_at", null)
+      .order("created_at", { ascending: false }),
+  ]);
+  check(matchRows.error);
+  check(visitRows.error);
+
+  const rawMatches = matchRows.data ?? [];
+  const rawVisits = visitRows.data ?? [];
+
+  const leadIds = [
+    ...new Set([...rawMatches.map((m) => m.lead_id), ...rawVisits.map((v) => v.lead_id)]),
+  ];
+  if (!leadIds.length) {
+    return { matches: [], siteVisits: [] };
+  }
+
+  const leadsResult = await client
+    .from("leads")
+    .select("id,lead_reference,status,party_id")
+    .in("id", leadIds)
+    .is("archived_at", null);
+  check(leadsResult.error);
+
+  const leads = leadsResult.data ?? [];
+  const partyIds = [...new Set(leads.map((l) => l.party_id))];
+
+  const partiesResult = partyIds.length
+    ? await client.from("parties").select("id,display_name,phone,email").in("id", partyIds)
+    : { data: [], error: null };
+  check(partiesResult.error);
+
+  const parties = partiesResult.data ?? [];
+
+  const leadLookup = new Map(
+    leads.map((lead) => {
+      const party = parties.find((p) => p.id === lead.party_id);
+      return [
+        lead.id,
+        {
+          id: lead.id,
+          reference: lead.lead_reference,
+          name: party?.display_name ?? "Unknown contact",
+          phone: party?.phone ?? null,
+          status: lead.status,
+        },
+      ];
+    }),
+  );
+
+  const matches = rawMatches.map((match) => {
+    const lead = leadLookup.get(match.lead_id);
+    return {
+      id: match.id,
+      leadId: match.lead_id,
+      leadReference: lead?.reference ?? "LEAD",
+      leadName: lead?.name ?? "Unknown contact",
+      leadPhone: lead?.phone ?? null,
+      leadStatus: lead?.status ?? "NEW",
+      matchedAt: match.created_at,
+      notes: match.notes_internal,
+    };
+  });
+
+  const siteVisits = rawVisits.map((visit) => {
+    const lead = leadLookup.get(visit.lead_id);
+    return {
+      id: visit.id,
+      leadId: visit.lead_id,
+      leadReference: lead?.reference ?? "LEAD",
+      leadName: lead?.name ?? "Unknown contact",
+      scheduledAt: (visit.confirmed_start_at ??
+        visit.requested_start_at ??
+        visit.created_at) as string,
+      status: visit.status,
+      notes: visit.notes_internal,
+    };
+  });
+
+  return { matches, siteVisits };
 }

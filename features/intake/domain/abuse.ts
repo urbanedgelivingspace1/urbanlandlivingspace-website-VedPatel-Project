@@ -9,6 +9,7 @@ export const RATE_POLICIES: Readonly<
   BUYER_REQUIREMENT: { attempts: 5, windowSeconds: 900 },
   SITE_VISIT_REQUEST: { attempts: 5, windowSeconds: 900 },
   GENERAL_CONTACT: { attempts: 5, windowSeconds: 900 },
+  SELLER_LEAD: { attempts: 5, windowSeconds: 900 },
   OWNER_LAND_SUBMISSION: { attempts: 3, windowSeconds: 1_800 },
   PUBLIC_INTENT: { attempts: 60, windowSeconds: 60 },
 };

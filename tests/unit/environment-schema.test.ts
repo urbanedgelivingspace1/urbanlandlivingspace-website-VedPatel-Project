@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { serverEnvironmentSchema } from "@/config/environment-schema";
+import { isNonProductionEnvironment, serverEnvironmentSchema } from "@/config/environment-schema";
 
 const validEnvironment = {
   APP_ENV: "local",
@@ -153,5 +153,25 @@ describe("serverEnvironmentSchema", () => {
         }),
       }),
     ).not.toThrow();
+  });
+
+  describe("isNonProductionEnvironment", () => {
+    it("returns true for verified non-production environments (local, preview, test)", () => {
+      expect(isNonProductionEnvironment("local")).toBe(true);
+      expect(isNonProductionEnvironment("preview")).toBe(true);
+      expect(isNonProductionEnvironment("test")).toBe(true);
+    });
+
+    it("returns false for production environment", () => {
+      expect(isNonProductionEnvironment("production")).toBe(false);
+    });
+
+    it("fails closed (returns false) for unknown, undefined, or empty environments", () => {
+      expect(isNonProductionEnvironment(undefined)).toBe(false);
+      expect(isNonProductionEnvironment("")).toBe(false);
+      expect(isNonProductionEnvironment("unknown")).toBe(false);
+      expect(isNonProductionEnvironment("staging")).toBe(false); // Non-canonical alias fails closed
+      expect(isNonProductionEnvironment("prod")).toBe(false);
+    });
   });
 });

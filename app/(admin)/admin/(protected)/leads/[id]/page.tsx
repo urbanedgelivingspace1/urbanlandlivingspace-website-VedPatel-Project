@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FOLLOW_UP_TYPES, LOSS_REASONS } from "@/features/crm/domain/contracts";
+import type { LeadWorkspace } from "@/features/crm/domain/contracts";
 import { formatIndiaDateTime } from "@/features/crm/domain/follow-ups";
 import { leadStatusLabel, nextLeadStatuses } from "@/features/crm/domain/pipeline";
 import { getCrmReferenceData, getLeadWorkspace } from "@/server/services/crm";
@@ -13,6 +14,7 @@ import {
   transitionLeadAction,
   unmatchPropertyAction,
   updateLeadAction,
+  uploadSellerLeadDocumentsAction,
 } from "../actions";
 
 const input = "mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal";
@@ -27,8 +29,9 @@ export default async function LeadDetailPage({
   const saved = (await searchParams).saved;
   const [workspace, refs] = await Promise.all([getLeadWorkspace(id), getCrmReferenceData()]);
   if (!workspace) notFound();
-  const { lead, requirement, matches, followUps, activities } = workspace;
+  const { lead, requirement, matches, followUps, activities, documents } = workspace;
   const openFollowUp = followUps.find((f) => !f.completedAt);
+  const createPropertyHref = sellerPropertyDraftHref(lead, requirement, refs.districts);
   return (
     <section className="mx-auto max-w-7xl" aria-labelledby="lead-heading">
       <div className="flex flex-wrap gap-4 text-sm font-semibold text-[var(--brand-navy)]">
@@ -51,9 +54,36 @@ export default async function LeadDetailPage({
             <h1 id="lead-heading" className="font-display text-4xl">
               {lead.name}
             </h1>
-            <p className="mt-2 text-slate-300">
-              {lead.phone ?? "No phone"} · {lead.email ?? "No email"}
-            </p>
+            <div className="mt-3 flex flex-wrap gap-2 text-sm">
+              {lead.phone ? (
+                <>
+                  <a
+                    className="rounded-lg bg-white/10 px-3 py-2 hover:bg-white/20"
+                    href={`tel:${lead.phone}`}
+                  >
+                    Call {lead.phone}
+                  </a>
+                  <a
+                    className="rounded-lg bg-emerald-500 px-3 py-2 font-bold text-emerald-950 hover:bg-emerald-400"
+                    href={`https://wa.me/${whatsAppNumber(lead.phone)}`}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    WhatsApp
+                  </a>
+                </>
+              ) : (
+                <span className="text-slate-300">No phone</span>
+              )}
+              {lead.email ? (
+                <a
+                  className="rounded-lg bg-white/10 px-3 py-2 hover:bg-white/20"
+                  href={`mailto:${lead.email}`}
+                >
+                  {lead.email}
+                </a>
+              ) : null}
+            </div>
           </div>
           <span className="rounded-full bg-white/10 px-4 py-2 text-sm font-bold">
             {leadStatusLabel(lead.status)}
@@ -102,6 +132,7 @@ export default async function LeadDetailPage({
                   value={lead.inquiryType}
                   options={[
                     "GENERAL_CONTACT",
+                    "SELLER_LEAD",
                     "PROPERTY_INQUIRY",
                     "PRICE_INQUIRY",
                     "BUYER_REQUIREMENT",
@@ -165,119 +196,287 @@ export default async function LeadDetailPage({
               </form>
             </details>
           </Panel>
-          <Panel title="Buyer requirement">
-            <form
-              action={saveRequirementAction.bind(null, id)}
-              className="grid gap-3 sm:grid-cols-2"
-            >
-              <Field
-                name="minAreaValue"
-                label="Minimum area"
-                type="number"
-                step="any"
-                value={requirement?.minAreaValue ?? ""}
-              />
-              <Field
-                name="maxAreaValue"
-                label="Maximum area"
-                type="number"
-                step="any"
-                value={requirement?.maxAreaValue ?? ""}
-              />
-              <Select
-                name="areaUnitId"
-                label="Area unit"
-                value={requirement?.areaUnitId ?? ""}
-                options={["", ...refs.units.map((u) => u.id)]}
-                labels={Object.fromEntries(
-                  refs.units.map((u) => [
-                    u.id,
-                    `${u.display_name}${u.symbol ? ` (${u.symbol})` : ""}`,
-                  ]),
-                )}
-              />
-              <Field
-                name="preferredRoadWidthMMin"
-                label="Minimum road width (m)"
-                type="number"
-                step="any"
-                value={requirement?.preferredRoadWidthMMin ?? ""}
-              />
-              <Field
-                name="preferredFrontageMMin"
-                label="Minimum frontage (m)"
-                type="number"
-                step="any"
-                value={requirement?.preferredFrontageMMin ?? ""}
-              />
-              <label className="text-sm font-semibold sm:col-span-2">
-                Requirement notes
-                <textarea
-                  name="requirementNotes"
-                  defaultValue={requirement?.notes ?? ""}
-                  rows={3}
-                  className={input}
-                />
-              </label>
-              <button className="button button-primary sm:col-span-2">Save requirement</button>
-            </form>
-          </Panel>
-          <Panel title="Matched properties">
-            <form
-              action={matchPropertyAction.bind(null, id)}
-              className="grid gap-3 sm:grid-cols-[1fr_10rem_1fr_auto]"
-            >
-              <Select
-                name="propertyId"
-                label="Candidate property"
-                options={refs.properties.map((p) => p.id)}
-                labels={Object.fromEntries(
-                  refs.properties.map((p) => [
-                    p.id,
-                    `${p.property_code} · ${p.listing_title ?? p.land_category}`,
-                  ]),
-                )}
-              />
-              <Select
-                name="matchStatus"
-                label="Match state"
-                options={["ACTIVE", "PRESENTED", "ACCEPTED", "REJECTED"]}
-              />
-              <Field name="matchNotes" label="Internal match note" />
-              <button className="button button-primary self-end">Link property</button>
-            </form>
-            <div className="mt-5 space-y-3">
-              {matches.map((match) => (
-                <article
-                  key={match.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 p-3"
-                >
+          {lead.inquiryType === "SELLER_LEAD" ? (
+            <Panel title="Seller Land Offering & Properties">
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <Link
-                      href={`/admin/properties/${match.propertyId}`}
-                      className="font-bold text-[var(--brand-navy)]"
-                    >
-                      {match.propertyCode} · {match.title ?? match.category}
-                    </Link>
-                    <p className="text-xs text-slate-500">
-                      {match.status} · {match.availability}
-                      {match.notes ? ` · ${match.notes}` : ""}
+                    <span className="rounded-full bg-emerald-200 px-2.5 py-0.5 text-xs font-bold text-emerald-950 uppercase">
+                      Seller Lead
+                    </span>
+                    <h3 className="font-display mt-2 text-lg font-bold text-slate-900">
+                      {[lead.transaction, lead.category].filter(Boolean).join(" · ") ||
+                        "Land Offering"}
+                    </h3>
+                    <p className="mt-1 text-xs text-slate-600">
+                      {lead.districtName ?? "Gujarat"}{" "}
+                      {lead.localityText ? `· ${lead.localityText}` : ""}
                     </p>
                   </div>
-                  <form action={unmatchPropertyAction.bind(null, id)}>
-                    <input type="hidden" name="propertyId" value={match.propertyId} />
-                    <input type="hidden" name="reason" value="Removed from candidate set" />
-                    <button className="rounded-lg border border-red-300 px-3 py-2 text-sm font-bold text-red-800">
-                      Remove match
-                    </button>
-                  </form>
-                </article>
-              ))}
-              {!matches.length ? (
-                <p className="text-sm text-slate-500">No candidate properties linked.</p>
-              ) : null}
-            </div>
-          </Panel>
+                  <Link href={createPropertyHref} className="button button-primary">
+                    + Create Property from Lead
+                  </Link>
+                </div>
+                {lead.notesInternal ? (
+                  <p className="mt-3 text-xs text-slate-700 bg-white/80 p-2.5 rounded-lg border border-emerald-100">
+                    <span className="font-semibold text-slate-900">Seller Note: </span>
+                    {lead.notesInternal}
+                  </p>
+                ) : null}
+                <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+                  <Fact
+                    label="Rough area"
+                    value={formatArea(
+                      requirement?.minAreaValue ?? null,
+                      requirement?.maxAreaValue ?? null,
+                      requirement?.areaUnitLabel ?? null,
+                    )}
+                  />
+                  <Fact
+                    label="Expected price"
+                    value={formatBudget(lead.budgetMin, lead.budgetMax)}
+                  />
+                  <Fact label="Offering notes" value={requirement?.notes ?? lead.notesInternal} />
+                </dl>
+              </div>
+
+              {/* Linked Properties List */}
+              <div className="mt-5">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+                  Properties Created for this Seller ({workspace.sellerProperties?.length ?? 0})
+                </h4>
+                {workspace.sellerProperties && workspace.sellerProperties.length > 0 ? (
+                  <div className="space-y-3">
+                    {workspace.sellerProperties.map((p) => (
+                      <div
+                        key={p.id}
+                        className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 p-3 bg-white hover:bg-slate-50 transition-colors"
+                      >
+                        <div>
+                          <Link
+                            href={`/admin/properties/${p.id}`}
+                            className="font-bold text-[var(--brand-navy)] hover:underline"
+                          >
+                            {p.propertyCode} · {p.title || p.category}
+                          </Link>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            {p.category} · {p.transaction} · Availability: {p.availability}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                              p.publicationStatus === "PUBLISHED"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : "bg-slate-100 text-slate-700"
+                            }`}
+                          >
+                            {p.publicationStatus}
+                          </span>
+                          <Link
+                            href={`/admin/properties/${p.id}`}
+                            className="rounded-lg border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                          >
+                            Workspace →
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-500 italic p-3 rounded-lg border border-dashed border-slate-200 text-center">
+                    No property listing has been created for this seller lead yet. Click &quot;+
+                    Create Property from Lead&quot; above to initialize one.
+                  </p>
+                )}
+              </div>
+
+              <div className="mt-6 border-t border-slate-200 pt-5">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Private seller documents ({documents.length})
+                </h4>
+                <p className="mt-1 text-xs text-slate-500">
+                  Private by default. Uploading a file does not mark the property verified or ready
+                  to publish.
+                </p>
+                <form
+                  action={uploadSellerLeadDocumentsAction.bind(null, id)}
+                  className="mt-4 grid gap-3 sm:grid-cols-[14rem_1fr_auto]"
+                >
+                  <Select
+                    name="documentType"
+                    label="Document tag"
+                    value="OTHER"
+                    options={[
+                      "LAND_RECORDS",
+                      "TITLE_DEED",
+                      "NA_ORDER_LAYOUT",
+                      "TP_ZONE_CERTIFICATE",
+                      "VILLAGE_MAP_DEMARCATION",
+                      "SOIL_WATER_ELECTRICITY",
+                      "OTHER",
+                    ]}
+                  />
+                  <label className="text-sm font-semibold">
+                    Files
+                    <input
+                      className={input}
+                      type="file"
+                      name="documents"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      multiple
+                      required
+                    />
+                  </label>
+                  <button className="button button-primary self-end">Upload privately</button>
+                </form>
+                {documents.length ? (
+                  <ul className="mt-4 divide-y divide-slate-100 rounded-lg border border-slate-200">
+                    {documents.map((document) => (
+                      <li
+                        key={document.id}
+                        className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm"
+                      >
+                        <div>
+                          <strong>{document.originalFileName ?? document.documentType}</strong>
+                          <p className="text-xs text-slate-500">
+                            {document.documentType.replaceAll("_", " ")} ·{" "}
+                            {formatFileSize(document.fileSizeBytes)} · {document.scanStatus}
+                          </p>
+                        </div>
+                        <a
+                          className="rounded-lg border border-slate-300 px-3 py-2 font-bold text-[var(--brand-navy)]"
+                          href={`/api/admin/private-documents/${document.id}/download`}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
+                          Open securely
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-4 text-sm text-slate-500">No seller documents uploaded.</p>
+                )}
+              </div>
+            </Panel>
+          ) : (
+            <>
+              <Panel title="Buyer requirement">
+                <form
+                  action={saveRequirementAction.bind(null, id)}
+                  className="grid gap-3 sm:grid-cols-2"
+                >
+                  <Field
+                    name="minAreaValue"
+                    label="Minimum area"
+                    type="number"
+                    step="any"
+                    value={requirement?.minAreaValue ?? ""}
+                  />
+                  <Field
+                    name="maxAreaValue"
+                    label="Maximum area"
+                    type="number"
+                    step="any"
+                    value={requirement?.maxAreaValue ?? ""}
+                  />
+                  <Select
+                    name="areaUnitId"
+                    label="Area unit"
+                    value={requirement?.areaUnitId ?? ""}
+                    options={["", ...refs.units.map((u) => u.id)]}
+                    labels={Object.fromEntries(
+                      refs.units.map((u) => [
+                        u.id,
+                        `${u.display_name}${u.symbol ? ` (${u.symbol})` : ""}`,
+                      ]),
+                    )}
+                  />
+                  <Field
+                    name="preferredRoadWidthMMin"
+                    label="Minimum road width (m)"
+                    type="number"
+                    step="any"
+                    value={requirement?.preferredRoadWidthMMin ?? ""}
+                  />
+                  <Field
+                    name="preferredFrontageMMin"
+                    label="Minimum frontage (m)"
+                    type="number"
+                    step="any"
+                    value={requirement?.preferredFrontageMMin ?? ""}
+                  />
+                  <label className="text-sm font-semibold sm:col-span-2">
+                    Requirement notes
+                    <textarea
+                      name="requirementNotes"
+                      defaultValue={requirement?.notes ?? ""}
+                      rows={3}
+                      className={input}
+                    />
+                  </label>
+                  <button className="button button-primary sm:col-span-2">Save requirement</button>
+                </form>
+              </Panel>
+              <Panel title="Matched properties">
+                <form
+                  action={matchPropertyAction.bind(null, id)}
+                  className="grid gap-3 sm:grid-cols-[1fr_10rem_1fr_auto]"
+                >
+                  <Select
+                    name="propertyId"
+                    label="Candidate property"
+                    options={refs.properties.map((p) => p.id)}
+                    labels={Object.fromEntries(
+                      refs.properties.map((p) => [
+                        p.id,
+                        `${p.property_code} · ${p.listing_title ?? p.land_category}`,
+                      ]),
+                    )}
+                  />
+                  <Select
+                    name="matchStatus"
+                    label="Match state"
+                    options={["ACTIVE", "PRESENTED", "ACCEPTED", "REJECTED"]}
+                  />
+                  <Field name="matchNotes" label="Internal match note" />
+                  <button className="button button-primary self-end">Link property</button>
+                </form>
+                <div className="mt-5 space-y-3">
+                  {matches.map((match) => (
+                    <article
+                      key={match.id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 p-3"
+                    >
+                      <div>
+                        <Link
+                          href={`/admin/properties/${match.propertyId}`}
+                          className="font-bold text-[var(--brand-navy)]"
+                        >
+                          {match.propertyCode} · {match.title ?? match.category}
+                        </Link>
+                        <p className="text-xs text-slate-500">
+                          {match.status} · {match.availability}
+                          {match.notes ? ` · ${match.notes}` : ""}
+                        </p>
+                      </div>
+                      <form action={unmatchPropertyAction.bind(null, id)}>
+                        <input type="hidden" name="propertyId" value={match.propertyId} />
+                        <input type="hidden" name="reason" value="Removed from candidate set" />
+                        <button className="rounded-lg border border-red-300 px-3 py-2 text-sm font-bold text-red-800">
+                          Remove match
+                        </button>
+                      </form>
+                    </article>
+                  ))}
+                  {!matches.length ? (
+                    <p className="text-sm text-slate-500">No candidate properties linked.</p>
+                  ) : null}
+                </div>
+              </Panel>
+            </>
+          )}
           <Panel title="Activity timeline">
             <form
               action={addActivityAction.bind(null, id)}
@@ -466,4 +665,60 @@ function formatBudget(min: number | null, max: number | null) {
     : min !== null
       ? `From ${money(min)}`
       : `Up to ${money(max as number)}`;
+}
+
+function whatsAppNumber(phone: string) {
+  const digits = phone.replace(/\D/g, "");
+  return digits.length === 10 ? `91${digits}` : digits;
+}
+
+function formatArea(min: number | null, max: number | null, unit: string | null) {
+  if (min === null && max === null) return "Not recorded";
+  const suffix = unit ? ` ${unit}` : "";
+  if (min !== null && max !== null) return `${min}–${max}${suffix}`;
+  return `${min ?? max}${suffix}`;
+}
+
+function formatFileSize(bytes: number | null) {
+  if (bytes === null) return "Unknown size";
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function sellerPropertyDraftHref(
+  lead: LeadWorkspace["lead"],
+  requirement: LeadWorkspace["requirement"],
+  districts: readonly Readonly<{ id: string; name: string }>[],
+) {
+  const params = new URLSearchParams({
+    partyId: lead.partyId,
+    sourceType: "SELLER_LEAD",
+    sourceName: lead.leadReference,
+    sourceReference: lead.id,
+  });
+  if (lead.category) params.set("category", lead.category);
+  if (lead.transaction) params.set("transaction", lead.transaction);
+  if (lead.localityText) params.set("localityText", lead.localityText);
+  const district = districts.find((item) => item.name === lead.districtName);
+  if (district) params.set("districtId", district.id);
+  if (
+    requirement &&
+    requirement.minAreaValue !== null &&
+    requirement.minAreaValue === requirement.maxAreaValue &&
+    requirement.areaUnitId
+  ) {
+    params.set("areaValue", String(requirement.minAreaValue));
+    params.set("areaUnitId", requirement.areaUnitId);
+  }
+  if (lead.budgetMin !== null && lead.budgetMax !== null) {
+    if (lead.budgetMin === lead.budgetMax) {
+      params.set("priceMode", "EXACT_TOTAL");
+      params.set("priceAmount", String(lead.budgetMin));
+    } else {
+      params.set("priceMode", "PRICE_RANGE");
+      params.set("priceMinimum", String(lead.budgetMin));
+      params.set("priceMaximum", String(lead.budgetMax));
+    }
+  }
+  return `/admin/properties/new?${params.toString()}`;
 }
