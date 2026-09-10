@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { isNonProductionEnvironment } from "@/config/environment-schema";
 import { PropertyDraftForm } from "@/components/admin/property-draft-form";
 import { requireActiveAdminPage } from "@/server/auth/require-admin-page";
 import { getAdminProperty, getAdminReferenceData } from "@/server/services/property-drafts";
@@ -112,6 +113,7 @@ export default async function EditPropertyPage({
         references={references}
         initialValues={values}
         submitLabel="Save draft"
+        allowTestPresets={isNonProductionEnvironment()}
       />
     </div>
   );

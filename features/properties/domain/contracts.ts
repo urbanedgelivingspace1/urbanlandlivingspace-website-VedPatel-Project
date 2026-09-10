@@ -5,6 +5,37 @@ import type {
   PriceMode,
   TransactionType,
 } from "@/types/database";
+import type { Database as GeneratedDatabase } from "@/types/database.generated";
+
+export type AdminPropertyDraftRecord = Readonly<{
+  property: GeneratedDatabase["public"]["Tables"]["properties"]["Row"];
+  districtName: string;
+  areaUnitName: string;
+  location: GeneratedDatabase["public"]["Tables"]["property_locations"]["Row"] | null;
+  offer: GeneratedDatabase["public"]["Tables"]["property_offers"]["Row"] | null;
+  parcel:
+    | (GeneratedDatabase["public"]["Tables"]["property_parcels"]["Row"] & {
+        identifier: GeneratedDatabase["public"]["Tables"]["parcel_identifiers"]["Row"] | null;
+      })
+    | null;
+  planning: GeneratedDatabase["public"]["Tables"]["property_planning_context"]["Row"] | null;
+  agricultural: GeneratedDatabase["public"]["Tables"]["property_agricultural"]["Row"] | null;
+  na: GeneratedDatabase["public"]["Tables"]["property_na"]["Row"] | null;
+  industrial: GeneratedDatabase["public"]["Tables"]["property_industrial"]["Row"] | null;
+  partyLink: GeneratedDatabase["public"]["Tables"]["property_parties"]["Row"] | null;
+  sourceLink: GeneratedDatabase["public"]["Tables"]["property_source_links"]["Row"] | null;
+  mediaCount: number;
+  hasApprovedCover: boolean;
+  documentCount: number;
+  verificationCount: number;
+}>;
+
+export type PropertyActivityItem = Readonly<{
+  id: string;
+  at: string;
+  label: string;
+  detail: string | null;
+}>;
 
 export type PublicLocationDto = Readonly<{
   visibility: LocationVisibility;

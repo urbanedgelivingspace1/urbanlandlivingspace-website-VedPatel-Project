@@ -24,9 +24,10 @@ import {
 import { normalizeExternalMedia, validatePublicMediaText } from "@/server/storage/external-media";
 import { normalizePublicPropertyImage } from "@/server/storage/image-processing";
 import {
+  leadDocumentPath,
   propertyPrivateMediaPath,
+  propertyDocumentPath,
   propertyPublicMediaPath,
-  verificationDocumentPath,
 } from "@/server/storage/object-path";
 import { getStorageConfig } from "@/server/storage/config";
 import type { Database, Json } from "@/types/database.generated";
@@ -50,8 +51,19 @@ type DocumentRow = Pick<
 const privilegedClient = () => createPrivilegedServerClient() as unknown as Db;
 const propertyIdSchema = z.uuid();
 const documentTypeSchema = z
-  .enum(["OWNER_DOCUMENT", "LEGAL_DOCUMENT", "VERIFICATION_EVIDENCE"])
-  .default("VERIFICATION_EVIDENCE");
+  .enum([
+    "LAND_RECORDS",
+    "TITLE_DEED",
+    "NA_ORDER_LAYOUT",
+    "TP_ZONE_CERTIFICATE",
+    "VILLAGE_MAP_DEMARCATION",
+    "SOIL_WATER_ELECTRICITY",
+    "OTHER",
+    "OWNER_DOCUMENT",
+    "LEGAL_DOCUMENT",
+    "VERIFICATION_EVIDENCE",
+  ])
+  .default("OTHER");
 
 const MAX_STAGED_IMAGES_PER_PROPERTY = 20;
 const MAX_ACTIVE_BROCHURES_PER_PROPERTY = 1;
@@ -395,7 +407,7 @@ export async function uploadPrivatePropertyDocumentWithClient(
   if (existing.data) return { id: existing.data.id, duplicate: true, scanStatus } as const;
   const documentId = randomUUID();
   const storage = getStorageConfig();
-  const path = verificationDocumentPath(id, documentId, document.extension);
+  const path = propertyDocumentPath(id, documentId, document.extension);
   const registeredId = await uploadRegisteredObject(
     client,
     storage.buckets.verificationDocumentsPrivate,
@@ -444,6 +456,62 @@ export async function uploadPrivatePropertyDocument(
   );
 }
 
+export async function uploadPrivateLeadDocument(leadId: string, documentType: string, file: File) {
+  const admin = await requireActiveAdmin();
+  const client = privilegedClient();
+  const targetLeadId = z.uuid().parse(leadId);
+  const controlledType = documentTypeSchema.parse(documentType);
+  const lead = await client
+    .from("leads")
+    .select("id")
+    .eq("id", targetLeadId)
+    .is("archived_at", null)
+    .maybeSingle();
+  if (lead.error) throw lead.error;
+  if (!lead.data) throw new MediaValidationError("Lead not found.", "leadId");
+
+  const document = await validatePrivateDocument(file);
+  const scanStatus = await scanDocumentForMalware(document.bytes);
+  if (scanStatus === "INFECTED" || scanStatus === "FAILED") {
+    throw new MediaValidationError("The document failed the security scan and was not stored.");
+  }
+  await assertStorageCapacity(client, document.bytes.byteLength);
+  const checksum = sha256(document.bytes);
+  const documentId = randomUUID();
+  const storage = getStorageConfig();
+  const path = leadDocumentPath(targetLeadId, documentId, document.extension);
+  const registeredId = await uploadRegisteredObject(
+    client,
+    storage.buckets.verificationDocumentsPrivate,
+    path,
+    document.bytes,
+    document.mimeType,
+    async () => {
+      const { data, error } = await client.rpc("register_lead_private_document", {
+        requested_actor_id: admin.userId,
+        requested_payload: {
+          id: documentId,
+          leadId: targetLeadId,
+          documentType: controlledType,
+          objectPath: path,
+          mimeType: document.mimeType,
+          fileSizeBytes: document.bytes.byteLength,
+          checksumSha256: checksum,
+          originalFileName: normalizeOriginalFileName(file.name),
+          pageCount: document.pageCount,
+          scanStatus,
+        },
+      });
+      if (error) throw new Error(error.message);
+      return data;
+    },
+  );
+  if (registeredId !== documentId) {
+    await client.storage.from(storage.buckets.verificationDocumentsPrivate).remove([path]);
+  }
+  return { id: registeredId, duplicate: registeredId !== documentId, scanStatus } as const;
+}
+
 async function signedPreview(client: Db, row: MediaRow) {
   if (row.external_url) return row.external_url;
   if (!row.storage_bucket || !row.object_path) return null;
@@ -482,6 +550,37 @@ export async function getAdminPropertyMedia(propertyId: string) {
     mediaResult.data.map(async (row) => toMediaDto(row, await signedPreview(client, row))),
   );
   return { media, documents: documentsResult.data.map(toDocumentDto) };
+}
+
+export async function getAdminPropertyVisualMedia(propertyId: string) {
+  await requireActiveAdmin();
+  const client = privilegedClient();
+  const id = await ensureActiveProperty(client, propertyId);
+  const result = await client
+    .from("media_assets")
+    .select("*")
+    .eq("property_id", id)
+    .order("archived_at", { ascending: true, nullsFirst: true })
+    .order("sort_order");
+  if (result.error) throw result.error;
+  return Promise.all(
+    result.data.map(async (row) => toMediaDto(row, await signedPreview(client, row))),
+  );
+}
+
+export async function getAdminPropertyDocuments(propertyId: string) {
+  await requireActiveAdmin();
+  const client = privilegedClient();
+  const id = await ensureActiveProperty(client, propertyId);
+  const result = await client
+    .from("private_documents")
+    .select(
+      "id,property_id,document_type,mime_type,file_size_bytes,original_file_name,page_count,scan_status,created_at,archived_at",
+    )
+    .eq("property_id", id)
+    .order("created_at", { ascending: false });
+  if (result.error) throw result.error;
+  return result.data.map(toDocumentDto);
 }
 
 export async function listAdminMedia() {

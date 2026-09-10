@@ -11,6 +11,7 @@ import {
 } from "@/features/properties/domain/admin-property-draft";
 import type { PropertyFormState } from "@/features/properties/domain/property-form-state";
 import type { PublicationActionState } from "@/features/properties/domain/publication";
+import type { BatchDocumentUploadResult } from "@/features/media/domain/contracts";
 import { requireActiveAdmin } from "@/server/auth/authorization";
 import {
   archivePropertyDraft,
@@ -19,6 +20,10 @@ import {
   restorePropertyDraft,
   updatePropertyDraft,
 } from "@/server/services/property-drafts";
+import {
+  createPrivateDocumentSignedUrl,
+  uploadPrivatePropertyDocument,
+} from "@/server/services/property-media";
 import { publishProperty, unpublishProperty } from "@/server/services/property-publication";
 import type { AvailabilityStatus } from "@/types/database";
 
@@ -91,7 +96,9 @@ function parsePropertyDraftForm(formData: FormData): AdminPropertyDraftInput {
     category === "NA"
       ? {
           landCategory: category,
-          naStatus: text(formData, "naStatus"),
+          // The legacy typed extension stores a neutral sentinel while the
+          // simplified admin form intentionally treats this detail as optional.
+          naStatus: optionalText(formData, "naStatus") ?? "UNSPECIFIED",
           naPurpose: optionalText(formData, "naPurpose"),
           developmentPermissionStatus: optionalText(formData, "developmentPermissionStatus"),
           roadWidthMetres: numberOrUndefined(formData, "categoryRoadWidthMetres"),
@@ -261,7 +268,7 @@ export async function changeAvailabilityAction(formData: FormData) {
   const propertyId = z.uuid().parse(text(formData, "propertyId"));
   const expectedUpdatedAt = databaseTimestamp.parse(text(formData, "expectedUpdatedAt"));
   const next = z
-    .enum(["AVAILABLE", "UNDER_NEGOTIATION", "SOLD", "RENTED", "LEASED", "OFF_MARKET"])
+    .enum(["AVAILABLE", "UNDER_NEGOTIATION", "RENTED", "LEASED", "OFF_MARKET"])
     .parse(text(formData, "nextStatus")) as AvailabilityStatus;
   await changePropertyAvailability(propertyId, expectedUpdatedAt, next);
   refreshPublicProperty(propertyId);
@@ -325,4 +332,64 @@ export async function restorePropertyAction(formData: FormData) {
   await restorePropertyDraft(propertyId, expectedUpdatedAt);
   revalidatePath("/admin/properties");
   revalidatePath(`/admin/properties/${propertyId}`);
+}
+
+export async function markPropertySoldAction(formData: FormData) {
+  await requireActiveAdmin();
+  const propertyId = z.uuid().parse(text(formData, "propertyId"));
+  const expectedUpdatedAt = databaseTimestamp.parse(text(formData, "expectedUpdatedAt"));
+  await changePropertyAvailability(propertyId, expectedUpdatedAt, "SOLD");
+  refreshPublicProperty(propertyId);
+}
+
+export async function uploadBatchPropertyDocumentsAction(
+  propertyId: string,
+  formData: FormData,
+): Promise<BatchDocumentUploadResult> {
+  await requireActiveAdmin();
+  const files = formData
+    .getAll("documents")
+    .filter((value): value is File => value instanceof File);
+  const documentType = String(formData.get("documentType") || "OTHER");
+  const results: BatchDocumentUploadResult["results"][number][] = [];
+  for (const file of files) {
+    if (file && file.size > 0) {
+      try {
+        const result = await uploadPrivatePropertyDocument(propertyId, documentType, file);
+        results.push({
+          fileName: file.name,
+          ok: true,
+          duplicate: result.duplicate,
+          message: result.duplicate ? "Already stored" : "Uploaded",
+        });
+      } catch (error) {
+        results.push({
+          fileName: file.name,
+          ok: false,
+          message: error instanceof Error ? error.message : "Upload failed",
+        });
+      }
+    }
+  }
+  revalidatePath(`/admin/properties/${propertyId}`);
+  const uploaded = results.filter((result) => result.ok).length;
+  const failed = results.length - uploaded;
+  return {
+    ok: failed === 0 && results.length > 0,
+    uploaded,
+    results,
+    message: `${uploaded} file${uploaded === 1 ? "" : "s"} stored${failed ? `; ${failed} failed` : ""}. Private; accessible only to authorized admins.`,
+  };
+}
+
+export async function createDocumentSignedUrlAction(
+  documentId: string,
+): Promise<{ ok: boolean; signedUrl?: string; error?: string }> {
+  await requireActiveAdmin();
+  try {
+    const result = await createPrivateDocumentSignedUrl(documentId, "ADMIN_VIEW");
+    return { ok: true, signedUrl: result.signedUrl };
+  } catch (err: unknown) {
+    return { ok: false, error: err instanceof Error ? err.message : "Access error" };
+  }
 }

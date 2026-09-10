@@ -29,6 +29,7 @@ for (const category of ["AGRICULTURAL", "NA", "INDUSTRIAL"] as const) {
     await expect(page).toHaveURL(/\/admin\/properties\/[0-9a-f-]+$/);
     await expect(page.getByText(/^UE-LS-\d{6}$/).first()).toBeVisible();
     await expect(page.getByText("DRAFT").first()).toBeVisible();
+    await page.getByRole("link", { name: "Review", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Publication readiness" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Publish property" })).toBeDisabled();
   });
@@ -49,8 +50,8 @@ test("admin edits price, area, and public-safe location without publishing", asy
   await page.getByLabel("Public accuracy (metres)").fill("500");
   await page.getByRole("button", { name: "Save draft" }).click();
   await expect(page).toHaveURL(/saved=1/);
-  await expect(page.getByRole("status")).toContainText("Draft saved");
-  await expect(page.getByText("4.75 Acre (ac)")).toBeVisible();
+  await expect(page.getByRole("status")).toContainText("Draft changes saved successfully");
+  await expect(page.getByText("4.75 Acre (ac)", { exact: true })).toBeVisible();
   await expect(page.getByText("DRAFT").first()).toBeVisible();
 });
 

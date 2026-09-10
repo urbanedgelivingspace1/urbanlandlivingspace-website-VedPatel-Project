@@ -214,12 +214,12 @@ describe.sequential("M7 media and private storage integration", () => {
       scan_status: "CLEAN",
     });
     expect(row.data?.object_path).toMatch(
-      new RegExp(`^properties/${propertyId}/verification/[0-9a-f-]+\\.pdf$`),
+      new RegExp(`^properties/${propertyId}/documents/[0-9a-f-]+\\.pdf$`),
     );
   });
 
   it("denies private reads/path guesses and every direct browser storage mutation", async () => {
-    const guessed = `properties/${propertyId}/verification/${documentId}.pdf`;
+    const guessed = `properties/${propertyId}/documents/${documentId}.pdf`;
     for (const client of [anonymousClient, nonAdminClient, activeAdminClient]) {
       const privateList = await client.storage.from("verification-documents-private").list("");
       expect(privateList.data ?? []).toEqual([]);

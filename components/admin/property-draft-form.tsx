@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useRef, useState } from "react";
 
 import type { AdminPropertyReferenceData } from "@/features/admin/contracts";
 import {
@@ -16,17 +16,315 @@ type Props = Readonly<{
   references: AdminPropertyReferenceData;
   initialValues?: Readonly<Record<string, string | number | boolean | null | undefined>>;
   submitLabel: string;
+  allowTestPresets?: boolean;
 }>;
 
 const inputClass =
   "mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm disabled:bg-slate-100";
 const labelClass = "text-sm font-semibold text-slate-800";
 
-export function PropertyDraftForm({ action, references, initialValues = {}, submitLabel }: Props) {
+function buildSampleData(
+  category: "AGRICULTURAL" | "NA" | "INDUSTRIAL",
+  references: AdminPropertyReferenceData,
+): Record<string, string | boolean> {
+  const districtId =
+    (category === "NA"
+      ? references.districts.find((d) => d.name.toLowerCase().includes("gandhinagar"))?.id
+      : references.districts.find((d) => d.name.toLowerCase().includes("ahmedabad"))?.id) ??
+    references.districts[0]?.id ??
+    "00000000-0000-4000-8000-000000000003";
+
+  const acreUnitId =
+    references.areaUnits.find((u) => u.code === "acre")?.id ??
+    references.areaUnits[0]?.id ??
+    "10000000-0000-4000-8000-000000000006";
+
+  const sqYdUnitId =
+    references.areaUnits.find((u) => u.code === "sq_yd")?.id ??
+    references.areaUnits[0]?.id ??
+    "10000000-0000-4000-8000-000000000003";
+
+  const sqMUnitId =
+    references.areaUnits.find((u) => u.code === "sq_m")?.id ??
+    references.areaUnits[0]?.id ??
+    "10000000-0000-4000-8000-000000000001";
+
+  const partyId = references.parties[0]?.id ?? "";
+  const testSuffix = Math.floor(100 + Math.random() * 900);
+
+  if (category === "NA") {
+    return {
+      landCategory: "NA",
+      primaryTransactionType: "BUY",
+      listingTitle: `Prime 1200 Sq Yd NA Commercial Plot in Gandhinagar #${testSuffix}`,
+      publicSlug: `prime-1200-sq-yd-na-commercial-plot-gandhinagar-${testSuffix}`,
+      shortDescription:
+        "NA commercial plot with recorded road frontage and available planning details.",
+      description:
+        "High-visibility non-agricultural plot with recorded commercial-use context, dual-road corner access, and available utility information. Confirm permissions for the intended project independently.",
+      districtId,
+      publicAddress: "Koba Circle, Gandhinagar Highway, Gandhinagar, Gujarat",
+      landmarkText: "Opposite Tech City Gate 1",
+      displayAreaValue: "1200",
+      displayAreaUnitId: sqYdUnitId,
+      priceMode: "EXACT_TOTAL",
+      priceAmount: "45000000",
+      priceMinimum: "",
+      priceMaximum: "",
+      pricePerUnit: "",
+      priceUnitId: "",
+      negotiable: false,
+      commercialTerms:
+        "Standard commercial settlement. Possession handed over upon registered sale deed.",
+      locationVisibility: "APPROXIMATE",
+      privateLatitude: "23.165412",
+      privateLongitude: "72.634125",
+      publicLatitude: "23.165000",
+      publicLongitude: "72.634000",
+      publicAccuracyMetres: "150",
+      locationNotes: "Corner plot marked by perimeter fencing and demarcated survey pegs.",
+      parcelLabel: "Commercial Plot CP-14",
+      parcelAreaValue: "1200",
+      parcelAreaUnitId: sqYdUnitId,
+      identifierType: "CITY_SURVEY_NUMBER",
+      identifierValue: "CS-8891",
+      identifierVisibility: "ADMIN_ONLY",
+      parcelNotesInternal: "NA order no. NA/2024/7711 verified with collectorate records.",
+      reservationStatus: "Commercial zone under TP Scheme 14",
+      roadReservationStatus: "24m TP road fully cleared",
+      planningPublicNotes: "Zoned Commercial High-Density (FSI 2.7).",
+      planningInternalNotes: "Fire and drainage documents received for internal review.",
+      tenureType: "",
+      irrigationStatus: "",
+      currentCultivationStatus: "",
+      roadTouch: false,
+      naStatus: "ORDER_ISSUED",
+      naPurpose: "Commercial / Office Complex",
+      developmentPermissionStatus: "OWNER_REPORTED_LAYOUT_PERMISSION",
+      frontageMetres: "32.5",
+      cornerPlot: true,
+      restrictionSummary: "Height permission up to 45m subject to standard aviation buffer.",
+      industrialSubtype: "",
+      industrialAuthorityName: "",
+      industrialTenure: "",
+      gidcPlotNumber: "",
+      powerStatus: "",
+      existingShedPresent: false,
+      connectivitySummary: "",
+      categoryRoadWidthMetres: "24",
+      partyId,
+      partyRole: "AUTHORIZED_REPRESENTATIVE",
+      ownershipSharePercent: partyId ? "100" : "",
+      partyNotesInternal: partyId ? "Power of attorney registered in Gandhinagar office." : "",
+      removePartyLink: false,
+      sourceType: "DIRECT_OWNER",
+      sourceName: "Sanjay Shah",
+      sourceReference: "Institutional broker network referral",
+      sourceNotesInternal: "Owner supplied a legal-review document; no title conclusion recorded.",
+    };
+  }
+
+  if (category === "INDUSTRIAL") {
+    return {
+      landCategory: "INDUSTRIAL",
+      primaryTransactionType: "LEASE",
+      listingTitle: `5000 Sq Metre Industrial GIDC Plot with Power Feeder #${testSuffix}`,
+      publicSlug: `5000-sq-m-industrial-gidc-plot-sanand-ii-${testSuffix}`,
+      shortDescription:
+        "GIDC industrial allotment with 300 kVA power sanction and heavy vehicle access.",
+      description:
+        "Ready-to-occupy industrial land parcel situated in GIDC Sanand II. Complete with industrial tenure approval, boundary wall, high-tension power connection, and proximity to national freight corridor.",
+      districtId,
+      publicAddress: "Engineering Zone, GIDC Phase II, Sanand, Ahmedabad, Gujarat",
+      landmarkText: "Near GIDC Water Treatment Facility",
+      displayAreaValue: "5000",
+      displayAreaUnitId: sqMUnitId,
+      priceMode: "EXACT_TOTAL",
+      priceAmount: "35000000",
+      priceMinimum: "",
+      priceMaximum: "",
+      pricePerUnit: "",
+      priceUnitId: "",
+      negotiable: true,
+      commercialTerms: "Transfer fee payable by transferee as per GIDC circular guidelines.",
+      locationVisibility: "APPROXIMATE",
+      privateLatitude: "22.991240",
+      privateLongitude: "72.374520",
+      publicLatitude: "22.991000",
+      publicLongitude: "72.375000",
+      publicAccuracyMetres: "200",
+      locationNotes: "Industrial plot boundary stones inspected and documented.",
+      parcelLabel: "GIDC Industrial Plot E-42",
+      parcelAreaValue: "5000",
+      parcelAreaUnitId: sqMUnitId,
+      identifierType: "GIDC_PLOT_NUMBER",
+      identifierValue: "Plot E-42/Sanand-II",
+      identifierVisibility: "ADMIN_ONLY",
+      parcelNotesInternal: "Allotment letter reference GIDC/RM/SAN/2023/108.",
+      reservationStatus: "GIDC Industrial Zone - Engineering & Auto Ancillary",
+      roadReservationStatus: "30m arterial industrial road",
+      planningPublicNotes: "Red / Orange category clearance permissible as per GPCB norms.",
+      planningInternalNotes: "GPCB consent to establish valid till 2028.",
+      tenureType: "",
+      irrigationStatus: "",
+      currentCultivationStatus: "",
+      roadTouch: false,
+      naStatus: "",
+      naPurpose: "",
+      developmentPermissionStatus: "",
+      frontageMetres: "",
+      cornerPlot: false,
+      restrictionSummary: "",
+      industrialSubtype: "ENGINEERING_PLOT",
+      industrialAuthorityName: "Gujarat Industrial Development Corporation (GIDC)",
+      industrialTenure: "99_YEAR_LEASE",
+      gidcPlotNumber: "Plot E-42",
+      powerStatus: "300 kVA dedicated transformer installed",
+      existingShedPresent: false,
+      connectivitySummary: "2 km from State Highway with direct container trailer turning radius.",
+      categoryRoadWidthMetres: "30",
+      partyId,
+      partyRole: "OWNER",
+      ownershipSharePercent: partyId ? "100" : "",
+      partyNotesInternal: partyId ? "Original lessee company representative." : "",
+      removePartyLink: false,
+      sourceType: "GOVERNMENT_ALLOTMENT",
+      sourceName: "GIDC Allotment Records",
+      sourceReference: "Allotment File SAN-II-E-42",
+      sourceNotesInternal: "Possession receipt and water connection active.",
+    };
+  }
+
+  // Default: AGRICULTURAL
+  return {
+    landCategory: "AGRICULTURAL",
+    primaryTransactionType: "BUY",
+    listingTitle: `Sanand 2.5 Acre Farmland Near Bavla Road #${testSuffix}`,
+    publicSlug: `sanand-2-5-acre-farmland-bavla-road-${testSuffix}`,
+    shortDescription:
+      "Fertile agricultural parcel with direct canal access and wide road frontage in Sanand.",
+    description:
+      "Agricultural parcel offered for farming or long-term land use, with recorded cultivation, water, and road information in Ahmedabad district. Buyers should confirm suitability and permissions for their intended use.",
+    districtId,
+    publicAddress: "Sanand-Bavla Road, Sanand, Ahmedabad, Gujarat",
+    landmarkText: "Near GIDC Gate 2",
+    displayAreaValue: "2.5",
+    displayAreaUnitId: acreUnitId,
+    priceMode: "EXACT_TOTAL",
+    priceAmount: "12500000",
+    priceMinimum: "",
+    priceMaximum: "",
+    pricePerUnit: "",
+    priceUnitId: "",
+    negotiable: true,
+    commercialTerms: "10% token upon agreement to sell; balance at registered sale deed execution.",
+    locationVisibility: "APPROXIMATE",
+    privateLatitude: "22.986754",
+    privateLongitude: "72.381423",
+    publicLatitude: "22.987000",
+    publicLongitude: "72.381000",
+    publicAccuracyMetres: "250",
+    locationNotes:
+      "Owner supplied a revenue map and identified visible boundary markers for review.",
+    parcelLabel: "Block A - Main Farmland",
+    parcelAreaValue: "2.5",
+    parcelAreaUnitId: acreUnitId,
+    identifierType: "SURVEY_NUMBER",
+    identifierValue: "Survey 142/P",
+    identifierVisibility: "ADMIN_ONLY",
+    parcelNotesInternal: "7/12 record received; no title conclusion recorded.",
+    reservationStatus: "OWNER_REPORTED_NO_TP_RESERVATION",
+    roadReservationStatus: "18m proposed TP road on west boundary",
+    planningPublicNotes: "No green belt or defense buffer zone restrictions.",
+    planningInternalNotes: "Cross-checked against AUDA Development Plan 2031.",
+    tenureType: "OLD_TENURE",
+    irrigationStatus: "CANAL_AND_BOREWELL",
+    currentCultivationStatus: "Active seasonal cotton and wheat",
+    roadTouch: true,
+    naStatus: "",
+    naPurpose: "",
+    developmentPermissionStatus: "",
+    frontageMetres: "",
+    cornerPlot: false,
+    restrictionSummary: "",
+    industrialSubtype: "",
+    industrialAuthorityName: "",
+    industrialTenure: "",
+    gidcPlotNumber: "",
+    powerStatus: "",
+    existingShedPresent: false,
+    connectivitySummary: "",
+    categoryRoadWidthMetres: "12",
+    partyId,
+    partyRole: "OWNER",
+    ownershipSharePercent: partyId ? "100" : "",
+    partyNotesInternal: partyId ? "Primary titleholder registered in revenue records." : "",
+    removePartyLink: false,
+    sourceType: "DIRECT_OWNER",
+    sourceName: "Rameshbhai Patel",
+    sourceReference: "Direct landowner intake audit 2026",
+    sourceNotesInternal:
+      "Initial documents received and reviewed in person; no legal conclusion recorded.",
+  };
+}
+
+export function PropertyDraftForm({
+  action,
+  references,
+  initialValues = {},
+  submitLabel,
+  allowTestPresets = false,
+}: Props) {
   const [state, formAction, pending] = useActionState(action, initialPropertyFormState);
+  const formRef = useRef<HTMLFormElement>(null);
+  const [sampleNotice, setSampleNotice] = useState<string | null>(null);
+
   const value = (name: string) => state.values[name] ?? initialValues[name] ?? "";
   const checked = (name: string) => state.values[name] === "on" || initialValues[name] === true;
   const fieldError = (name: string) => state.errors[name]?.join(" ");
+
+  const applyValuesToForm = (values: Record<string, string | boolean>) => {
+    const form = formRef.current;
+    if (!form) return;
+
+    for (const [key, val] of Object.entries(values)) {
+      const item = form.elements.namedItem(key);
+      if (!item) continue;
+
+      if (item instanceof HTMLInputElement && item.type === "checkbox") {
+        item.checked = Boolean(val);
+        item.dispatchEvent(new Event("change", { bubbles: true }));
+      } else if (
+        item instanceof HTMLInputElement ||
+        item instanceof HTMLSelectElement ||
+        item instanceof HTMLTextAreaElement
+      ) {
+        item.value = String(val);
+        item.dispatchEvent(new Event("input", { bubbles: true }));
+        item.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    }
+  };
+
+  const handleFillSample = (category: "AGRICULTURAL" | "NA" | "INDUSTRIAL" = "AGRICULTURAL") => {
+    const data = buildSampleData(category, references);
+    applyValuesToForm(data);
+    const categoryLabels = {
+      AGRICULTURAL: "Agricultural Farmland",
+      NA: "NA Commercial",
+      INDUSTRIAL: "Industrial Plot",
+    };
+    setSampleNotice(
+      `✓ Form prefilled with ${categoryLabels[category]} example data! All fields populated. Click "${submitLabel}" below to save.`,
+    );
+  };
+
+  const handleClearForm = () => {
+    const form = formRef.current;
+    if (!form) return;
+    form.reset();
+    setSampleNotice("Form cleared.");
+  };
 
   const input = (
     name: string,
@@ -51,7 +349,80 @@ export function PropertyDraftForm({ action, references, initialValues = {}, subm
   );
 
   return (
-    <form action={formAction} className="space-y-6" noValidate>
+    <form ref={formRef} action={formAction} className="space-y-6" noValidate>
+      {/* Testing helper toolbar (rendered strictly in non-production environments) */}
+      {allowTestPresets ? (
+        <div
+          data-testid="test-fill-helper"
+          className="rounded-xl border border-amber-300 bg-amber-50/90 p-4 shadow-sm"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-amber-500 text-white font-bold text-sm shadow-sm">
+                ⚡
+              </span>
+              <div>
+                <p className="text-sm font-bold text-amber-950">Test Form Prefill</p>
+                <p className="text-xs text-amber-800">
+                  Populate all fields with a realistic, schema-valid Gujarat property example in one
+                  click.
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                id="btn-fill-sample-draft"
+                data-testid="btn-fill-sample-draft"
+                onClick={() => handleFillSample("AGRICULTURAL")}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--brand-gold-deep,#996b00)] px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:brightness-110 active:scale-95 transition"
+              >
+                <span>⚡ Fill sample draft (Agricultural)</span>
+              </button>
+              <button
+                type="button"
+                data-testid="btn-fill-sample-na"
+                onClick={() => handleFillSample("NA")}
+                className="inline-flex items-center gap-1 rounded-lg border border-amber-400 bg-white px-3 py-2 text-xs font-semibold text-amber-900 hover:bg-amber-100/50 active:scale-95 transition"
+              >
+                <span>NA sample</span>
+              </button>
+              <button
+                type="button"
+                data-testid="btn-fill-sample-industrial"
+                onClick={() => handleFillSample("INDUSTRIAL")}
+                className="inline-flex items-center gap-1 rounded-lg border border-amber-400 bg-white px-3 py-2 text-xs font-semibold text-amber-900 hover:bg-amber-100/50 active:scale-95 transition"
+              >
+                <span>Industrial sample</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleClearForm}
+                className="rounded-lg px-2.5 py-2 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-amber-200/50 transition"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+          {sampleNotice ? (
+            <div
+              role="status"
+              className="mt-3 flex items-center justify-between rounded-lg border border-amber-200 bg-amber-100/70 px-3 py-2 text-xs font-medium text-amber-900"
+            >
+              <span>{sampleNotice}</span>
+              <button
+                type="button"
+                onClick={() => setSampleNotice(null)}
+                className="text-amber-700 hover:text-amber-950 font-bold ml-2"
+                aria-label="Dismiss notice"
+              >
+                ✕
+              </button>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
       {state.message ? (
         <p
           role="status"
@@ -342,7 +713,7 @@ export function PropertyDraftForm({ action, references, initialValues = {}, subm
       </FormSection>
       <FormSection
         title="NA fields"
-        description="Used only when the selected category is NA. Status is required by the typed schema."
+        description="Used only when the selected category is NA. These details are optional until they are actually known."
       >
         {input("naStatus", "NA status")}
         {input("naPurpose", "NA purpose")}
@@ -466,7 +837,17 @@ export function PropertyDraftForm({ action, references, initialValues = {}, subm
           Saving keeps this record private. Publish from the property readiness panel after all
           blockers are resolved.
         </p>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          {allowTestPresets ? (
+            <button
+              type="button"
+              data-testid="btn-bottom-prefill"
+              onClick={() => handleFillSample("AGRICULTURAL")}
+              className="rounded-lg border border-amber-400 bg-amber-50 px-3.5 py-2 text-xs font-bold text-amber-950 hover:bg-amber-100 active:scale-95 transition"
+            >
+              ⚡ Prefill test data
+            </button>
+          ) : null}
           <Link className="rounded-lg px-4 py-2 text-sm font-semibold" href="/admin/properties">
             Cancel
           </Link>

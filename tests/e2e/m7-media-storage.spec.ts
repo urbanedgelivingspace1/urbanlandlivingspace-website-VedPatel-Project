@@ -27,7 +27,8 @@ test("active admin manages staged/public media and private evidence without publ
 }) => {
   await signIn(page);
   await createDraft(page);
-  await page.getByRole("link", { name: "Manage media" }).click();
+  await page.getByRole("link", { name: /Media/ }).click();
+  await page.getByRole("link", { name: "Upload & manage media" }).click();
   await expect(
     page.getByRole("heading", { name: "Property media and private storage" }),
   ).toBeVisible();
@@ -80,6 +81,7 @@ test("active admin manages staged/public media and private evidence without publ
 
   await page.getByRole("link", { name: "Back to property" }).click();
   await expect(page.getByText("DRAFT").first()).toBeVisible();
+  await page.getByRole("link", { name: "Review", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Publication readiness" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Publish property" })).toBeDisabled();
 });

@@ -62,8 +62,13 @@ describe("M7 external media normalization", () => {
 
 describe("M7 server-owned object paths", () => {
   it("uses only authorized entity IDs and random immutable object IDs", async () => {
-    const { propertyPrivateMediaPath, propertyPublicMediaPath, verificationDocumentPath } =
-      await import("@/server/storage/object-path");
+    const {
+      leadDocumentPath,
+      propertyDocumentPath,
+      propertyPrivateMediaPath,
+      propertyPublicMediaPath,
+      verificationDocumentPath,
+    } = await import("@/server/storage/object-path");
     const propertyId = "20000000-0000-4000-8000-000000000001";
     const assetId = "30000000-0000-4000-8000-000000000001";
     expect(propertyPrivateMediaPath(propertyId, assetId, "webp")).toBe(
@@ -74,6 +79,12 @@ describe("M7 server-owned object paths", () => {
     );
     expect(verificationDocumentPath(propertyId, assetId, "pdf")).not.toMatch(
       /owner|survey|latitude/i,
+    );
+    expect(propertyDocumentPath(propertyId, assetId, "pdf")).toBe(
+      `properties/${propertyId}/documents/${assetId}.pdf`,
+    );
+    expect(leadDocumentPath(propertyId, assetId, "pdf")).toBe(
+      `leads/${propertyId}/documents/${assetId}.pdf`,
     );
   });
 });

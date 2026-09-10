@@ -47,6 +47,18 @@ export type AdminPrivateDocumentDto = Readonly<{
   archivedAt: string | null;
 }>;
 
+export type BatchDocumentUploadResult = Readonly<{
+  ok: boolean;
+  uploaded: number;
+  results: readonly Readonly<{
+    fileName: string;
+    ok: boolean;
+    duplicate?: boolean;
+    message: string;
+  }>[];
+  message: string;
+}>;
+
 export class MediaValidationError extends Error {
   readonly field: string;
 

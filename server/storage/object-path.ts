@@ -19,6 +19,14 @@ export function verificationDocumentPath(propertyId: string, documentId: string,
   return `properties/${id.parse(propertyId)}/verification/${id.parse(documentId)}.${extension.parse(ext)}`;
 }
 
+export function propertyDocumentPath(propertyId: string, documentId: string, ext: string) {
+  return `properties/${id.parse(propertyId)}/documents/${id.parse(documentId)}.${extension.parse(ext)}`;
+}
+
+export function leadDocumentPath(leadId: string, documentId: string, ext: string) {
+  return `leads/${id.parse(leadId)}/documents/${id.parse(documentId)}.${extension.parse(ext)}`;
+}
+
 export function ownerSubmissionAttachmentPath(
   submissionId: string,
   documentId: string,

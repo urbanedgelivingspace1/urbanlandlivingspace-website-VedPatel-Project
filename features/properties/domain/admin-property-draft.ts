@@ -29,7 +29,7 @@ const agriculturalDetailsSchema = z
 const naDetailsSchema = z
   .object({
     landCategory: z.literal("NA"),
-    naStatus: z.string().trim().min(1, "NA status is required.").max(40),
+    naStatus: blankToUndefined(40),
     naPurpose: blankToUndefined(160),
     developmentPermissionStatus: blankToUndefined(50),
     roadWidthMetres: optionalNonNegative,

@@ -30,8 +30,8 @@ export type AdminPropertyListItemDto = Readonly<{
   priceAmount: number | null;
   availabilityStatus: AvailabilityStatus;
   publicationStatus: "DRAFT" | "UNDER_REVIEW" | "PUBLISHED" | "UNPUBLISHED" | "ARCHIVED";
-  verificationCount: number;
   mediaCount: number;
+  documentCount: number;
   updatedAt: string;
 }>;
 

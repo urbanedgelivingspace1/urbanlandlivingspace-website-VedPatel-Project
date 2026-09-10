@@ -37,7 +37,7 @@ function shared(category: "AGRICULTURAL" | "NA" | "INDUSTRIAL") {
 describe("M6 property draft contract", () => {
   it.each([
     ["AGRICULTURAL", { landCategory: "AGRICULTURAL" }],
-    ["NA", { landCategory: "NA", naStatus: "CHECK_PENDING" }],
+    ["NA", { landCategory: "NA" }],
     ["INDUSTRIAL", { landCategory: "INDUSTRIAL" }],
   ] as const)(
     "allows an incomplete %s draft without publish fields",
