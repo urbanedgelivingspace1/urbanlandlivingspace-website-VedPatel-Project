@@ -10,14 +10,24 @@ type AdminShellProps = Readonly<{
 }>;
 
 const groups = [
-  { label: "Workspace", items: ["Dashboard"] },
-  { label: "Inventory", items: ["Properties", "Media", "Verification"] },
+  { label: "Workspace", items: [{ label: "Dashboard", href: "/admin/dashboard" }] },
+  { label: "Inventory", items: [{ label: "Properties", href: "/admin/properties" }] },
   {
-    label: "Operations",
-    items: ["Leads", "Requirements", "Follow-ups", "Site visits", "Owner submissions"],
+    label: "CRM",
+    items: [
+      { label: "Leads", href: "/admin/leads" },
+      { label: "Follow-ups", href: "/admin/follow-ups" },
+      { label: "Site visits", href: "/admin/site-visits" },
+    ],
   },
-  { label: "Publishing", items: ["Guides", "SEO pages", "SEO settings"] },
-  { label: "System", items: ["Security health"] },
+  {
+    label: "Content",
+    items: [
+      { label: "Guides", href: "/admin/guides" },
+      { label: "SEO", href: "/admin/seo" },
+    ],
+  },
+  { label: "Settings", items: [{ label: "Settings", href: "/admin/settings/seo" }] },
 ] as const;
 
 export function AdminShell({ admin, signOutAction, children }: AdminShellProps) {
@@ -49,10 +59,10 @@ export function AdminShell({ admin, signOutAction, children }: AdminShellProps) 
         <aside className="border-b border-slate-200 bg-white md:min-h-[calc(100vh-4rem)] md:border-r md:border-b-0">
           <details className="group md:hidden">
             <summary className="cursor-pointer px-5 py-4 font-semibold">Admin navigation</summary>
-            <AdminNavigation />
+            <AdminNavigation admin={admin} />
           </details>
           <div className="hidden md:block">
-            <AdminNavigation />
+            <AdminNavigation admin={admin} />
           </div>
         </aside>
         <main className="min-w-0 p-5 sm:p-8">{children}</main>
@@ -61,10 +71,20 @@ export function AdminShell({ admin, signOutAction, children }: AdminShellProps) 
   );
 }
 
-function AdminNavigation() {
+function AdminNavigation({ admin }: Readonly<{ admin: ActiveAdmin }>) {
+  const groupsForAdmin =
+    admin.role === "SUPER_ADMIN" || admin.role === "ADMIN"
+      ? [
+          ...groups,
+          {
+            label: "Administration",
+            items: [{ label: "Security & Audit", href: "/admin/settings/security" }],
+          },
+        ]
+      : groups;
   return (
     <nav aria-label="Admin" className="space-y-6 px-5 pt-2 pb-6 md:pt-6">
-      {groups.map((group) => (
+      {groupsForAdmin.map((group) => (
         <section key={group.label} aria-labelledby={`nav-${group.label.toLowerCase()}`}>
           <h2
             id={`nav-${group.label.toLowerCase()}`}
@@ -74,60 +94,13 @@ function AdminNavigation() {
           </h2>
           <ul className="mt-2 space-y-1">
             {group.items.map((item) => (
-              <li key={item}>
-                {item === "Dashboard" ||
-                item === "Properties" ||
-                item === "Media" ||
-                item === "Verification" ||
-                item === "Leads" ||
-                item === "Requirements" ||
-                item === "Follow-ups" ||
-                item === "Site visits" ||
-                item === "Owner submissions" ||
-                item === "Guides" ||
-                item === "SEO pages" ||
-                item === "SEO settings" ||
-                item === "Security health" ? (
-                  <Link
-                    href={
-                      item === "Dashboard"
-                        ? "/admin/dashboard"
-                        : item === "Media"
-                          ? "/admin/media"
-                          : item === "Verification"
-                            ? "/admin/verification/queue"
-                            : item === "Leads"
-                              ? "/admin/leads"
-                              : item === "Requirements"
-                                ? "/admin/requirements"
-                                : item === "Follow-ups"
-                                  ? "/admin/follow-ups"
-                                  : item === "Site visits"
-                                    ? "/admin/site-visits"
-                                    : item === "Owner submissions"
-                                      ? "/admin/submissions"
-                                      : item === "Guides"
-                                        ? "/admin/guides"
-                                        : item === "SEO pages"
-                                          ? "/admin/seo"
-                                          : item === "SEO settings"
-                                            ? "/admin/settings/seo"
-                                            : item === "Security health"
-                                              ? "/admin/settings/security"
-                                              : "/admin/properties"
-                    }
-                    className="block rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold"
-                  >
-                    {item}
-                  </Link>
-                ) : (
-                  <span
-                    className="block rounded-lg px-3 py-2 text-sm text-slate-500"
-                    title="Available in a later milestone"
-                  >
-                    {item}
-                  </span>
-                )}
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="block rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold"
+                >
+                  {item.label}
+                </Link>
               </li>
             ))}
           </ul>

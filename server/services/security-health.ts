@@ -9,10 +9,13 @@ import { getServerEnvironment } from "@/server/env";
 import { getStorageConfig } from "@/server/storage/config";
 import { createPrivilegedServerClient } from "@/server/supabase/privileged";
 
-const LATEST_AUDITED_MIGRATION = "20260906030000_m17_security_hardening";
+const LATEST_AUDITED_MIGRATION = "20260910010000_m20_simplify_publication_and_intake";
 
 export async function getSecurityHealth(): Promise<SecurityHealthSnapshot> {
-  await requireActiveAdmin();
+  const admin = await requireActiveAdmin();
+  if (admin.role !== "SUPER_ADMIN" && admin.role !== "ADMIN") {
+    throw new Error("Administrator access is required for Security & Audit.");
+  }
   const environment = getServerEnvironment();
   const storage = getStorageConfig();
   const client = createPrivilegedServerClient();

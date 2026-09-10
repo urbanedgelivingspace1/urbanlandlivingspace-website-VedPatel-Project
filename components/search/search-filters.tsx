@@ -25,10 +25,25 @@ function SelectField({
   options: readonly SearchFacetOption[];
   onChange?: (value: string) => void;
 }>) {
+  const [internalValue, setInternalValue] = useState(value);
+  const [prevPropValue, setPrevPropValue] = useState(value);
+
+  if (value !== prevPropValue) {
+    setPrevPropValue(value);
+    setInternalValue(value);
+  }
+
   return (
     <label className="search-field">
       <span>{label}</span>
-      <select name={name} defaultValue={value} onChange={(event) => onChange?.(event.target.value)}>
+      <select
+        name={name}
+        value={internalValue}
+        onChange={(event) => {
+          setInternalValue(event.target.value);
+          onChange?.(event.target.value);
+        }}
+      >
         <option value="">Any</option>
         {options.map((option) => (
           <option key={option.value} value={option.value}>

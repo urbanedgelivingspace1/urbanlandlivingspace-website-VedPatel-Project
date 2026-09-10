@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  color-scheme: light;
   --brand-navy: #02066f;
   --brand-navy-deep: #01043d;
   --brand-navy-ink: #001f3f;
@@ -52,6 +53,37 @@ a {
 button,
 a {
   -webkit-tap-highlight-color: transparent;
+}
+
+select,
+.search-field select,
+.search-sort select,
+.search-entry-form select,
+.public-intake-form select,
+.admin-form select {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  color-scheme: light;
+  background-color: #ffffff;
+  color: #0f172a;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23475569' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  background-size: 1.15rem 1.15rem;
+  padding-right: 2.5rem !important;
+}
+
+select:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background-color: #f1f5f9;
+}
+
+select option {
+  background-color: #ffffff;
+  color: #0f172a;
+  padding: 0.4rem 0.6rem;
 }
 
 :focus-visible {
@@ -259,7 +291,6 @@ a {
   background: var(--surface-warm);
 }
 .section-title,
-.public-page-title,
 .hero-title,
 .detail-section h2,
 .property-title-block h1,
@@ -279,8 +310,25 @@ a {
   line-height: 1.08;
 }
 .public-page-title {
+  font-family: var(--font-playfair), "Playfair Display", Georgia, serif;
   font-size: clamp(2.5rem, 7vw, 5.1rem);
   line-height: 1.03;
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
+}
+.collection-hero h1,
+.collection-hero h2,
+.collection-hero .public-page-title,
+.category-hero h1,
+.category-hero h2,
+.category-hero .public-page-title {
+  color: #ffffff;
+}
+.collection-hero p:not(.eyebrow),
+.category-hero p:not(.eyebrow) {
+  color: #dbe4ee;
 }
 .section-copy {
   color: #555f6f;
@@ -750,7 +798,7 @@ a {
   padding: 0.68rem 0.75rem;
   color: var(--foreground);
   font: inherit;
-  background: white;
+  background-color: white;
   border: 1px solid #cfd4dc;
   border-radius: 0.65rem;
 }
@@ -1644,7 +1692,7 @@ a {
   min-width: 0;
   border: 1px solid #cbd5e1;
   border-radius: 0.65rem;
-  background: #fff;
+  background-color: #fff;
   padding: 0.72rem 0.8rem;
   color: #172033;
   font: inherit;
@@ -2202,7 +2250,7 @@ a {
   color: #0f172a;
   font: inherit;
   font-weight: 500;
-  background: white;
+  background-color: white;
   border: 1px solid #cbd5e1;
   border-radius: 0.55rem;
 }
