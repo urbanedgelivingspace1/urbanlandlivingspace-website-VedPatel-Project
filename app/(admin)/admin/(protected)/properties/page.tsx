@@ -1,11 +1,13 @@
 import Link from "next/link";
 
+import { DeleteDraftButton } from "@/components/admin/delete-draft-button";
 import { measureAdminPerf } from "@/server/admin-perf";
 import { requireActiveAdminPage } from "@/server/auth/require-admin-page";
 import {
   getAdminPropertyFilterOptions,
   listAdminProperties,
 } from "@/server/services/property-drafts";
+import { deletePropertyDraftAction } from "./actions";
 
 type PropertySearchParams = {
   q?: string;
@@ -15,10 +17,18 @@ type PropertySearchParams = {
   district?: string;
   sort?: string;
   page?: string;
+  deleted?: string;
 };
 
 const filterControlClass =
   "mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm";
+const propertyViews = [
+  ["All", "/admin/properties"],
+  ["Drafts", "/admin/properties?publication=DRAFT"],
+  ["Published", "/admin/properties?publication=PUBLISHED"],
+  ["Under Negotiation", "/admin/properties?availability=UNDER_NEGOTIATION"],
+  ["Sold", "/admin/properties?availability=SOLD"],
+] as const;
 
 export default async function AdminPropertiesPage({
   searchParams,
@@ -26,41 +36,107 @@ export default async function AdminPropertiesPage({
   await requireActiveAdminPage();
   const filters = await searchParams;
   const page = Number.parseInt(filters.page ?? "1", 10) || 1;
-  const [result, options] = await measureAdminPerf("/admin/properties", () =>
-    Promise.all([
-      listAdminProperties({
-        query: filters.q,
-        category: filters.category,
-        publication: filters.publication,
-        availability: filters.availability,
-        districtId: filters.district,
-        sort: filters.sort,
-        page,
-      }),
-      getAdminPropertyFilterOptions(),
-    ]),
-  );
+
+  let result: Awaited<ReturnType<typeof listAdminProperties>> = {
+    items: [],
+    page,
+    pageSize: 24,
+    total: 0,
+    totalPages: 1,
+  };
+  let options: Awaited<ReturnType<typeof getAdminPropertyFilterOptions>> = { districts: [] };
+  let errorNotice: string | null = null;
+
+  try {
+    const [fetchedResult, fetchedOptions] = await measureAdminPerf("/admin/properties", () =>
+      Promise.all([
+        listAdminProperties({
+          query: filters.q,
+          category: filters.category,
+          publication: filters.publication,
+          availability: filters.availability,
+          districtId: filters.district,
+          sort: filters.sort,
+          page,
+        }),
+        getAdminPropertyFilterOptions(),
+      ]),
+    );
+    result = fetchedResult;
+    options = fetchedOptions;
+  } catch (err) {
+    console.error("admin_properties_fetch_error", err);
+    errorNotice =
+      "Some property information could not be loaded. Refresh the page or contact technical support if the problem continues.";
+  }
 
   return (
     <div className="space-y-6">
+      {filters.deleted === "1" ? (
+        <div
+          role="status"
+          className="flex items-center justify-between rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-sm font-semibold text-emerald-900 shadow-xs"
+        >
+          <div className="flex items-center gap-2">
+            <span>✓</span>
+            <span>Property deleted successfully.</span>
+          </div>
+          <Link
+            href="/admin/properties"
+            className="text-xs font-bold text-emerald-700 hover:text-emerald-900"
+          >
+            Dismiss
+          </Link>
+        </div>
+      ) : null}
+
+      {errorNotice ? (
+        <div
+          role="alert"
+          className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 shadow-xs"
+        >
+          <p className="font-bold">Properties could not be loaded</p>
+          <p className="mt-1">{errorNotice}</p>
+        </div>
+      ) : null}
+
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-bold tracking-widest text-[var(--brand-gold-deep)] uppercase">
-            Inventory
-          </p>
-          <h1 className="font-display text-3xl font-semibold">Properties</h1>
-          <p className="mt-1 text-sm text-slate-600">
-            {result.total} propert{result.total === 1 ? "y" : "ies"}. Publishing and availability
-            are controlled separately.
+          <p className="text-sm font-semibold text-emerald-800">Listings and land records</p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
+            Properties
+          </h1>
+          <p className="mt-2 text-base text-slate-600">
+            {result.total} propert{result.total === 1 ? "y" : "ies"} in your records.
           </p>
         </div>
-        <Link
-          href="/admin/properties/new"
-          className="rounded-lg bg-[var(--brand-navy)] px-4 py-2 text-sm font-bold text-white"
-        >
-          Create property
+        <Link href="/admin/properties/new" className="button button-primary">
+          + Add Property
         </Link>
       </header>
+
+      <nav
+        aria-label="Property views"
+        className="flex gap-1 overflow-x-auto border-b border-slate-200"
+      >
+        {propertyViews.map(([label, href]) => {
+          const active =
+            label === "All"
+              ? !filters.publication && !filters.availability
+              : href.includes(`=${filters.publication ?? filters.availability}`);
+          return (
+            <Link
+              key={label}
+              href={href}
+              prefetch={false}
+              aria-current={active ? "page" : undefined}
+              className="admin-tab"
+            >
+              {label}
+            </Link>
+          );
+        })}
+      </nav>
 
       <form className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 lg:grid-cols-6">
         <FilterField label="Search">
@@ -138,41 +214,74 @@ export default async function AdminPropertiesPage({
       </form>
 
       {result.items.length ? (
-        <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+        <div className="grid gap-3">
           {result.items.map((property) => (
             <article
               key={property.id}
-              className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+              className="rounded-xl border border-slate-200 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,.03)] hover:border-emerald-500 sm:p-5"
             >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="font-mono text-xs font-bold text-[var(--brand-gold-deep)]">
-                    {property.propertyCode}
-                  </p>
-                  <h2 className="mt-1 text-lg font-bold text-slate-950">
+              <div className="grid gap-4 sm:grid-cols-[minmax(15rem,1.5fr)_minmax(9rem,.7fr)_minmax(10rem,.8fr)_auto] sm:items-center">
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-emerald-800">{property.propertyCode}</p>
+                  <Link
+                    href={`/admin/properties/${property.id}`}
+                    prefetch={false}
+                    className="mt-1 block truncate text-base font-bold text-slate-950 hover:text-emerald-800"
+                  >
                     {property.title ||
-                      `${property.areaValue} ${property.areaUnit} ${property.category} land`}
-                  </h2>
-                  <p className="mt-1 text-sm text-slate-600">{property.districtName}</p>
+                      `${property.areaValue} ${property.areaUnit} ${friendly(property.category)} land`}
+                  </Link>
+                  <p className="mt-1 text-sm text-slate-600">
+                    {property.districtName} · {friendly(property.transactionType)}
+                  </p>
                 </div>
-                <p className="shrink-0 text-right text-sm font-bold text-slate-950">
-                  {formatPrice(property.priceMode, property.priceAmount)}
-                </p>
-              </div>
-
-              <dl className="mt-4 grid grid-cols-2 gap-2 text-xs">
-                <Status label="Publication" value={property.publicationStatus} />
-                <Status label="Availability" value={property.availabilityStatus} />
-              </dl>
-
-              <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
-                <p className="text-xs text-slate-600">
-                  {property.mediaCount} photo{property.mediaCount === 1 ? "" : "s"} ·{" "}
-                  {property.documentCount} document{property.documentCount === 1 ? "" : "s"}
-                </p>
-                <Link className="button button-secondary" href={`/admin/properties/${property.id}`}>
-                  Open property
-                </Link>
+                <div>
+                  <p className="text-xs font-semibold text-slate-500">Area</p>
+                  <p className="mt-1 text-sm font-bold text-slate-900">
+                    {property.areaValue} {property.areaUnit}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {property.mediaCount} photos · {property.documentCount} docs
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-slate-500">Price</p>
+                  <p className="mt-1 text-sm font-bold text-slate-950">
+                    {formatPrice(property.priceMode, property.priceAmount)}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Updated {formatDate(property.updatedAt)}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2 sm:items-end">
+                  <div className="flex flex-wrap gap-2">
+                    <Status value={property.publicationStatus} />
+                    <Status value={property.availabilityStatus} />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <Link
+                      href={`/admin/properties/${property.id}`}
+                      prefetch={false}
+                      className="button button-secondary px-3 py-1.5 text-xs font-semibold"
+                    >
+                      View
+                    </Link>
+                    <Link
+                      href={`/admin/properties/${property.id}/edit`}
+                      prefetch={false}
+                      className="button button-secondary px-3 py-1.5 text-xs font-semibold"
+                    >
+                      Edit
+                    </Link>
+                    <DeleteDraftButton
+                      propertyId={property.id}
+                      expectedUpdatedAt={property.updatedAt}
+                      propertyTitle={property.title ?? property.propertyCode}
+                      isPublished={property.publicationStatus === "PUBLISHED"}
+                      action={deletePropertyDraftAction}
+                    />
+                  </div>
+                </div>
               </div>
             </article>
           ))}
@@ -237,13 +346,32 @@ function FilterSelect({
   );
 }
 
-function Status({ label, value }: Readonly<{ label: string; value: string }>) {
-  return (
-    <div className="rounded-lg bg-slate-50 p-2">
-      <dt className="text-slate-500">{label}</dt>
-      <dd className="mt-0.5 font-bold text-slate-800">{value.replaceAll("_", " ")}</dd>
-    </div>
-  );
+function Status({ value }: Readonly<{ value: string }>) {
+  const tone =
+    value === "PUBLISHED" || value === "AVAILABLE"
+      ? "admin-badge-green"
+      : value === "UNDER_NEGOTIATION"
+        ? "admin-badge-amber"
+        : value === "SOLD" || value === "OFF_MARKET"
+          ? "admin-badge-red"
+          : "admin-badge-slate";
+  return <span className={`admin-badge ${tone}`}>{friendly(value)}</span>;
+}
+
+function friendly(value: string) {
+  return value
+    .toLowerCase()
+    .replaceAll("_", " ")
+    .replace(/^./, (letter) => letter.toUpperCase());
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "Asia/Kolkata",
+  }).format(new Date(value));
 }
 
 function formatPrice(mode: string, amount: number | null) {

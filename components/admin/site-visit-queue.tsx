@@ -11,10 +11,12 @@ export function SiteVisitQueue({
   visits,
   admins,
   filters,
+  unified = false,
 }: Readonly<{
   visits: readonly SiteVisitListItem[];
   admins: readonly Readonly<{ user_id: string; display_name: string }>[];
   filters: Readonly<Record<string, string | undefined>>;
+  unified?: boolean;
 }>) {
   return (
     <>
@@ -22,6 +24,7 @@ export function SiteVisitQueue({
         className="mt-6 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 xl:grid-cols-6"
         aria-label="Site visit filters"
       >
+        {unified ? <input type="hidden" name="view" value="site-visits" /> : null}
         <input
           name="q"
           defaultValue={filters.q}
@@ -84,19 +87,13 @@ export function SiteVisitQueue({
           <table className="min-w-[1050px] w-full text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase text-slate-600">
               <tr>
-                {[
-                  "Visit",
-                  "Status",
-                  "Schedule (IST)",
-                  "Lead",
-                  "Property",
-                  "Assignee",
-                  "Next action",
-                ].map((heading) => (
-                  <th key={heading} className="px-4 py-3">
-                    {heading}
-                  </th>
-                ))}
+                {["Visit", "Status", "Schedule", "Lead", "Property", "Assignee", "Next action"].map(
+                  (heading) => (
+                    <th key={heading} className="px-4 py-3">
+                      {heading}
+                    </th>
+                  ),
+                )}
               </tr>
             </thead>
             <tbody>
@@ -107,7 +104,7 @@ export function SiteVisitQueue({
                       href={`/admin/site-visits/${visit.id}`}
                       className="font-bold text-[var(--brand-navy)] hover:underline"
                     >
-                      {visit.reference}
+                      Open visit
                     </Link>
                     <span className="block text-xs text-slate-500">{visit.bucket}</span>
                   </td>
@@ -152,7 +149,7 @@ export function SiteVisitQueue({
                   </td>
                   <td className="px-4 py-3">{visit.assignedName ?? "Unassigned"}</td>
                   <td className="px-4 py-3">
-                    {visit.hasOpenFollowUp ? "CRM follow-up scheduled" : nextAction(visit.status)}
+                    {visit.hasOpenFollowUp ? "Follow-up scheduled" : nextAction(visit.status)}
                   </td>
                 </tr>
               ))}

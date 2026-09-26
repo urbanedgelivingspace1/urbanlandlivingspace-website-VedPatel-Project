@@ -3,38 +3,13 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
-import {
-  issuesForGroup,
-  publicationGroups,
-  type PublicationActionState,
-  type PublicationReadiness,
+import type {
+  PublicationActionState,
+  PublicationReadiness,
 } from "@/features/properties/domain/publication";
 
 const EMPTY: PublicationActionState = { ok: false, message: "" };
 type Action = (state: PublicationActionState, data: FormData) => Promise<PublicationActionState>;
-
-function Submit({
-  children,
-  disabled = false,
-}: Readonly<{ children: React.ReactNode; disabled?: boolean }>) {
-  const { pending } = useFormStatus();
-  return (
-    <button
-      disabled={disabled || pending}
-      className="rounded-lg bg-[var(--brand-navy)] px-4 py-2 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
-    >
-      {pending ? "Working…" : children}
-    </button>
-  );
-}
-
-function Result({ state }: Readonly<{ state: PublicationActionState }>) {
-  return state.message ? (
-    <p role="status" className={`text-sm ${state.ok ? "text-emerald-800" : "text-red-800"}`}>
-      {state.message}
-    </p>
-  ) : null;
-}
 
 export function PropertyPublicationPanel({
   readiness,
@@ -52,100 +27,130 @@ export function PropertyPublicationPanel({
   const isPublished = readiness.publicationStatus === "PUBLISHED";
   return (
     <section
-      className="rounded-xl border border-slate-200 bg-white p-5"
-      aria-labelledby="publication-readiness-heading"
+      className={`rounded-xl border p-5 ${isPublished || readiness.ready ? "border-emerald-200 bg-emerald-50/70" : "border-amber-200 bg-amber-50/70"}`}
+      aria-labelledby="publishing-status-heading"
     >
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 id="publication-readiness-heading" className="font-display text-xl font-semibold">
-            Publication readiness
-          </h2>
-          <p className="mt-1 text-sm text-slate-600">
-            {readiness.ready
-              ? "All current blockers are cleared. Warnings remain visible for an informed decision."
-              : `${readiness.blockers.length} blocker${readiness.blockers.length === 1 ? "" : "s"} must be resolved.`}
-          </p>
-        </div>
-        <span
-          className={`rounded-full px-3 py-1 text-xs font-bold ${readiness.ready ? "bg-emerald-100 text-emerald-900" : "bg-amber-100 text-amber-950"}`}
-        >
-          {readiness.ready ? "NO BLOCKERS" : "BLOCKED"}
-        </span>
-      </div>
-      <div className="mt-5 grid gap-3 md:grid-cols-2">
-        {publicationGroups.map((group) => {
-          const issues = issuesForGroup(readiness, group);
-          const status = issues.blockers.length
-            ? "Blocked"
-            : issues.warnings.length
-              ? "Warning"
-              : "Passed";
-          return (
-            <section key={group} className="rounded-lg border border-slate-200 p-3">
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="text-sm font-bold">{group.replaceAll("_", " / ")}</h3>
-                <span className="text-xs font-semibold text-slate-600">{status}</span>
-              </div>
-              {[...issues.blockers, ...issues.warnings].length ? (
-                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
-                  {[...issues.blockers, ...issues.warnings].map((issue) => (
-                    <li key={`${issue.code}-${issue.checkCode ?? "general"}-${issue.message}`}>
-                      {issue.message}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mt-2 text-sm text-emerald-800">Current authoritative data passes.</p>
-              )}
-            </section>
-          );
-        })}
-      </div>
-      <div className="mt-5 border-t border-slate-200 pt-5">
-        {isPublished ? (
-          <form action={unpublishFormAction} className="space-y-3">
-            <input type="hidden" name="propertyId" value={readiness.propertyId} />
-            <input type="hidden" name="expectedUpdatedAt" value={expectedUpdatedAt} />
-            <input type="hidden" name="publicSlug" value={readiness.publicSlug ?? ""} />
-            <label className="block max-w-xl text-sm font-semibold">
-              Reason for unpublishing
-              <input
-                name="reason"
-                minLength={10}
-                required
-                className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 font-normal"
-                placeholder="Operational reason recorded in the audit"
-              />
-            </label>
-            <Submit>Unpublish property</Submit>
-            <Result state={unpublishState} />
-          </form>
-        ) : (
-          <form action={publishFormAction} className="space-y-3">
-            <input type="hidden" name="propertyId" value={readiness.propertyId} />
-            <input type="hidden" name="expectedUpdatedAt" value={expectedUpdatedAt} />
-            <label className="flex max-w-3xl items-start gap-2 text-sm">
-              <input
-                type="checkbox"
-                name="confirmation"
-                value="PUBLISH"
-                required
-                className="mt-1"
-              />
-              <span>
-                I reviewed every readiness group and understand publication is not a legal
-                guarantee.
-              </span>
-            </label>
-            <p className="text-xs text-slate-500">
-              Successful publication/update triggers the configured Next.js cache/path revalidation
-              so the public website reflects the change.
+      <div className="flex flex-wrap items-start justify-between gap-5">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span
+              aria-hidden="true"
+              className={`grid h-7 w-7 place-items-center rounded-full text-sm font-bold ${isPublished || readiness.ready ? "bg-emerald-600 text-white" : "bg-amber-500 text-white"}`}
+            >
+              {isPublished || readiness.ready ? "✓" : "!"}
+            </span>
+            <h2 id="publishing-status-heading" className="text-lg font-bold text-slate-950">
+              {isPublished
+                ? "Published"
+                : readiness.ready
+                  ? "Ready to publish"
+                  : `${readiness.blockers.length} ${readiness.blockers.length === 1 ? "item" : "items"} before publishing`}
+            </h2>
+          </div>
+          {isPublished ? (
+            <p className="mt-2 text-sm text-slate-700">This property is live on the website.</p>
+          ) : readiness.ready ? (
+            <p className="mt-2 text-sm text-slate-700">
+              All required listing information is complete.
             </p>
-            <Submit disabled={!readiness.ready}>Publish property</Submit>
-            <Result state={publishState} />
-          </form>
-        )}
+          ) : (
+            <ul className="mt-3 grid gap-2 text-sm text-slate-800 md:grid-cols-2">
+              {readiness.blockers.map((issue) => (
+                <li key={`${issue.code}-${issue.checkCode ?? "general"}`} className="flex gap-2">
+                  <span aria-hidden="true" className="font-bold text-amber-700">
+                    ○
+                  </span>
+                  <span>{plainIssue(issue.message)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {readiness.warnings.length ? (
+            <details className="mt-3">
+              <summary className="cursor-pointer text-sm font-bold text-slate-700">
+                {readiness.warnings.length} optional{" "}
+                {readiness.warnings.length === 1 ? "note" : "notes"}
+              </summary>
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
+                {readiness.warnings.map((issue) => (
+                  <li key={`${issue.code}-${issue.message}`}>{plainIssue(issue.message)}</li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
+        </div>
+        <div className="shrink-0">
+          {isPublished ? (
+            <details className="relative">
+              <summary className="button button-secondary list-none cursor-pointer">
+                Publishing options
+              </summary>
+              <form
+                action={unpublishFormAction}
+                className="mt-3 w-full min-w-72 space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-lg sm:absolute sm:right-0 sm:z-10"
+              >
+                <input type="hidden" name="propertyId" value={readiness.propertyId} />
+                <input type="hidden" name="expectedUpdatedAt" value={expectedUpdatedAt} />
+                <input type="hidden" name="publicSlug" value={readiness.publicSlug ?? ""} />
+                <label className="block text-sm font-semibold">
+                  Reason for unpublishing
+                  <input name="reason" minLength={10} required className="admin-control" />
+                </label>
+                <Submit>Unpublish</Submit>
+                <Result state={unpublishState} />
+              </form>
+            </details>
+          ) : (
+            <form action={publishFormAction} className="space-y-2">
+              <input type="hidden" name="propertyId" value={readiness.propertyId} />
+              <input type="hidden" name="expectedUpdatedAt" value={expectedUpdatedAt} />
+              <label className="flex max-w-xs items-start gap-2 text-sm text-slate-700">
+                <input
+                  className="mt-1"
+                  type="checkbox"
+                  name="confirmation"
+                  value="PUBLISH"
+                  required
+                />
+                I’ve reviewed this listing and want to publish it.
+              </label>
+              <Submit disabled={!readiness.ready}>Publish Property</Submit>
+              <Result state={publishState} />
+            </form>
+          )}
+        </div>
       </div>
     </section>
   );
+}
+
+function Submit({
+  children,
+  disabled = false,
+}: Readonly<{ children: React.ReactNode; disabled?: boolean }>) {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      disabled={disabled || pending}
+      className="button button-primary disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
+    >
+      {pending ? "Saving…" : children}
+    </button>
+  );
+}
+function Result({ state }: Readonly<{ state: PublicationActionState }>) {
+  return state.message ? (
+    <p
+      role="status"
+      className={`max-w-xs text-sm ${state.ok ? "text-emerald-800" : "text-red-800"}`}
+    >
+      {state.message}
+    </p>
+  ) : null;
+}
+function plainIssue(message: string) {
+  return message
+    .replace(/public[- ]safe/gi, "listing")
+    .replace(/publication/gi, "publishing")
+    .replace(/authoritative/gi, "saved");
 }

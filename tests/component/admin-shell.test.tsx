@@ -19,7 +19,8 @@ describe("AdminShell", () => {
       </AdminShell>,
     );
 
-    expect(screen.getByText("Land Space Admin")).toBeVisible();
+    expect(screen.getByText("Urban Land")).toBeVisible();
+    expect(screen.getByText("Brokerage Admin")).toBeVisible();
     expect(screen.getAllByRole("navigation", { name: "Admin" })).toHaveLength(2);
     expect(screen.getByRole("button", { name: "Sign out" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "Protected content" })).toBeVisible();

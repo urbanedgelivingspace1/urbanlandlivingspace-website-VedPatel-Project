@@ -17,6 +17,8 @@ import {
   archivePropertyDraft,
   changePropertyAvailability,
   createPropertyDraft,
+  deleteProperty,
+  deletePropertyDraft,
   restorePropertyDraft,
   updatePropertyDraft,
 } from "@/server/services/property-drafts";
@@ -281,16 +283,16 @@ export async function publishPropertyAction(
   await requireActiveAdmin();
   try {
     if (text(formData, "confirmation") !== "PUBLISH")
-      return { ok: false, message: "Confirm that the readiness report was reviewed." };
+      return { ok: false, message: "Confirm that you reviewed the listing before publishing." };
     const propertyId = z.uuid().parse(text(formData, "propertyId"));
     const expectedUpdatedAt = databaseTimestamp.parse(text(formData, "expectedUpdatedAt"));
     const readiness = await publishProperty(propertyId, expectedUpdatedAt);
     refreshPublicProperty(propertyId, readiness.publicSlug ?? undefined);
-    return { ok: true, message: "Property published through the atomic readiness gate." };
-  } catch (error) {
+    return { ok: true, message: "Property published successfully." };
+  } catch {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Publication could not be completed.",
+      message: "The property could not be published. Review the missing items and try again.",
     };
   }
 }
@@ -307,11 +309,11 @@ export async function unpublishPropertyAction(
     const slug = optionalText(formData, "publicSlug");
     await unpublishProperty(propertyId, expectedUpdatedAt, reason);
     refreshPublicProperty(propertyId, slug);
-    return { ok: true, message: "Property unpublished and removed from public projections." };
-  } catch (error) {
+    return { ok: true, message: "Property removed from the website." };
+  } catch {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Unpublish could not be completed.",
+      message: "The property could not be unpublished. Refresh the page and try again.",
     };
   }
 }
@@ -333,6 +335,22 @@ export async function restorePropertyAction(formData: FormData) {
   revalidatePath("/admin/properties");
   revalidatePath(`/admin/properties/${propertyId}`);
 }
+
+export async function deletePropertyDraftAction(formData: FormData): Promise<never> {
+  await requireActiveAdmin();
+  const propertyId = z.uuid().parse(text(formData, "propertyId"));
+  const expectedUpdatedAtRaw = optionalText(formData, "expectedUpdatedAt");
+  const expectedUpdatedAt = expectedUpdatedAtRaw
+    ? databaseTimestamp.parse(expectedUpdatedAtRaw)
+    : undefined;
+  await deleteProperty(propertyId, expectedUpdatedAt);
+  revalidatePath("/admin/properties");
+  revalidatePath(`/admin/properties/${propertyId}`);
+  refreshPublicProperty(propertyId);
+  redirect("/admin/properties?deleted=1");
+}
+
+export const deletePropertyAction = deletePropertyDraftAction;
 
 export async function markPropertySoldAction(formData: FormData) {
   await requireActiveAdmin();

@@ -7,11 +7,12 @@ export default async function NewLeadPage() {
   return (
     <section className="mx-auto max-w-4xl">
       <Link href="/admin/leads" className="text-sm font-semibold text-[var(--brand-navy)]">
-        ← Lead inbox
+        ← Leads
       </Link>
-      <h1 className="font-display mt-4 text-4xl font-semibold">Create lead</h1>
+      <h1 className="mt-4 text-3xl font-bold tracking-tight">Add Lead</h1>
       <p className="mt-2 mb-6 text-slate-600">
-        Admin-created opportunity. Public conversion adapters remain deferred to M13.
+        Add the contact details you have now. You can fill in requirements and schedule follow-ups
+        next.
       </p>
       <LeadForm action={createLeadAction} districts={refs.districts} />
     </section>

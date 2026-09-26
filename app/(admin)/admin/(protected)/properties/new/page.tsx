@@ -36,20 +36,17 @@ export default async function NewPropertyPage({
   return (
     <div className="mx-auto max-w-5xl space-y-5">
       <header>
-        <p className="text-xs font-bold tracking-widest text-[var(--brand-gold-deep)] uppercase">
-          Inventory
-        </p>
-        <h1 className="font-display text-3xl font-semibold">Create property draft</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Only the schema-minimum core is required. Media, verification and publication remain
-          separate later workflows.
+        <p className="text-sm font-semibold text-emerald-800">Properties</p>
+        <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950">Add Property</h1>
+        <p className="mt-2 text-base text-slate-600">
+          Start with what you know. You can add photos, documents, and more details after saving.
         </p>
       </header>
       <PropertyDraftForm
         action={createPropertyDraftAction}
         references={references}
         initialValues={initialValues}
-        submitLabel="Create draft"
+        submitLabel="Save Draft"
         allowTestPresets={allowTestPresets}
       />
     </div>

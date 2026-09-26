@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useActionState, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 
+import { DeleteDraftButton } from "@/components/admin/delete-draft-button";
 import type { AdminPropertyReferenceData } from "@/features/admin/contracts";
 import {
   initialPropertyFormState,
@@ -17,6 +19,8 @@ type Props = Readonly<{
   initialValues?: Readonly<Record<string, string | number | boolean | null | undefined>>;
   submitLabel: string;
   allowTestPresets?: boolean;
+  propertyId?: string;
+  deleteAction?: (data: FormData) => Promise<void>;
 }>;
 
 const inputClass =
@@ -274,10 +278,15 @@ export function PropertyDraftForm({
   initialValues = {},
   submitLabel,
   allowTestPresets = false,
+  propertyId,
+  deleteAction,
 }: Props) {
   const [state, formAction, pending] = useActionState(action, initialPropertyFormState);
   const formRef = useRef<HTMLFormElement>(null);
   const [sampleNotice, setSampleNotice] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState(
+    String(initialValues.landCategory ?? "AGRICULTURAL"),
+  );
 
   const value = (name: string) => state.values[name] ?? initialValues[name] ?? "";
   const checked = (name: string) => state.values[name] === "on" || initialValues[name] === true;
@@ -308,6 +317,7 @@ export function PropertyDraftForm({
 
   const handleFillSample = (category: "AGRICULTURAL" | "NA" | "INDUSTRIAL" = "AGRICULTURAL") => {
     const data = buildSampleData(category, references);
+    flushSync(() => setSelectedCategory(category));
     applyValuesToForm(data);
     const categoryLabels = {
       AGRICULTURAL: "Agricultural Farmland",
@@ -433,8 +443,8 @@ export function PropertyDraftForm({
       ) : null}
 
       <FormSection
-        title="Classification and copy"
-        description="Draft copy may remain incomplete. Category and primary transaction are structural."
+        title="Basic Details"
+        description="Choose the land type and transaction, then add a helpful title if you have one."
       >
         <label className={labelClass}>
           Land category
@@ -442,6 +452,7 @@ export function PropertyDraftForm({
             className={inputClass}
             name="landCategory"
             defaultValue={String(value("landCategory") || "AGRICULTURAL")}
+            onChange={(event) => setSelectedCategory(event.target.value)}
           >
             <option value="AGRICULTURAL">Agricultural</option>
             <option value="NA">NA</option>
@@ -460,8 +471,8 @@ export function PropertyDraftForm({
             <option value="LEASE">Lease</option>
           </select>
         </label>
-        {input("listingTitle", "Listing title (optional for draft)")}
-        {input("publicSlug", "Public slug (optional; generated from title when blank)")}
+        {input("listingTitle", "Property title (optional)")}
+        {input("publicSlug", "Website address (generated automatically when blank)")}
         <label className={`${labelClass} md:col-span-2`}>
           Short description
           <textarea
@@ -483,8 +494,8 @@ export function PropertyDraftForm({
       </FormSection>
 
       <FormSection
-        title="Geography and area"
-        description="These database-minimum fields identify a useful draft without claiming publication readiness."
+        title="Location & Land Details"
+        description="Record the district, known landmark or address, and total area."
       >
         <label className={labelClass}>
           District
@@ -505,9 +516,9 @@ export function PropertyDraftForm({
             <span className="mt-1 block text-xs text-red-700">{fieldError("districtId")}</span>
           ) : null}
         </label>
-        {input("publicAddress", "Public-safe address")}
-        {input("landmarkText", "Public landmark")}
-        {input("displayAreaValue", "Display area", { type: "number", step: "0.0001" })}
+        {input("publicAddress", "Address or locality shown on the listing")}
+        {input("landmarkText", "Nearby landmark")}
+        {input("displayAreaValue", "Area", { type: "number", step: "0.0001" })}
         <label className={labelClass}>
           Area unit
           <select
@@ -528,8 +539,8 @@ export function PropertyDraftForm({
       </FormSection>
 
       <FormSection
-        title="Commercial offer"
-        description="Price on request is a structured offer, not a fabricated numeric price."
+        title="Price"
+        description="Choose how the price should be presented and enter only the matching amount fields."
       >
         <label className={labelClass}>
           Price mode
@@ -579,8 +590,9 @@ export function PropertyDraftForm({
       </FormSection>
 
       <FormSection
-        title="Location privacy"
-        description="Private coordinates stay in the protected admin record. Public coordinates are stored separately."
+        title="Location Coordinates"
+        description="Add map coordinates only when available. Private coordinates remain visible only to staff."
+        advanced
       >
         <label className={labelClass}>
           Visibility
@@ -596,9 +608,9 @@ export function PropertyDraftForm({
         </label>
         {input("privateLatitude", "Private latitude", { type: "number", step: "0.000001" })}
         {input("privateLongitude", "Private longitude", { type: "number", step: "0.000001" })}
-        {input("publicLatitude", "Public-safe latitude", { type: "number", step: "0.000001" })}
-        {input("publicLongitude", "Public-safe longitude", { type: "number", step: "0.000001" })}
-        {input("publicAccuracyMetres", "Public accuracy (metres)", {
+        {input("publicLatitude", "Listing latitude", { type: "number", step: "0.000001" })}
+        {input("publicLongitude", "Listing longitude", { type: "number", step: "0.000001" })}
+        {input("publicAccuracyMetres", "Approximate location radius (metres)", {
           type: "number",
           step: "0.01",
         })}
@@ -614,8 +626,9 @@ export function PropertyDraftForm({
       </FormSection>
 
       <FormSection
-        title="Parcel and source identifier"
-        description="The immutable Property ID remains separate from government/source identifiers."
+        title="Survey / Parcel Details"
+        description="Add survey, block, city survey, or GIDC identifiers when they are available."
+        advanced
       >
         {input("parcelLabel", "Parcel label")}
         {input("parcelAreaValue", "Parcel area", { type: "number", step: "0.0001" })}
@@ -674,8 +687,9 @@ export function PropertyDraftForm({
       </FormSection>
 
       <FormSection
-        title="Planning context"
-        description="Planning context is independent of the geographic hierarchy."
+        title="Planning Information"
+        description="Optional planning and reservation information."
+        advanced
       >
         {input("reservationStatus", "Reservation status")}
         {input("roadReservationStatus", "Road reservation status")}
@@ -699,67 +713,76 @@ export function PropertyDraftForm({
         </label>
       </FormSection>
 
-      <FormSection
-        title="Agricultural fields"
-        description="Used only when the selected category is Agricultural."
-      >
-        {input("tenureType", "Tenure type")}
-        {input("irrigationStatus", "Irrigation status")}
-        {input("currentCultivationStatus", "Current cultivation status")}
-        <label className="flex items-center gap-2 text-sm font-semibold">
-          <input type="checkbox" name="roadTouch" defaultChecked={checked("roadTouch")} /> Road
-          touch observed
-        </label>
-      </FormSection>
-      <FormSection
-        title="NA fields"
-        description="Used only when the selected category is NA. These details are optional until they are actually known."
-      >
-        {input("naStatus", "NA status")}
-        {input("naPurpose", "NA purpose")}
-        {input("developmentPermissionStatus", "Development permission status")}
-        {input("frontageMetres", "Frontage (metres)", { type: "number", step: "0.01" })}
-        <label className="flex items-center gap-2 text-sm font-semibold">
-          <input type="checkbox" name="cornerPlot" defaultChecked={checked("cornerPlot")} /> Corner
-          plot
-        </label>
-        <label className={`${labelClass} md:col-span-2`}>
-          Restriction summary
-          <textarea
-            className={inputClass}
-            name="restrictionSummary"
-            rows={2}
-            defaultValue={String(value("restrictionSummary"))}
-          />
-        </label>
-      </FormSection>
-      <FormSection
-        title="Industrial fields"
-        description="Used only when the selected category is Industrial."
-      >
-        {input("industrialSubtype", "Industrial subtype")}
-        {input("industrialAuthorityName", "Industrial authority")}
-        {input("industrialTenure", "Industrial tenure")}
-        {input("gidcPlotNumber", "GIDC plot number")}
-        {input("powerStatus", "Power status")}
-        <label className="flex items-center gap-2 text-sm font-semibold">
-          <input
-            type="checkbox"
-            name="existingShedPresent"
-            defaultChecked={checked("existingShedPresent")}
-          />{" "}
-          Existing shed present
-        </label>
-        <label className={`${labelClass} md:col-span-2`}>
-          Connectivity summary
-          <textarea
-            className={inputClass}
-            name="connectivitySummary"
-            rows={2}
-            defaultValue={String(value("connectivitySummary"))}
-          />
-        </label>
-      </FormSection>
+      {selectedCategory === "AGRICULTURAL" ? (
+        <FormSection
+          title="Agricultural Details"
+          description="Details specific to agricultural land."
+          advanced
+        >
+          {input("tenureType", "Tenure type")}
+          {input("irrigationStatus", "Irrigation status")}
+          {input("currentCultivationStatus", "Current cultivation status")}
+          <label className="flex items-center gap-2 text-sm font-semibold">
+            <input type="checkbox" name="roadTouch" defaultChecked={checked("roadTouch")} /> Road
+            touch observed
+          </label>
+        </FormSection>
+      ) : null}
+      {selectedCategory === "NA" ? (
+        <FormSection
+          title="NA Details"
+          description="Details specific to non-agricultural land. Leave unknown information blank."
+          advanced
+        >
+          {input("naStatus", "NA status")}
+          {input("naPurpose", "NA purpose")}
+          {input("developmentPermissionStatus", "Development permission status")}
+          {input("frontageMetres", "Frontage (metres)", { type: "number", step: "0.01" })}
+          <label className="flex items-center gap-2 text-sm font-semibold">
+            <input type="checkbox" name="cornerPlot" defaultChecked={checked("cornerPlot")} />{" "}
+            Corner plot
+          </label>
+          <label className={`${labelClass} md:col-span-2`}>
+            Restriction summary
+            <textarea
+              className={inputClass}
+              name="restrictionSummary"
+              rows={2}
+              defaultValue={String(value("restrictionSummary"))}
+            />
+          </label>
+        </FormSection>
+      ) : null}
+      {selectedCategory === "INDUSTRIAL" ? (
+        <FormSection
+          title="Industrial Details"
+          description="Details specific to industrial land."
+          advanced
+        >
+          {input("industrialSubtype", "Industrial subtype")}
+          {input("industrialAuthorityName", "Industrial authority")}
+          {input("industrialTenure", "Industrial tenure")}
+          {input("gidcPlotNumber", "GIDC plot number")}
+          {input("powerStatus", "Power status")}
+          <label className="flex items-center gap-2 text-sm font-semibold">
+            <input
+              type="checkbox"
+              name="existingShedPresent"
+              defaultChecked={checked("existingShedPresent")}
+            />{" "}
+            Existing shed present
+          </label>
+          <label className={`${labelClass} md:col-span-2`}>
+            Connectivity summary
+            <textarea
+              className={inputClass}
+              name="connectivitySummary"
+              rows={2}
+              defaultValue={String(value("connectivitySummary"))}
+            />
+          </label>
+        </FormSection>
+      ) : null}
       <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <label className={labelClass}>
           Category road width (metres)
@@ -774,8 +797,9 @@ export function PropertyDraftForm({
       </section>
 
       <FormSection
-        title="Party relationship"
-        description="Links an existing private party record by ID; no party PII enters public property DTOs."
+        title="Owner Details"
+        description="Link an existing owner or representative when this information is known."
+        advanced
       >
         <label className={labelClass}>
           Primary party (optional)
@@ -817,7 +841,11 @@ export function PropertyDraftForm({
         </label>
       </FormSection>
 
-      <FormSection title="Source link" description="Internal provenance for this property record.">
+      <FormSection
+        title="Source Details"
+        description="Record where this property information came from."
+        advanced
+      >
         {input("sourceType", "Source type")}
         {input("sourceName", "Source name")}
         {input("sourceReference", "Source reference")}
@@ -834,8 +862,8 @@ export function PropertyDraftForm({
 
       <div className="sticky bottom-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-300 bg-white/95 p-4 shadow-xl backdrop-blur">
         <p className="text-sm text-slate-600">
-          Saving keeps this record private. Publish from the property readiness panel after all
-          blockers are resolved.
+          Saving keeps this property private. Add photos and documents from the property record,
+          then publish when it is ready.
         </p>
         <div className="flex flex-wrap items-center gap-3">
           {allowTestPresets ? (
@@ -847,6 +875,16 @@ export function PropertyDraftForm({
             >
               ⚡ Prefill test data
             </button>
+          ) : null}
+          {deleteAction && propertyId ? (
+            <DeleteDraftButton
+              propertyId={propertyId}
+              expectedUpdatedAt={String(initialValues?.expectedUpdatedAt ?? "") || undefined}
+              propertyTitle={String(initialValues?.listingTitle ?? "") || undefined}
+              action={deleteAction}
+              variant="danger-outline"
+              buttonText="Delete draft"
+            />
           ) : null}
           <Link className="rounded-lg px-4 py-2 text-sm font-semibold" href="/admin/properties">
             Cancel
@@ -868,12 +906,34 @@ function FormSection({
   title,
   description,
   children,
-}: Readonly<{ title: string; description: string; children: React.ReactNode }>) {
-  return (
-    <fieldset className="grid gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-2">
-      <legend className="px-2 font-display text-xl font-semibold">{title}</legend>
+  advanced = false,
+}: Readonly<{
+  title: string;
+  description: string;
+  children: React.ReactNode;
+  advanced?: boolean;
+}>) {
+  const fields = (
+    <fieldset
+      className={`grid gap-4 bg-white p-5 md:grid-cols-2 ${advanced ? "border-t border-slate-100" : "rounded-xl border border-slate-200 shadow-sm"}`}
+    >
+      <legend className={advanced ? "sr-only" : "px-2 text-xl font-bold"}>{title}</legend>
       <p className="text-sm text-slate-600 md:col-span-2">{description}</p>
       {children}
     </fieldset>
   );
+  if (advanced) {
+    return (
+      <details className="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between px-5 text-base font-bold text-slate-900">
+          {title}
+          <span aria-hidden="true" className="text-slate-400">
+            +
+          </span>
+        </summary>
+        {fields}
+      </details>
+    );
+  }
+  return fields;
 }

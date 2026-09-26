@@ -24,7 +24,7 @@ export function LeadForm({ action, districts }: Props) {
           {state.duplicateCount ? (
             <label className="mt-3 flex items-center gap-2 font-semibold">
               <input type="checkbox" name="confirmDuplicate" value="yes" />
-              Continue as a new opportunity
+              This is a different enquiry from the same contact
             </label>
           ) : null}
         </div>
@@ -33,37 +33,15 @@ export function LeadForm({ action, districts }: Props) {
       <Field label="Phone" name="phone" type="tel" error={state.errors?.phone?.[0]} />
       <Field label="Email" name="email" type="email" error={state.errors?.email?.[0]} />
       <Select
-        label="Inquiry type"
+        label="Buyer or seller?"
         name="inquiryType"
-        values={[
-          "GENERAL_CONTACT",
-          "PROPERTY_INQUIRY",
-          "PRICE_INQUIRY",
-          "BUYER_REQUIREMENT",
-          "SITE_VISIT_REQUEST",
-          "WHATSAPP_CLICK",
-          "CALL_CLICK",
+        options={[
+          { value: "BUYER_REQUIREMENT", label: "Buyer" },
+          { value: "SELLER_LEAD", label: "Seller" },
+          { value: "GENERAL_CONTACT", label: "General enquiry" },
         ]}
       />
-      <Field label="Source" name="sourceType" defaultValue="MANUAL" required />
-      <Field label="Source context" name="sourceDetail" />
-      <Select
-        label="Buyer type"
-        name="buyerType"
-        blank
-        values={[
-          "INDIVIDUAL",
-          "INVESTOR",
-          "FARMER",
-          "DEVELOPER",
-          "BUILDER",
-          "INDUSTRIAL_BUSINESS",
-          "LOGISTICS_OPERATOR",
-          "NRI",
-          "BROKER",
-          "OTHER",
-        ]}
-      />
+      <input type="hidden" name="sourceType" value="MANUAL" />
       <Select
         label="Transaction"
         name="preferredTransaction"
@@ -83,19 +61,44 @@ export function LeadForm({ action, districts }: Props) {
         options={districts.map((d) => ({ value: d.id, label: d.name }))}
       />
       <Field label="Place / locality" name="localityText" />
-      <Field label="Minimum budget (INR)" name="budgetMin" type="number" />
-      <Field label="Maximum budget (INR)" name="budgetMax" type="number" />
-      <Field label="Intended use" name="intendedUse" />
-      <label className="sm:col-span-2 text-sm font-semibold">
-        Internal intake note
-        <textarea
-          name="notesInternal"
-          rows={3}
-          className="mt-2 w-full rounded-lg border border-slate-300 p-3 font-normal"
-        />
-      </label>
+      <Field label="Minimum budget (₹)" name="budgetMin" type="number" />
+      <Field label="Maximum budget (₹)" name="budgetMax" type="number" />
+      <details className="sm:col-span-2 rounded-lg border border-slate-200">
+        <summary className="cursor-pointer px-4 py-3 text-sm font-bold text-slate-800">
+          Additional details
+        </summary>
+        <div className="grid gap-5 border-t border-slate-100 p-4 sm:grid-cols-2">
+          <Select
+            label="Buyer type"
+            name="buyerType"
+            blank
+            values={[
+              "INDIVIDUAL",
+              "INVESTOR",
+              "FARMER",
+              "DEVELOPER",
+              "BUILDER",
+              "INDUSTRIAL_BUSINESS",
+              "LOGISTICS_OPERATOR",
+              "NRI",
+              "BROKER",
+              "OTHER",
+            ]}
+          />
+          <Field label="How did they find us?" name="sourceDetail" />
+          <Field label="Intended use" name="intendedUse" />
+          <label className="sm:col-span-2 text-sm font-semibold">
+            Private note
+            <textarea
+              name="notesInternal"
+              rows={3}
+              className="mt-2 w-full rounded-lg border border-slate-300 p-3 font-normal"
+            />
+          </label>
+        </div>
+      </details>
       <button disabled={pending} className="button button-primary sm:col-span-2">
-        {pending ? "Creating…" : "Create lead"}
+        {pending ? "Saving…" : "Add Lead"}
       </button>
     </form>
   );
@@ -129,7 +132,15 @@ function Select({
   options?: readonly { value: string; label: string }[];
   blank?: boolean;
 }) {
-  const choices = options ?? values.map((v) => ({ value: v, label: v.replaceAll("_", " ") }));
+  const choices =
+    options ??
+    values.map((v) => ({
+      value: v,
+      label: v
+        .toLowerCase()
+        .replaceAll("_", " ")
+        .replace(/^./, (letter) => letter.toUpperCase()),
+    }));
   return (
     <label className="text-sm font-semibold">
       {label}

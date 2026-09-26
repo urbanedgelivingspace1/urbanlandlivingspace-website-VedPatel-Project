@@ -79,4 +79,18 @@ describe("admin proxy / middleware request handling", () => {
     expect(mockCreateServerClient).toHaveBeenCalled();
     expect(mockGetUser).toHaveBeenCalled();
   });
+
+  it("bypasses getUser on prefetch requests while setting private no-store headers", async () => {
+    const { proxy } = await import("@/proxy");
+    const request = new NextRequest("http://localhost:3000/admin/properties", {
+      method: "GET",
+      headers: { "next-router-prefetch": "1" },
+    });
+
+    const response = await proxy(request);
+    expect(response).toBeDefined();
+    expect(mockCreateServerClient).not.toHaveBeenCalled();
+    expect(mockGetUser).not.toHaveBeenCalled();
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+  });
 });

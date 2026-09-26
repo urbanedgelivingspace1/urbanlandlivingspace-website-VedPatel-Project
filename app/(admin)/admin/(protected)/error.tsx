@@ -18,16 +18,18 @@ export default function ProtectedAdminError({
 
   return (
     <section aria-labelledby="admin-error-heading" className="max-w-2xl py-8">
-      <p className="text-xs font-bold tracking-[0.16em] text-rose-600 uppercase">Workspace Error</p>
+      <p className="text-xs font-bold tracking-[0.16em] text-rose-600 uppercase">
+        Something went wrong
+      </p>
       <h1
         id="admin-error-heading"
         className="font-display mt-2 text-3xl font-semibold text-slate-900"
       >
-        Unable to load administrative workspace
+        Unable to load this page
       </h1>
       <p className="mt-4 leading-7 text-slate-600">
-        An operational error occurred while retrieving data for this section. If this persists,
-        verify your database connection and hosting provider service keys.
+        Some information could not be loaded. Refresh the page or contact technical support if the
+        problem continues.
       </p>
       <div className="mt-6 flex gap-4">
         <button

@@ -12,6 +12,15 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next({ request });
   }
 
+  const isPrefetch =
+    request.headers.has("next-router-prefetch") ||
+    request.headers.get("purpose") === "prefetch";
+  if (isPrefetch) {
+    const response = NextResponse.next({ request });
+    response.headers.set("Cache-Control", "private, no-store");
+    return response;
+  }
+
   const environment = getPublicEnvironment();
   let response = NextResponse.next({ request });
   const client = createServerClient<Database>(

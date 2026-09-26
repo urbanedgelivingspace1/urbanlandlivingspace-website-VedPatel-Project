@@ -839,3 +839,53 @@ export async function getPropertyInterestedBuyers(
 
   return { matches, siteVisits };
 }
+
+export async function deleteLead(leadId: string, reason?: string): Promise<void> {
+  const admin = await requireActiveAdmin();
+  const client = db();
+
+  const { data: lead, error: fetchError } = await client
+    .from("leads")
+    .select("id, lead_reference, status, archived_at")
+    .eq("id", leadId)
+    .is("archived_at", null)
+    .maybeSingle();
+
+  check(fetchError);
+  if (!lead) throw new Error("Lead not found or already deleted.");
+
+  const now = new Date().toISOString();
+
+  const { error: updateError } = await client
+    .from("leads")
+    .update({
+      archived_at: now,
+      updated_at: now,
+      updated_by: admin.userId,
+    })
+    .eq("id", leadId)
+    .is("archived_at", null);
+
+  check(updateError);
+
+  const { error: auditError } = await client.from("audit_logs").insert({
+    actor_admin_id: admin.userId,
+    action: "DELETE",
+    entity_type: "lead",
+    entity_id: leadId,
+    changed_fields: ["archived_at"],
+    before_state: {
+      archived_at: null,
+      status: lead.status,
+    },
+    after_state: {
+      archived_at: now,
+    },
+    reason: reason ?? `Lead ${lead.lead_reference ?? leadId} deleted by admin`,
+  });
+
+  if (auditError) {
+    console.warn("deleteLead audit logging warning:", auditError);
+  }
+}
+

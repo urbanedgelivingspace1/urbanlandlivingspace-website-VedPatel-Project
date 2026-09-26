@@ -41,12 +41,12 @@ describe("PropertyPublicationPanel", () => {
         unpublishAction={action}
       />,
     );
-    expect(screen.getByRole("heading", { name: "Publication readiness" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "1 item before publishing" })).toBeVisible();
     expect(screen.getByText("Choose an approved cover image.")).toBeVisible();
-    expect(screen.getByRole("button", { name: "Publish property" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Publish Property" })).toBeDisabled();
   });
 
-  it("keeps warnings visible when publication has no blockers", () => {
+  it("keeps optional publishing notes available when there are no blockers", () => {
     render(
       <PropertyPublicationPanel
         readiness={{ ...base, ready: true, blockers: [] }}
@@ -55,8 +55,8 @@ describe("PropertyPublicationPanel", () => {
         unpublishAction={action}
       />,
     );
-    expect(screen.getByText("Public verification copy remains disabled.")).toBeVisible();
-    expect(screen.getByRole("button", { name: "Publish property" })).toBeEnabled();
+    expect(screen.getByText("Public verification copy remains disabled.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Publish Property" })).toBeEnabled();
   });
 
   it("requires explicit publication confirmation", async () => {
@@ -86,9 +86,9 @@ describe("PropertyPublicationPanel", () => {
       />,
     );
     await user.click(screen.getByRole("checkbox"));
-    await user.click(screen.getByRole("button", { name: "Publish property" }));
+    await user.click(screen.getByRole("button", { name: "Publish Property" }));
     expect(await screen.findByRole("status")).toHaveTextContent("Publication blocked.");
-    expect(screen.getByRole("button", { name: "Publish property" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Publish Property" })).toBeEnabled();
   });
 
   it("renders the audited unpublish flow for published inventory", () => {
@@ -101,7 +101,7 @@ describe("PropertyPublicationPanel", () => {
       />,
     );
     expect(screen.getByLabelText("Reason for unpublishing")).toBeRequired();
-    expect(screen.getByRole("button", { name: "Unpublish property" })).toBeEnabled();
-    expect(screen.queryByRole("button", { name: "Publish property" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Unpublish" })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: "Publish Property" })).not.toBeInTheDocument();
   });
 });

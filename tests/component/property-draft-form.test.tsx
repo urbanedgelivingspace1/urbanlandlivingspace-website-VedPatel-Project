@@ -29,21 +29,24 @@ describe("PropertyDraftForm", () => {
       />,
     );
     for (const section of [
-      "Classification and copy",
-      "Geography and area",
-      "Commercial offer",
-      "Location privacy",
-      "Parcel and source identifier",
-      "Planning context",
-      "Agricultural fields",
-      "NA fields",
-      "Industrial fields",
-      "Party relationship",
-      "Source link",
+      "Basic Details",
+      "Location & Land Details",
+      "Price",
+      "Location Coordinates",
+      "Survey / Parcel Details",
+      "Planning Information",
+      "Agricultural Details",
+      "Owner Details",
+      "Source Details",
     ]) {
-      expect(screen.getByRole("group", { name: section })).toBeVisible();
+      expect(screen.getByRole("group", { name: section })).toBeInTheDocument();
     }
-    expect(screen.getByText(/Publish from the property readiness panel/)).toBeVisible();
+    expect(screen.getByRole("group", { name: "Basic Details" })).toBeVisible();
+    expect(screen.getByRole("group", { name: "Location & Land Details" })).toBeVisible();
+    expect(screen.getByRole("group", { name: "Price" })).toBeVisible();
+    expect(screen.queryByRole("group", { name: "NA Details" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Industrial Details" })).not.toBeInTheDocument();
+    expect(screen.getByText(/Add photos and documents from the property record/)).toBeVisible();
     expect(screen.queryByRole("button", { name: /^publish$/i })).not.toBeInTheDocument();
   });
 

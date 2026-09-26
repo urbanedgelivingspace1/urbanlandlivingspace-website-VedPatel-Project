@@ -24,6 +24,7 @@ const privilegedClient = () => createPrivilegedServerClient() as unknown as Db;
 
 import type { AdminPropertyDraftRecord } from "@/features/properties/domain/contracts";
 import type { PropertyActivityItem } from "@/features/properties/domain/contracts";
+import { unpublishPropertyWithClient } from "./property-publication";
 export type { AdminPropertyDraftRecord };
 
 function translateMutationError(error: { code?: string; message: string }): never {
@@ -92,6 +93,154 @@ export async function archivePropertyDraft(propertyId: string, expectedUpdatedAt
 
 export async function restorePropertyDraft(propertyId: string, expectedUpdatedAt: string) {
   return runLifecycleMutation("restore_property_draft", propertyId, expectedUpdatedAt);
+}
+
+export async function deletePropertyDraft(
+  propertyId: string,
+  expectedUpdatedAt?: string,
+): Promise<void> {
+  const admin = await requireActiveAdmin();
+  const client = privilegedClient();
+
+  const { data: property, error: fetchError } = await client
+    .from("properties")
+    .select(
+      "id, publication_status, availability_status, updated_at, property_code, listing_title, archived_at, archived_by",
+    )
+    .eq("id", propertyId)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (fetchError) throw fetchError;
+  if (!property) throw new Error("Property not found or already deleted.");
+
+  if (expectedUpdatedAt && property.updated_at !== expectedUpdatedAt) {
+    throw new PropertyDraftConflictError();
+  }
+
+  if (property.publication_status === "PUBLISHED") {
+    throw new Error(
+      "Published properties cannot be deleted directly. Unpublish the property first.",
+    );
+  }
+
+  const now = new Date().toISOString();
+
+  // Database check constraints require:
+  // - check (deleted_at is null or publication_status = 'ARCHIVED')
+  // - check (publication_status <> 'ARCHIVED' or availability_status = 'OFF_MARKET')
+  const { error: updateError } = await client
+    .from("properties")
+    .update({
+      deleted_at: now,
+      deleted_by: admin.userId,
+      publication_status: "ARCHIVED",
+      availability_status: "OFF_MARKET",
+      archived_at: property.archived_at ?? now,
+      archived_by: property.archived_by ?? admin.userId,
+      updated_by: admin.userId,
+    })
+    .eq("id", propertyId)
+    .is("deleted_at", null);
+
+  if (updateError) throw updateError;
+
+  const { error: auditError } = await client.from("audit_logs").insert({
+    actor_admin_id: admin.userId,
+    action: "DELETE",
+    entity_type: "property",
+    entity_id: propertyId,
+    changed_fields: ["deleted_at", "deleted_by", "publication_status", "availability_status"],
+    before_state: {
+      publicationStatus: property.publication_status,
+      availabilityStatus: property.availability_status,
+    },
+    after_state: {
+      deletedAt: now,
+      deletedBy: admin.userId,
+      publicationStatus: "ARCHIVED",
+      availabilityStatus: "OFF_MARKET",
+    },
+    reason: `Property draft ${property.property_code ?? propertyId} deleted by admin`,
+  });
+  if (auditError) {
+    console.warn("deletePropertyDraft audit logging warning:", auditError);
+  }
+}
+
+export async function deleteProperty(
+  propertyId: string,
+  expectedUpdatedAt?: string,
+): Promise<void> {
+  const admin = await requireActiveAdmin();
+  const client = privilegedClient();
+
+  const { data: property, error: fetchError } = await client
+    .from("properties")
+    .select(
+      "id, publication_status, availability_status, updated_at, property_code, listing_title, archived_at, archived_by",
+    )
+    .eq("id", propertyId)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (fetchError) throw fetchError;
+  if (!property) throw new Error("Property not found or already deleted.");
+
+  if (expectedUpdatedAt && property.updated_at !== expectedUpdatedAt) {
+    throw new PropertyDraftConflictError();
+  }
+
+  // If the property is currently published, unpublish it first so public indexes and cache are cleared safely
+  if (property.publication_status === "PUBLISHED") {
+    await unpublishPropertyWithClient(
+      client,
+      admin.userId,
+      propertyId,
+      property.updated_at,
+      "Property removed and unpublished by admin",
+    );
+  }
+
+  const now = new Date().toISOString();
+
+  const { error: updateError } = await client
+    .from("properties")
+    .update({
+      deleted_at: now,
+      deleted_by: admin.userId,
+      publication_status: "ARCHIVED",
+      availability_status: "OFF_MARKET",
+      archived_at: property.archived_at ?? now,
+      archived_by: property.archived_by ?? admin.userId,
+      updated_by: admin.userId,
+    })
+    .eq("id", propertyId)
+    .is("deleted_at", null);
+
+  if (updateError) throw updateError;
+
+  const { error: auditError } = await client.from("audit_logs").insert({
+    actor_admin_id: admin.userId,
+    action: "DELETE",
+    entity_type: "property",
+    entity_id: propertyId,
+    changed_fields: ["deleted_at", "deleted_by", "publication_status", "availability_status"],
+    before_state: {
+      publicationStatus: property.publication_status,
+      availabilityStatus: property.availability_status,
+    },
+    after_state: {
+      deletedAt: now,
+      deletedBy: admin.userId,
+      publicationStatus: "ARCHIVED",
+      availabilityStatus: "OFF_MARKET",
+    },
+    reason: `Property ${property.property_code ?? propertyId} deleted by admin`,
+  });
+  if (auditError) {
+    console.warn("deleteProperty audit logging warning:", auditError);
+  }
 }
 
 export async function changePropertyAvailability(
@@ -251,31 +400,63 @@ export async function listAdminProperties(
     };
   }
   const ids = properties.map((property) => property.id);
-  const districtIds = [...new Set(properties.map((property) => property.district_id))];
-  const unitIds = [...new Set(properties.map((property) => property.display_area_unit_id))];
+  const districtIds = [
+    ...new Set(
+      properties.map((property) => property.district_id).filter((id): id is string => Boolean(id)),
+    ),
+  ];
+  const unitIds = [
+    ...new Set(
+      properties
+        .map((property) => property.display_area_unit_id)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ];
   const [districts, units, offers, media, documents] = await Promise.all([
-    client.from("districts").select("id,name").in("id", districtIds),
-    client.from("area_units").select("id,display_name,symbol").in("id", unitIds),
-    client
-      .from("property_offers")
-      .select("property_id,price_mode,price_amount")
-      .in("property_id", ids)
-      .eq("is_primary", true)
-      .is("archived_at", null),
-    client
-      .from("media_assets")
-      .select("property_id")
-      .in("property_id", ids)
-      .eq("media_type", "IMAGE")
-      .is("archived_at", null),
-    client
-      .from("private_documents")
-      .select("property_id")
-      .in("property_id", ids)
-      .is("archived_at", null),
+    districtIds.length > 0
+      ? client.from("districts").select("id,name").in("id", districtIds)
+      : Promise.resolve({ data: [], error: null }),
+    unitIds.length > 0
+      ? client.from("area_units").select("id,display_name,symbol").in("id", unitIds)
+      : Promise.resolve({ data: [], error: null }),
+    ids.length > 0
+      ? client
+          .from("property_offers")
+          .select("property_id,price_mode,price_amount")
+          .in("property_id", ids)
+          .eq("is_primary", true)
+          .is("archived_at", null)
+      : Promise.resolve({ data: [], error: null }),
+    ids.length > 0
+      ? client
+          .from("media_assets")
+          .select("property_id")
+          .in("property_id", ids)
+          .eq("media_type", "IMAGE")
+          .is("archived_at", null)
+      : Promise.resolve({ data: [], error: null }),
+    ids.length > 0
+      ? client
+          .from("private_documents")
+          .select("property_id")
+          .in("property_id", ids)
+          .is("archived_at", null)
+      : Promise.resolve({ data: [], error: null }),
   ]);
-  for (const result of [districts, units, offers, media, documents]) {
-    if (result.error) throw result.error;
+  if (districts.error) {
+    console.warn("listAdminProperties: failed to enrich districts", districts.error);
+  }
+  if (units.error) {
+    console.warn("listAdminProperties: failed to enrich units", units.error);
+  }
+  if (offers.error) {
+    console.warn("listAdminProperties: failed to enrich offers", offers.error);
+  }
+  if (media.error) {
+    console.warn("listAdminProperties: failed to enrich media", media.error);
+  }
+  if (documents.error) {
+    console.warn("listAdminProperties: failed to enrich documents", documents.error);
   }
   const districtMap = new Map((districts.data ?? []).map((row) => [row.id, row.name]));
   const unitMap = new Map(
@@ -309,21 +490,47 @@ export async function listAdminProperties(
 
 export async function getAdminPropertyFilterOptions() {
   await requireActiveAdmin();
-  const { data, error } = await privilegedClient()
-    .from("districts")
-    .select("id,name")
-    .eq("is_active", true)
-    .order("name");
-  if (error) throw error;
-  return { districts: data ?? [] };
+  try {
+    const { data, error } = await privilegedClient()
+      .from("districts")
+      .select("id,name")
+      .eq("is_active", true)
+      .order("name");
+    if (error || !data || data.length === 0) {
+      return { districts: FALLBACK_ADMIN_DISTRICTS };
+    }
+    return { districts: data };
+  } catch (err) {
+    console.warn("getAdminPropertyFilterOptions failed, using fallbacks:", err);
+    return { districts: FALLBACK_ADMIN_DISTRICTS };
+  }
+}
+
+export async function getDashboardPropertyMetrics() {
+  await requireActiveAdmin();
+  const result = await privilegedClient()
+    .from("properties")
+    .select("*", { count: "exact", head: true })
+    .eq("publication_status", "DRAFT")
+    .is("deleted_at", null);
+  if (result.error) throw result.error;
+  return { draftCount: result.count ?? 0 };
 }
 
 async function maybeSingle<Row>(
   request: PromiseLike<PostgrestSingleResponse<Row>>,
 ): Promise<Row | null> {
-  const { data, error } = await request;
-  if (error) throw new Error(error.message);
-  return data;
+  try {
+    const { data, error } = await request;
+    if (error) {
+      console.warn("maybeSingle query warning:", error.message);
+      return null;
+    }
+    return data;
+  } catch (err) {
+    console.warn("maybeSingle query caught exception:", err);
+    return null;
+  }
 }
 
 export async function getAdminProperty(
@@ -541,19 +748,35 @@ export async function getPropertyActivity(propertyId: string): Promise<PropertyA
       .limit(50),
     client.from("property_verifications").select("id").eq("property_id", propertyId),
   ]);
-  for (const result of [audits, documents, leadEvents, visits, verifications]) {
-    if (result.error) throw result.error;
-  }
+  if (audits.error) console.warn("getPropertyActivity audits warning:", audits.error);
+  if (documents.error) console.warn("getPropertyActivity documents warning:", documents.error);
+  if (leadEvents.error) console.warn("getPropertyActivity leadEvents warning:", leadEvents.error);
+  if (visits.error) console.warn("getPropertyActivity visits warning:", visits.error);
+  if (verifications.error)
+    console.warn("getPropertyActivity verifications warning:", verifications.error);
+
   const verificationIds = (verifications.data ?? []).map((row) => row.id);
-  const reviews = verificationIds.length
-    ? await client
-        .from("verification_history")
-        .select("id,event_type,occurred_at,reason,from_status,to_status")
-        .in("property_verification_id", verificationIds)
-        .order("occurred_at", { ascending: false })
-        .limit(50)
-    : { data: [], error: null };
-  if (reviews.error) throw reviews.error;
+  let reviewsData: {
+    id: string | number;
+    event_type: string;
+    occurred_at: string;
+    reason: string | null;
+    from_status: string | null;
+    to_status: string | null;
+  }[] = [];
+  if (verificationIds.length) {
+    const reviews = await client
+      .from("verification_history")
+      .select("id,event_type,occurred_at,reason,from_status,to_status")
+      .in("property_verification_id", verificationIds)
+      .order("occurred_at", { ascending: false })
+      .limit(50);
+    if (reviews.error) {
+      console.warn("getPropertyActivity reviews warning:", reviews.error);
+    } else if (reviews.data) {
+      reviewsData = reviews.data;
+    }
+  }
   const items: PropertyActivityItem[] = [
     ...(audits.data ?? []).map((row) => ({
       id: `audit-${row.id}`,
@@ -579,7 +802,7 @@ export async function getPropertyActivity(propertyId: string): Promise<PropertyA
       label: "Site visit scheduled",
       detail: `${row.visit_reference} · ${row.status.replaceAll("_", " ")}`,
     })),
-    ...(reviews.data ?? []).map((row) => ({
+    ...reviewsData.map((row) => ({
       id: `review-${row.id}`,
       at: row.occurred_at,
       label: "Review updated",
@@ -607,6 +830,7 @@ function propertyAuditLabel(
     ARCHIVE: "Property archived",
     RESTORE: "Property restored",
     STATUS_CHANGE: "Availability changed",
+    DELETE: "Property deleted",
   };
   return labels[action] ?? action.replaceAll("_", " ").toLowerCase();
 }

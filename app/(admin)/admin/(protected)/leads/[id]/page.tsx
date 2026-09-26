@@ -5,9 +5,11 @@ import type { LeadWorkspace } from "@/features/crm/domain/contracts";
 import { formatIndiaDateTime } from "@/features/crm/domain/follow-ups";
 import { leadStatusLabel, nextLeadStatuses } from "@/features/crm/domain/pipeline";
 import { getCrmReferenceData, getLeadWorkspace } from "@/server/services/crm";
+import { DeleteLeadButton } from "@/components/admin/delete-lead-button";
 import {
   addActivityAction,
   completeFollowUpAction,
+  deleteLeadAction,
   matchPropertyAction,
   saveRequirementAction,
   scheduleFollowUpAction,
@@ -34,11 +36,20 @@ export default async function LeadDetailPage({
   const createPropertyHref = sellerPropertyDraftHref(lead, requirement, refs.districts);
   return (
     <section className="mx-auto max-w-7xl" aria-labelledby="lead-heading">
-      <div className="flex flex-wrap gap-4 text-sm font-semibold text-[var(--brand-navy)]">
-        <Link href="/admin/leads">← Lead inbox</Link>
-        <Link href={`/admin/site-visits?q=${encodeURIComponent(lead.leadReference)}`}>
-          Linked site visits →
-        </Link>
+      <div className="flex flex-wrap items-center justify-between gap-4 text-sm font-semibold text-[var(--brand-navy)]">
+        <div className="flex flex-wrap gap-4">
+          <Link href="/admin/leads">← Leads</Link>
+          <Link href={`/admin/leads?view=site-visits&q=${encodeURIComponent(lead.leadReference)}`}>
+            Site visits →
+          </Link>
+        </div>
+        <DeleteLeadButton
+          leadId={lead.id}
+          leadName={lead.name}
+          action={deleteLeadAction}
+          variant="danger-outline"
+          buttonText="Delete lead"
+        />
       </div>
       {saved ? (
         <p role="status" className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">
@@ -92,18 +103,23 @@ export default async function LeadDetailPage({
       </header>
       <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_22rem]">
         <div className="space-y-6">
-          <Panel title="Contact and demand">
+          <Panel title="Overview">
             <dl className="grid gap-3 text-sm sm:grid-cols-2">
               <Fact
                 label="Source"
-                value={[lead.sourceType, lead.sourceDetail].filter(Boolean).join(" · ")}
+                value={[friendly(lead.sourceType), lead.sourceDetail].filter(Boolean).join(" · ")}
               />
-              <Fact label="Inquiry" value={lead.inquiryType} />
+              <Fact
+                label="Lead type"
+                value={lead.inquiryType === "SELLER_LEAD" ? "Seller" : "Buyer"}
+              />
               <Fact
                 label="Intent"
-                value={[lead.transaction, lead.category].filter(Boolean).join(" · ")}
+                value={[friendly(lead.transaction), friendly(lead.category)]
+                  .filter(Boolean)
+                  .join(" · ")}
               />
-              <Fact label="Buyer type" value={lead.buyerType} />
+              <Fact label="Buyer type" value={friendly(lead.buyerType)} />
               <Fact
                 label="Location"
                 value={[lead.districtName, lead.localityText].filter(Boolean).join(" · ")}
@@ -197,7 +213,7 @@ export default async function LeadDetailPage({
             </details>
           </Panel>
           {lead.inquiryType === "SELLER_LEAD" ? (
-            <Panel title="Seller Land Offering & Properties">
+            <Panel title="Seller Property">
               <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
@@ -214,7 +230,7 @@ export default async function LeadDetailPage({
                     </p>
                   </div>
                   <Link href={createPropertyHref} className="button button-primary">
-                    + Create Property from Lead
+                    + Add Property
                   </Link>
                 </div>
                 {lead.notesInternal ? (
@@ -243,7 +259,7 @@ export default async function LeadDetailPage({
               {/* Linked Properties List */}
               <div className="mt-5">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
-                  Properties Created for this Seller ({workspace.sellerProperties?.length ?? 0})
+                  Properties for this seller ({workspace.sellerProperties?.length ?? 0})
                 </h4>
                 {workspace.sellerProperties && workspace.sellerProperties.length > 0 ? (
                   <div className="space-y-3">
@@ -277,7 +293,7 @@ export default async function LeadDetailPage({
                             href={`/admin/properties/${p.id}`}
                             className="rounded-lg border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
                           >
-                            Workspace →
+                            Open →
                           </Link>
                         </div>
                       </div>
@@ -285,8 +301,8 @@ export default async function LeadDetailPage({
                   </div>
                 ) : (
                   <p className="text-xs text-slate-500 italic p-3 rounded-lg border border-dashed border-slate-200 text-center">
-                    No property listing has been created for this seller lead yet. Click &quot;+
-                    Create Property from Lead&quot; above to initialize one.
+                    No property has been added for this seller yet. Use Add Property above to start
+                    one.
                   </p>
                 )}
               </div>
@@ -362,7 +378,7 @@ export default async function LeadDetailPage({
             </Panel>
           ) : (
             <>
-              <Panel title="Buyer requirement">
+              <Panel title="Requirement">
                 <form
                   action={saveRequirementAction.bind(null, id)}
                   className="grid gap-3 sm:grid-cols-2"
@@ -596,6 +612,21 @@ export default async function LeadDetailPage({
               ))}
             </ul>
           </Panel>
+          <Panel title="Danger Zone">
+            <p className="text-sm text-slate-600">
+              Permanently remove this lead from the CRM pipeline, follow-ups, and active property matching.
+            </p>
+            <div className="mt-4">
+              <DeleteLeadButton
+                leadId={lead.id}
+                leadName={lead.name}
+                action={deleteLeadAction}
+                variant="danger-button"
+                buttonText="Delete lead permanently"
+                className="w-full text-center"
+              />
+            </div>
+          </Panel>
         </aside>
       </div>
     </section>
@@ -645,7 +676,7 @@ function Select({
       <select name={name} defaultValue={value} className={input}>
         {options.map((o) => (
           <option key={o || "blank"} value={o}>
-            {labels[o] ?? (o ? o.replaceAll("_", " ") : "Not set")}
+            {labels[o] ?? (o ? friendly(o) : "Not set")}
           </option>
         ))}
       </select>
@@ -665,6 +696,15 @@ function formatBudget(min: number | null, max: number | null) {
     : min !== null
       ? `From ${money(min)}`
       : `Up to ${money(max as number)}`;
+}
+
+function friendly(value: string | null | undefined) {
+  return value
+    ? value
+        .toLowerCase()
+        .replaceAll("_", " ")
+        .replace(/^./, (letter) => letter.toUpperCase())
+    : null;
 }
 
 function whatsAppNumber(phone: string) {

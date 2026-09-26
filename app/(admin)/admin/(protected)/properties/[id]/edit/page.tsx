@@ -5,7 +5,7 @@ import { PropertyDraftForm } from "@/components/admin/property-draft-form";
 import { requireActiveAdminPage } from "@/server/auth/require-admin-page";
 import { getAdminProperty, getAdminReferenceData } from "@/server/services/property-drafts";
 
-import { updatePropertyDraftAction } from "../../actions";
+import { deletePropertyDraftAction, updatePropertyDraftAction } from "../../actions";
 
 export default async function EditPropertyPage({
   params,
@@ -20,10 +20,10 @@ export default async function EditPropertyPage({
   if (record.property.publication_status !== "DRAFT") {
     return (
       <section className="rounded-xl border border-amber-300 bg-amber-50 p-6">
-        <h1 className="font-display text-2xl font-semibold">Draft editing unavailable</h1>
+        <h1 className="text-2xl font-bold">Editing is unavailable</h1>
         <p className="mt-2 text-sm">
-          M6 permits edits only while a property is in Draft. Publication workflow editing arrives
-          with its controlled milestone.
+          This property is no longer a draft. Return to the property record to manage its current
+          status.
         </p>
       </section>
     );
@@ -102,10 +102,9 @@ export default async function EditPropertyPage({
         <p className="text-xs font-bold tracking-widest text-[var(--brand-gold-deep)] uppercase">
           {row.property_code}
         </p>
-        <h1 className="font-display text-3xl font-semibold">Edit property draft</h1>
+        <h1 className="mt-1 text-3xl font-bold tracking-tight">Edit Property</h1>
         <p className="mt-1 text-sm text-slate-600">
-          The saved update token prevents another administrator&apos;s newer edit from being
-          overwritten.
+          Update the information you have now. Other details can remain blank until they are known.
         </p>
       </header>
       <PropertyDraftForm
@@ -114,6 +113,8 @@ export default async function EditPropertyPage({
         initialValues={values}
         submitLabel="Save draft"
         allowTestPresets={isNonProductionEnvironment()}
+        propertyId={row.id}
+        deleteAction={deletePropertyDraftAction}
       />
     </div>
   );

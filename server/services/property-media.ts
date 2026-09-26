@@ -104,7 +104,6 @@ async function ensureActiveProperty(client: Db, propertyId: string) {
     .select("id")
     .eq("id", id)
     .is("deleted_at", null)
-    .is("archived_at", null)
     .maybeSingle();
   if (error) throw error;
   if (!data) throw new MediaValidationError("Property not found.", "propertyId");

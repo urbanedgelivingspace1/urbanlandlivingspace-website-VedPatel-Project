@@ -110,7 +110,7 @@ describe("M14 site-visit operations components", () => {
     expect(screen.getByLabelText("Visit status")).toHaveValue("REQUESTED");
     expect(screen.getByLabelText("Schedule window")).toBeVisible();
     expect(screen.getByLabelText("Follow-up state")).toBeVisible();
-    expect(screen.getByRole("link", { name: item.reference })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Open visit" })).toBeVisible();
     expect(screen.getByText("Record contact")).toBeVisible();
   });
 
@@ -123,10 +123,10 @@ describe("M14 site-visit operations components", () => {
       }),
     );
     expect(screen.getByRole("heading", { name: /M14 Visitor · UE-LS-000001/ })).toBeVisible();
-    expect(screen.getByRole("heading", { name: "Operational timeline" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Visit Activity" })).toBeVisible();
     expect(screen.getByLabelText("Contact outcome")).toBeRequired();
     expect(screen.queryByRole("button", { name: "Confirm visit" })).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Open CRM lead →" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Open lead →" })).toBeVisible();
     expect(screen.getByRole("link", { name: "Open property →" })).toBeVisible();
   });
 
@@ -156,7 +156,7 @@ describe("M14 site-visit operations components", () => {
     view.unmount();
     renderState("COMPLETED");
     expect(screen.getByRole("button", { name: "Schedule separate follow-up" })).toBeVisible();
-    expect(screen.getByText(/terminal operational state/i)).toBeVisible();
+    expect(screen.getByText(/visit is complete/i)).toBeVisible();
   });
 
   it("surfaces property conflict with text and keeps status independent of color", () => {
@@ -173,6 +173,6 @@ describe("M14 site-visit operations components", () => {
       />,
     );
     expect(screen.getByRole("alert")).toHaveTextContent("Property is sold");
-    expect(screen.getByRole("heading", { name: "Operational controls" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Update Visit" })).toBeVisible();
   });
 });

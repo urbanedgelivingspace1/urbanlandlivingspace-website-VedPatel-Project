@@ -9,12 +9,12 @@ export default async function PipelinePage() {
       <div className="flex items-end justify-between gap-4">
         <div>
           <p className="text-xs font-bold tracking-[.16em] text-[var(--brand-navy)] uppercase">
-            CRM pipeline
+            Leads
           </p>
-          <h1 className="font-display mt-2 text-4xl font-semibold">Opportunity stages</h1>
+          <h1 className="font-display mt-2 text-4xl font-semibold">Lead Stages</h1>
         </div>
         <Link href="/admin/leads" className="button button-outline">
-          Lead inbox
+          All Leads
         </Link>
       </div>
       <div className="mt-6 flex gap-4 overflow-x-auto pb-4">

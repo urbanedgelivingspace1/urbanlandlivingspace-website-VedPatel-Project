@@ -25,8 +25,8 @@ export default async function SiteVisitDetailPage({
   const error = typeof messages.error === "string" ? messages.error : undefined;
   return (
     <section className="mx-auto max-w-7xl" aria-labelledby="visit-heading">
-      <Link href="/admin/site-visits" className="text-sm font-semibold text-[var(--brand-navy)]">
-        ← Site visit queue
+      <Link href="/admin/leads?view=site-visits" className="text-sm font-semibold text-emerald-800">
+        ← Site Visits
       </Link>
       {saved ? (
         <p role="status" className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">
@@ -47,7 +47,9 @@ export default async function SiteVisitDetailPage({
             <h1 id="visit-heading" className="font-display text-4xl">
               {workspace.visit.leadName} · {workspace.visit.propertyCode}
             </h1>
-            <p className="mt-2 text-slate-300">Manual site-visit coordination</p>
+            <p className="mt-2 text-slate-300">
+              {workspace.visit.leadReference} · {workspace.visit.propertyTitle ?? "Property visit"}
+            </p>
           </div>
           <span className="rounded-full bg-white/10 px-4 py-2 text-sm font-bold">
             Status: {siteVisitStatusLabel(workspace.visit.status)}

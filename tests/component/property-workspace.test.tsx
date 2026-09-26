@@ -232,7 +232,7 @@ describe("PropertyWorkspace", () => {
     vi.clearAllMocks();
   });
 
-  it("renders the executive header, property code, and pipeline tracker", () => {
+  it("renders the property header and contextual publishing status", () => {
     render(
       <PropertyWorkspace
         property={mockProperty}
@@ -251,16 +251,13 @@ describe("PropertyWorkspace", () => {
     // Executive Header elements
     expect(screen.getAllByText("UE-LS-000001")[0]).toBeVisible();
     expect(screen.getByRole("heading", { name: "Sanand Prime Agricultural Land" })).toBeVisible();
-    expect(screen.getByRole("link", { name: "Edit draft" })).toBeVisible();
-
-    // 4-step pipeline
-    expect(screen.getByText("1. Listing Details")).toBeVisible();
-    expect(screen.getByText("2. Media & Cover")).toBeVisible();
-    expect(screen.getByText("3. Optional Review")).toBeVisible();
-    expect(screen.getByText("4. Publication Status")).toBeVisible();
+    expect(screen.getByRole("link", { name: "Edit" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Add Photos / Documents" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "1 item before publishing" })).toBeVisible();
+    expect(screen.queryByText("1. Listing Details")).not.toBeInTheDocument();
   });
 
-  it("renders each of the 6 server-selected workspace tabs", () => {
+  it("renders each of the four task-focused workspace tabs", () => {
     const mockInterestedBuyers: PropertyInterestedBuyers = {
       matches: [
         {
@@ -310,38 +307,21 @@ describe("PropertyWorkspace", () => {
     };
 
     render(<PropertyWorkspace {...props} initialTab="overview" />);
-    expect(screen.getByText("Core Property Data")).toBeVisible();
-    expect(screen.getByText("Commercial Offer")).toBeVisible();
+    expect(screen.getByText("Property Details")).toBeVisible();
+    expect(screen.getByText("Price")).toBeVisible();
     expect(screen.getByText("₹ 2,50,00,000")).toBeVisible();
 
     cleanup();
     render(<PropertyWorkspace {...props} initialTab="media" />);
-    expect(
-      screen.getByRole("heading", { name: /Property Visual Media \(1 assets\)/ }),
-    ).toBeVisible();
+    expect(screen.getByRole("heading", { name: /Photos & Listing Media \(1\)/ })).toBeVisible();
     expect(screen.getByText("Front entrance facing road")).toBeVisible();
-
-    cleanup();
-    render(<PropertyWorkspace {...props} initialTab="documents" />);
-    expect(screen.getByRole("heading", { name: /Private Property Documents/ })).toBeVisible();
-    expect(screen.getByText("🔒 Private; accessible only to authorized admins.")).toBeVisible();
+    expect(screen.getByRole("heading", { name: /Private Documents/ })).toBeVisible();
+    expect(screen.getByText("Private · Staff access only")).toBeVisible();
     expect(screen.getByText("7-12-record.pdf")).toBeVisible();
 
     cleanup();
-    render(<PropertyWorkspace {...props} initialTab="review" />);
-    expect(
-      screen.getByRole("heading", { name: "Publication Review & Marketing Readiness" }),
-    ).toBeVisible();
-    expect(screen.getByRole("heading", { name: "Publication readiness" })).toBeVisible();
-    expect(
-      screen.getAllByText(
-        /Successful publication\/update triggers the configured Next\.js cache/,
-      )[0],
-    ).toBeVisible();
-
-    cleanup();
     render(<PropertyWorkspace {...props} initialTab="buyers" />);
-    expect(screen.getByRole("heading", { name: "Interested Buyers & Site Visits" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Interested Leads & Site Visits" })).toBeVisible();
     expect(screen.getAllByText("Rajesh Patel")[0]).toBeVisible();
     expect(screen.getAllByText("LD-00001")[0]).toBeVisible();
 
@@ -369,7 +349,7 @@ describe("PropertyWorkspace", () => {
       <PropertyWorkspace
         property={mockProperty}
         readiness={mockReadiness}
-        initialTab="documents"
+        initialTab="media"
         documentList={mockDocuments}
         publishAction={action}
         unpublishAction={action}
@@ -395,5 +375,71 @@ describe("PropertyWorkspace", () => {
     expect(propertyId).toBe(mockProperty.property.id);
     expect((submitted as FormData).getAll("documents")).toHaveLength(2);
     expect(screen.getByRole("status")).toHaveTextContent("2 files uploaded privately.");
+  });
+
+  it("renders delete draft button for draft properties and handles confirmation", async () => {
+    const deleteAction = vi.fn(async () => {});
+    const confirmSpy = vi.spyOn(window, "confirm");
+
+    render(
+      <PropertyWorkspace
+        property={mockProperty}
+        readiness={mockReadiness}
+        initialTab="overview"
+        publishAction={action}
+        unpublishAction={action}
+        changeAvailabilityAction={mutateAction}
+        markPropertySoldAction={mutateAction}
+        archivePropertyAction={mutateAction}
+        restorePropertyAction={mutateAction}
+        deletePropertyDraftAction={deleteAction}
+      />,
+    );
+
+    const deleteButtons = screen.getAllByTestId("btn-delete-draft");
+    expect(deleteButtons.length).toBeGreaterThanOrEqual(1);
+    const firstButton = deleteButtons[0]!;
+
+    // Test cancellation
+    confirmSpy.mockReturnValueOnce(false);
+    fireEvent.click(firstButton);
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(deleteAction).not.toHaveBeenCalled();
+
+    // Test confirmation
+    confirmSpy.mockReturnValueOnce(true);
+    fireEvent.click(firstButton);
+    expect(confirmSpy).toHaveBeenCalledTimes(2);
+    await waitFor(() => expect(deleteAction).toHaveBeenCalledTimes(1));
+
+    confirmSpy.mockRestore();
+  });
+
+  it("does not render delete draft button for published properties", () => {
+    const deleteAction = vi.fn(async () => {});
+    const publishedProperty = {
+      ...mockProperty,
+      property: {
+        ...mockProperty.property,
+        publication_status: "PUBLISHED" as const,
+      },
+    };
+
+    render(
+      <PropertyWorkspace
+        property={publishedProperty}
+        readiness={mockReadiness}
+        initialTab="overview"
+        publishAction={action}
+        unpublishAction={action}
+        changeAvailabilityAction={mutateAction}
+        markPropertySoldAction={mutateAction}
+        archivePropertyAction={mutateAction}
+        restorePropertyAction={mutateAction}
+        deletePropertyDraftAction={deleteAction}
+      />,
+    );
+
+    expect(screen.queryByTestId("btn-delete-draft")).toBeNull();
   });
 });

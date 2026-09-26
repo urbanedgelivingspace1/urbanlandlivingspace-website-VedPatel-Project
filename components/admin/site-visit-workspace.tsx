@@ -52,7 +52,6 @@ export function SiteVisitDetailWorkspace({
               label="Confirmed slot"
               value={range(visit.confirmedStartAt, visit.confirmedEndAt)}
             />
-            <Fact label="Timezone" value="Asia/Kolkata (IST)" />
             <Fact label="Contact outcome" value={visit.contactOutcome} />
             <Fact label="Meeting instructions" value={visit.meetingInstructions} />
             <Fact label="Request context" value={visit.requestNotes} />
@@ -61,7 +60,7 @@ export function SiteVisitDetailWorkspace({
             <Fact label="Last updated" value={formatIndiaDateTime(visit.updatedAt)} />
           </dl>
         </Panel>
-        <Panel title="Operational controls">
+        <Panel title="Update Visit">
           <div className="grid gap-5 md:grid-cols-2">
             {canTransitionSiteVisit(visit.status, "CONTACTED") ? (
               <Operation title="Record staff contact">
@@ -74,7 +73,7 @@ export function SiteVisitDetailWorkspace({
                     placeholder="Reached visitor; discussed preferred window"
                     required
                   />
-                  <Field label="Operational note (optional)" name="note" />
+                  <Field label="Note (optional)" name="note" />
                   <button className="button button-primary">Mark contacted</button>
                 </form>
               </Operation>
@@ -140,7 +139,7 @@ export function SiteVisitDetailWorkspace({
                     name="outcome"
                     placeholder="Visitor did not attend"
                   />
-                  <Field label="Operational note" name="note" />
+                  <Field label="Note" name="note" />
                   <button className="button button-outline">Record no-show</button>
                 </form>
               </Operation>
@@ -152,7 +151,7 @@ export function SiteVisitDetailWorkspace({
                   {hidden}
                   <input type="hidden" name="nextStatus" value="CANCELLED" />
                   <Field label="Cancellation reason" name="reason" required />
-                  <Field label="Operational note (optional)" name="note" />
+                  <Field label="Note (optional)" name="note" />
                   <p className="text-xs text-rose-900">
                     Cancellation preserves the visit and its complete history.
                   </p>
@@ -171,12 +170,11 @@ export function SiteVisitDetailWorkspace({
           !canTransitionSiteVisit(visit.status, "NO_SHOW") &&
           !canTransitionSiteVisit(visit.status, "CANCELLED") ? (
             <p className="text-sm text-slate-600">
-              This visit has reached a terminal operational state. Its history remains available
-              below.
+              This visit is complete. Its history remains available below.
             </p>
           ) : null}
         </Panel>
-        <Panel title="Operational timeline">
+        <Panel title="Visit Activity">
           <ol className="space-y-4">
             {events.map((event) => (
               <li key={event.id} className="border-l-2 border-slate-200 pl-4">
@@ -224,7 +222,7 @@ export function SiteVisitDetailWorkspace({
             href={`/admin/leads/${visit.leadId}`}
             className="mt-4 inline-block font-semibold text-[var(--brand-navy)] hover:underline"
           >
-            Open CRM lead →
+            Open lead →
           </Link>
           <hr className="my-5 border-slate-200" />
           <p className="font-bold">{visit.propertyCode}</p>
@@ -240,7 +238,7 @@ export function SiteVisitDetailWorkspace({
             Open property →
           </Link>
         </Panel>
-        <Panel title="Add operational note">
+        <Panel title="Add Note">
           <form action={noteAction} className="space-y-3">
             {hidden}
             <label className="block text-sm font-semibold">
@@ -250,7 +248,7 @@ export function SiteVisitDetailWorkspace({
             <button className="button button-outline">Add note</button>
           </form>
         </Panel>
-        <Panel title="CRM follow-up">
+        <Panel title="Follow-up">
           {followUps.length ? (
             <ul className="mb-4 space-y-2 text-sm">
               {followUps.map((followUp) => (
@@ -283,7 +281,7 @@ export function SiteVisitDetailWorkspace({
             </form>
           ) : terminal ? (
             <p className="text-sm text-slate-600">
-              Complete the existing CRM follow-up before adding another.
+              Complete the existing follow-up before adding another.
             </p>
           ) : (
             <p className="text-sm text-slate-600">
@@ -383,7 +381,7 @@ function SlotOperation({
         ) : null}
         {requireReason ? <Field label="Reschedule reason" name="reason" required /> : null}
         <Field label="Meeting/location instructions" name="meetingInstructions" />
-        <Field label="Operational note (optional)" name="note" />
+        <Field label="Note (optional)" name="note" />
         <button className="button button-primary">
           {status === "PROPOSED" ? "Save proposal" : "Record reschedule"}
         </button>

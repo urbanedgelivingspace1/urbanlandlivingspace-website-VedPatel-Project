@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { AdminNavigation } from "@/components/admin/admin-navigation";
 import type { ActiveAdmin } from "@/features/admin/domain/authorization";
 
 type AdminShellProps = Readonly<{
@@ -9,103 +10,52 @@ type AdminShellProps = Readonly<{
   children: ReactNode;
 }>;
 
-const groups = [
-  { label: "Workspace", items: [{ label: "Dashboard", href: "/admin/dashboard" }] },
-  { label: "Inventory", items: [{ label: "Properties", href: "/admin/properties" }] },
-  {
-    label: "CRM",
-    items: [
-      { label: "Leads", href: "/admin/leads" },
-      { label: "Follow-ups", href: "/admin/follow-ups" },
-      { label: "Site visits", href: "/admin/site-visits" },
-    ],
-  },
-  {
-    label: "Content",
-    items: [
-      { label: "Guides", href: "/admin/guides" },
-      { label: "SEO", href: "/admin/seo" },
-    ],
-  },
-  { label: "Settings", items: [{ label: "Settings", href: "/admin/settings/seo" }] },
-] as const;
-
 export function AdminShell({ admin, signOutAction, children }: AdminShellProps) {
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-950">
-      <header className="flex min-h-16 items-center justify-between gap-4 bg-slate-950 px-4 py-3 text-white sm:px-6">
-        <div>
-          <p className="text-xs font-bold tracking-[0.16em] text-[var(--brand-gold)] uppercase">
-            UrbanEdge
-          </p>
-          <p className="font-display text-lg">Land Space Admin</p>
-        </div>
+    <div className="admin-app min-h-screen bg-[#f4f6f3] text-slate-950">
+      <header className="sticky top-0 z-40 flex min-h-[4.5rem] items-center justify-between gap-4 border-b border-white/10 bg-[#102d27] px-4 py-3 text-white sm:px-6">
+        <Link href="/admin/dashboard" className="flex items-center gap-3 no-underline">
+          <span className="grid h-10 w-10 place-items-center rounded-lg border border-[#d7bd7a]/35 bg-[#d7bd7a]/10 font-display text-xl font-bold text-[#ead9a8]">
+            U
+          </span>
+          <span>
+            <span className="block text-sm font-bold tracking-wide">Urban Land</span>
+            <span className="block text-xs text-emerald-100/65">Brokerage Admin</span>
+          </span>
+        </Link>
         <div className="flex items-center gap-3">
-          <div className="hidden text-right text-xs sm:block">
+          <div className="hidden text-right text-sm sm:block">
             <p className="font-semibold">{admin.displayName}</p>
-            <p className="text-slate-400">{admin.role.replaceAll("_", " ")}</p>
+            <p className="text-xs capitalize text-emerald-100/60">
+              {admin.role.replaceAll("_", " ").toLowerCase()}
+            </p>
           </div>
           <form action={signOutAction}>
             <button
               type="submit"
-              className="rounded-lg border border-white/20 px-3 py-2 text-sm font-semibold hover:bg-white/10"
+              className="min-h-11 rounded-lg border border-white/20 px-3 py-2 text-sm font-semibold hover:bg-white/10"
             >
               Sign out
             </button>
           </form>
         </div>
       </header>
-      <div className="mx-auto grid max-w-[1600px] md:grid-cols-[15rem_1fr]">
-        <aside className="border-b border-slate-200 bg-white md:min-h-[calc(100vh-4rem)] md:border-r md:border-b-0">
+      <div className="mx-auto grid max-w-[1680px] md:grid-cols-[15.5rem_1fr]">
+        <aside className="border-b border-slate-200 bg-white md:sticky md:top-[4.5rem] md:h-[calc(100vh-4.5rem)] md:border-r md:border-b-0">
           <details className="group md:hidden">
-            <summary className="cursor-pointer px-5 py-4 font-semibold">Admin navigation</summary>
-            <AdminNavigation admin={admin} />
+            <summary className="cursor-pointer px-5 py-4 font-semibold">Menu</summary>
+            <AdminNavigation
+              canManageSecurity={admin.role === "SUPER_ADMIN" || admin.role === "ADMIN"}
+            />
           </details>
           <div className="hidden md:block">
-            <AdminNavigation admin={admin} />
+            <AdminNavigation
+              canManageSecurity={admin.role === "SUPER_ADMIN" || admin.role === "ADMIN"}
+            />
           </div>
         </aside>
-        <main className="min-w-0 p-5 sm:p-8">{children}</main>
+        <main className="min-w-0 p-4 sm:p-7 lg:p-10">{children}</main>
       </div>
     </div>
-  );
-}
-
-function AdminNavigation({ admin }: Readonly<{ admin: ActiveAdmin }>) {
-  const groupsForAdmin =
-    admin.role === "SUPER_ADMIN" || admin.role === "ADMIN"
-      ? [
-          ...groups,
-          {
-            label: "Administration",
-            items: [{ label: "Security & Audit", href: "/admin/settings/security" }],
-          },
-        ]
-      : groups;
-  return (
-    <nav aria-label="Admin" className="space-y-6 px-5 pt-2 pb-6 md:pt-6">
-      {groupsForAdmin.map((group) => (
-        <section key={group.label} aria-labelledby={`nav-${group.label.toLowerCase()}`}>
-          <h2
-            id={`nav-${group.label.toLowerCase()}`}
-            className="text-xs font-bold tracking-wider text-slate-500 uppercase"
-          >
-            {group.label}
-          </h2>
-          <ul className="mt-2 space-y-1">
-            {group.items.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className="block rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold"
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
-    </nav>
   );
 }

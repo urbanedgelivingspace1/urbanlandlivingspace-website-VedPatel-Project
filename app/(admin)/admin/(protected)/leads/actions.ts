@@ -7,6 +7,7 @@ import { z } from "zod";
 import { requireActiveAdmin } from "@/server/auth/authorization";
 import {
   createAdminLead,
+  deleteLead,
   findLikelyDuplicateLeads,
   updateAdminLead,
   saveLeadRequirement,
@@ -60,7 +61,7 @@ function failure(error: unknown): LeadFormState {
   }
   return {
     ok: false,
-    message: error instanceof Error ? error.message : "The CRM action could not be completed.",
+    message: "This update could not be saved. Review the information and try again.",
   };
 }
 
@@ -80,7 +81,7 @@ export async function createLeadAction(
       if (duplicates.length)
         return {
           ok: false,
-          message: `Possible existing contact with ${duplicates.length} lead${duplicates.length === 1 ? "" : "s"}. Review existing CRM records or confirm this is a new opportunity.`,
+          message: `This contact may already have ${duplicates.length} lead${duplicates.length === 1 ? "" : "s"}. Review existing leads or confirm this is a different enquiry.`,
           duplicateCount: duplicates.length,
         };
     }
@@ -179,3 +180,14 @@ export async function uploadSellerLeadDocumentsAction(leadId: string, form: Form
   revalidatePath(`/admin/leads/${leadId}`);
   redirect(`/admin/leads/${leadId}?saved=documents`);
 }
+
+export async function deleteLeadAction(formData: FormData): Promise<never> {
+  await requireActiveAdmin();
+  const leadId = z.string().uuid().parse(text(formData, "leadId"));
+  const reason = optional(formData, "reason");
+  await deleteLead(leadId, reason);
+  revalidatePath("/admin/leads");
+  revalidatePath(`/admin/leads/${leadId}`);
+  redirect("/admin/leads?deleted=1");
+}
+

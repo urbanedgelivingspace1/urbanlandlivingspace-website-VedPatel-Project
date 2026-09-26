@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState, useTransition } from "react";
 
+import { DeleteDraftButton } from "@/components/admin/delete-draft-button";
 import { PropertyPublicationPanel } from "@/components/admin/property-publication-panel";
 import type { PropertyInterestedBuyers } from "@/features/crm/domain/contracts";
 import type {
@@ -51,6 +52,7 @@ type Props = Readonly<{
   markPropertySoldAction?: (data: FormData) => Promise<void>;
   archivePropertyAction: (data: FormData) => Promise<void>;
   restorePropertyAction: (data: FormData) => Promise<void>;
+  deletePropertyDraftAction?: (data: FormData) => Promise<void>;
   uploadBatchPropertyDocumentsAction?: (
     propertyId: string,
     data: FormData,
@@ -75,6 +77,7 @@ export function PropertyWorkspace({
   markPropertySoldAction,
   archivePropertyAction,
   restorePropertyAction,
+  deletePropertyDraftAction,
   uploadBatchPropertyDocumentsAction,
   createDocumentSignedUrlAction,
 }: Props) {
@@ -90,7 +93,6 @@ export function PropertyWorkspace({
   const row = property.property;
   const id = row.id;
 
-  const hasCoverImage = property.hasApprovedCover;
   const matchesCount = interestedBuyers.matches.length;
   const visitsCount = interestedBuyers.siteVisits.length;
   const displayedPrice =
@@ -183,178 +185,78 @@ export function PropertyWorkspace({
 
   return (
     <div className="space-y-6">
-      {/* Executive Header */}
       <header className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-md bg-amber-50 px-2.5 py-0.5 font-mono text-xs font-bold tracking-wider text-[var(--brand-gold-deep)] uppercase border border-amber-200">
-                {row.property_code}
-              </span>
-              <span className="rounded-md bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-700 uppercase">
-                {row.land_category}
-              </span>
-              <span className="rounded-md bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-700 uppercase">
-                {row.primary_transaction_type}
-              </span>
-              <span className="text-xs font-semibold text-slate-500">{property.districtName}</span>
-            </div>
-            <h1 className="font-display text-2xl font-bold text-slate-900 sm:text-3xl">
-              {row.listing_title || "Untitled property draft"}
+            <p className="text-xs font-bold tracking-wide text-emerald-800">{row.property_code}</p>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
+              {row.listing_title || "Untitled property"}
             </h1>
             <p className="text-sm text-slate-600">
-              {row.display_area_value} {property.areaUnitName} ·{" "}
-              {row.public_address || "No public address recorded"}
+              {property.districtName} · {row.display_area_value} {property.areaUnitName} ·{" "}
+              {friendly(row.land_category)} · {friendly(row.primary_transaction_type)}
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-              <span className="rounded-full bg-blue-50 px-3 py-1 font-bold text-blue-800">
-                Publication: {row.publication_status.replaceAll("_", " ")}
+              <span className="admin-badge admin-badge-blue">
+                {friendly(row.publication_status)}
               </span>
-              <span className="rounded-full bg-emerald-50 px-3 py-1 font-bold text-emerald-800">
-                Availability: {row.availability_status.replaceAll("_", " ")}
+              <span className="admin-badge admin-badge-green">
+                {friendly(row.availability_status)}
               </span>
               <span className="font-bold text-slate-950">{displayedPrice}</span>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            <Link
-              href="/admin/properties"
-              className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
-            >
-              Inventory
+            <Link href="/admin/properties" prefetch={false} className="button button-secondary">
+              ← Properties
             </Link>
             <Link
-              href={`/admin/properties/${id}/preview`}
-              className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+              href={`/admin/properties/${id}?tab=media`}
+              prefetch={false}
+              className="button button-secondary"
             >
-              Public preview
+              Add Photos / Documents
             </Link>
             {row.publication_status === "DRAFT" ? (
               <Link
                 href={`/admin/properties/${id}/edit`}
-                className="rounded-lg bg-[var(--brand-navy)] px-4 py-2 text-xs font-bold text-white shadow-xs hover:opacity-90 transition-opacity"
+                prefetch={false}
+                className="button button-primary"
               >
-                Edit draft
+                Edit
               </Link>
             ) : null}
-            {row.publication_status === "PUBLISHED" ? (
-              <Link
-                href={`/admin/properties/${id}?tab=review`}
-                className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700"
-              >
-                Unpublish
-              </Link>
-            ) : row.publication_status !== "ARCHIVED" ? (
-              <Link
-                href={`/admin/properties/${id}?tab=review`}
-                className="rounded-lg bg-emerald-700 px-3.5 py-2 text-xs font-bold text-white"
-              >
-                Publish to website
-              </Link>
-            ) : null}
-            {row.publication_status !== "ARCHIVED" &&
-            nextAvailability(row.availability_status).length ? (
-              <Link
-                href={`/admin/properties/${id}?tab=activity`}
-                className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700"
-              >
-                Change availability
-              </Link>
-            ) : null}
-          </div>
-        </div>
-
-        {/* 4-Step Pipeline Summary */}
-        <div className="mt-6 border-t border-slate-100 pt-5">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Step 1: Details */}
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-emerald-900">1. Listing Details</span>
-                <span className="rounded-full bg-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-950">
-                  Ready ✓
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-slate-600">
-                Title, pricing & classification recorded
-              </p>
-            </div>
-
-            {/* Step 2: Media */}
-            <div
-              className={`rounded-xl border p-3 ${
-                hasCoverImage
-                  ? "border-emerald-200 bg-emerald-50/50"
-                  : "border-amber-200 bg-amber-50/60"
-              }`}
+            <Link
+              href={`/admin/properties/${id}/preview`}
+              prefetch={false}
+              className="button button-secondary"
             >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-900">2. Media & Cover</span>
-                <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                    hasCoverImage
-                      ? "bg-emerald-200 text-emerald-950"
-                      : "bg-amber-200 text-amber-950"
-                  }`}
+              {row.publication_status === "PUBLISHED" ? "View Live Listing" : "Preview Listing"}
+            </Link>
+            <details className="relative">
+              <summary className="button button-secondary list-none cursor-pointer">
+                More actions
+              </summary>
+              <div className="mt-2 min-w-56 space-y-2 rounded-lg border border-slate-200 bg-white p-3 shadow-lg sm:absolute sm:right-0 sm:z-20">
+                <Link
+                  href={`/admin/properties/${id}?tab=activity`}
+                  prefetch={false}
+                  className="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
                 >
-                  {hasCoverImage ? "Cover set ✓" : "Cover needed"}
-                </span>
+                  Change property status
+                </Link>
+                {deletePropertyDraftAction ? (
+                  <DeleteDraftButton
+                    propertyId={id}
+                    expectedUpdatedAt={row.updated_at}
+                    propertyTitle={row.listing_title ?? row.property_code}
+                    isPublished={row.publication_status === "PUBLISHED"}
+                    action={deletePropertyDraftAction}
+                  />
+                ) : null}
               </div>
-              <p className="mt-1 text-xs text-slate-600">
-                {property.mediaCount} visual asset{property.mediaCount === 1 ? "" : "s"} uploaded
-              </p>
-            </div>
-
-            {/* Step 3: Optional Review */}
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-900">3. Optional Review</span>
-                <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-700">
-                  {property.verificationCount > 0
-                    ? `${property.verificationCount} recorded`
-                    : "Optional"}
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-slate-500">
-                Optional due-diligence (does not block marketing)
-              </p>
-            </div>
-
-            {/* Step 4: Publication Status */}
-            <div
-              className={`rounded-xl border p-3 ${
-                row.publication_status === "PUBLISHED"
-                  ? "border-emerald-300 bg-emerald-100/60"
-                  : readiness?.ready
-                    ? "border-blue-200 bg-blue-50/70"
-                    : "border-slate-200 bg-slate-50"
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-900">4. Publication Status</span>
-                <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                    row.publication_status === "PUBLISHED"
-                      ? "bg-emerald-600 text-white"
-                      : readiness?.ready
-                        ? "bg-blue-600 text-white"
-                        : "bg-slate-200 text-slate-800"
-                  }`}
-                >
-                  {row.publication_status}
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-slate-600">
-                {row.publication_status === "PUBLISHED"
-                  ? "Live on public website"
-                  : readiness?.ready
-                    ? "Ready to publish!"
-                    : readiness
-                      ? `${readiness.blockers.length} blocker(s) remaining`
-                      : "Open Review to check readiness"}
-              </p>
-            </div>
+            </details>
           </div>
         </div>
       </header>
@@ -368,71 +270,53 @@ export function PropertyWorkspace({
         </p>
       ) : null}
 
-      {/* Primary Workspace Navigation Tabs (6 Clean Tabs) */}
+      {readiness ? (
+        <PropertyPublicationPanel
+          readiness={readiness}
+          expectedUpdatedAt={row.updated_at}
+          publishAction={publishAction}
+          unpublishAction={unpublishAction}
+        />
+      ) : (
+        <p
+          role="status"
+          className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950"
+        >
+          Publishing status is temporarily unavailable. Your property information is still safe.
+        </p>
+      )}
+
       <div className="border-b border-slate-200">
-        <nav className="flex flex-wrap space-x-1 sm:space-x-2" aria-label="Workspace tabs">
+        <nav className="flex gap-1 overflow-x-auto" aria-label="Property sections">
           <Link
             href={`/admin/properties/${id}?tab=overview`}
-            className={`border-b-2 px-4 py-3 text-sm font-bold transition-colors ${
-              activeTab === "overview"
-                ? "border-[var(--brand-navy)] text-[var(--brand-navy)]"
-                : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700"
-            }`}
+            prefetch={false}
+            aria-current={activeTab === "overview" ? "page" : undefined}
+            className="admin-tab"
           >
             Overview
           </Link>
           <Link
             href={`/admin/properties/${id}?tab=media`}
-            className={`border-b-2 px-4 py-3 text-sm font-bold transition-colors ${
-              activeTab === "media"
-                ? "border-[var(--brand-navy)] text-[var(--brand-navy)]"
-                : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700"
-            }`}
+            prefetch={false}
+            aria-current={activeTab === "media" ? "page" : undefined}
+            className="admin-tab"
           >
-            Media ({property.mediaCount})
-          </Link>
-          <Link
-            href={`/admin/properties/${id}?tab=documents`}
-            className={`border-b-2 px-4 py-3 text-sm font-bold transition-colors ${
-              activeTab === "documents"
-                ? "border-[var(--brand-navy)] text-[var(--brand-navy)]"
-                : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700"
-            }`}
-          >
-            Documents ({property.documentCount})
-          </Link>
-          <Link
-            href={`/admin/properties/${id}?tab=review`}
-            className={`border-b-2 px-4 py-3 text-sm font-bold transition-colors ${
-              activeTab === "review"
-                ? "border-[var(--brand-navy)] text-[var(--brand-navy)]"
-                : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700"
-            }`}
-          >
-            Review
-            {readiness && readiness.blockers.length > 0 && (
-              <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-900 font-bold">
-                {readiness.blockers.length}
-              </span>
-            )}
+            Photos & Documents ({property.mediaCount + property.documentCount})
           </Link>
           <Link
             href={`/admin/properties/${id}?tab=buyers`}
-            className={`border-b-2 px-4 py-3 text-sm font-bold transition-colors ${
-              activeTab === "buyers"
-                ? "border-[var(--brand-navy)] text-[var(--brand-navy)]"
-                : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700"
-            }`}
+            prefetch={false}
+            aria-current={activeTab === "buyers" ? "page" : undefined}
+            className="admin-tab"
           >
-            Interested Buyers{activeTab === "buyers" ? ` (${matchesCount + visitsCount})` : ""}
+            Interested Leads{activeTab === "buyers" ? ` (${matchesCount + visitsCount})` : ""}
           </Link>
           <Link
             href={`/admin/properties/${id}?tab=activity`}
-            className={`border-b-2 px-4 py-3 text-sm font-bold transition-colors ${
-              activeTab === "activity"
-                ? "border-[var(--brand-navy)] text-[var(--brand-navy)]"
-                : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700"
-            }`}
+            prefetch={false}
+            aria-current={activeTab === "activity" ? "page" : undefined}
+            className="admin-tab"
           >
             Activity
           </Link>
@@ -446,9 +330,9 @@ export function PropertyWorkspace({
             Property Overview
           </h2>
           <div className="grid gap-5 lg:grid-cols-2">
-            <DetailSection title="Core Property Data">
+            <DetailSection title="Property Details">
               <Detail label="Property ID" value={row.property_code} />
-              <Detail label="Public slug" value={row.public_slug} />
+              <Detail label="Website address" value={row.public_slug} />
               <Detail
                 label="Display Area"
                 value={`${row.display_area_value} ${property.areaUnitName}`}
@@ -456,8 +340,8 @@ export function PropertyWorkspace({
               <Detail label="Public address" value={row.public_address} />
             </DetailSection>
 
-            <DetailSection title="Commercial Offer">
-              <Detail label="Pricing mode" value={property.offer?.price_mode} />
+            <DetailSection title="Price">
+              <Detail label="Price type" value={friendly(property.offer?.price_mode)} />
               <Detail
                 label="Price amount"
                 value={
@@ -472,10 +356,13 @@ export function PropertyWorkspace({
               <Detail label="Commercial terms" value={property.offer?.commercial_terms} />
             </DetailSection>
 
-            <DetailSection title="Public-Safe Location Summary">
-              <Detail label="Visibility setting" value={property.location?.location_visibility} />
+            <DetailSection title="Location">
               <Detail
-                label="Public coordinates"
+                label="Map visibility"
+                value={friendly(property.location?.location_visibility)}
+              />
+              <Detail
+                label="Listing coordinates"
                 value={
                   property.location?.public_latitude === null ||
                   property.location?.public_latitude === undefined
@@ -493,7 +380,7 @@ export function PropertyWorkspace({
               />
             </DetailSection>
 
-            <DetailSection title="Parcel and Planning">
+            <DetailSection title="Survey & Planning">
               <Detail label="Parcel label" value={property.parcel?.parcel_label} />
               <Detail
                 label="Survey / Identifier"
@@ -507,7 +394,7 @@ export function PropertyWorkspace({
               <Detail label="Road reservation" value={property.planning?.road_reservation_status} />
             </DetailSection>
 
-            <DetailSection title={`${row.land_category} Details (Optional)`}>
+            <DetailSection title={`${friendly(row.land_category)} Details`}>
               <Detail
                 label="Agricultural irrigation"
                 value={property.agricultural?.irrigation_status}
@@ -537,11 +424,11 @@ export function PropertyWorkspace({
               />
             </DetailSection>
 
-            <DetailSection title="Internal Operations & Source">
-              <Detail label="Primary party ID" value={property.partyLink?.party_id} />
-              <Detail label="Party role" value={property.partyLink?.role} />
+            <DetailSection title="Owner & Source">
+              <Detail label="Owner / contact" value={property.partyLink?.party_id} />
+              <Detail label="Relationship" value={friendly(property.partyLink?.role)} />
               <Detail
-                label="Acquisition source"
+                label="Source"
                 value={property.sourceLink?.source_name ?? property.sourceLink?.source_type}
               />
               <Detail label="Source reference" value={property.sourceLink?.source_reference} />
@@ -550,13 +437,12 @@ export function PropertyWorkspace({
         </section>
       )}
 
-      {/* Tab 2: Media */}
       {activeTab === "media" && (
         <section aria-labelledby="media-heading" className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5">
             <div>
               <h2 id="media-heading" className="font-display text-xl font-bold text-slate-900">
-                Property Visual Media ({mediaList.length} assets)
+                Photos & Listing Media ({mediaList.length})
               </h2>
               <p className="mt-1 text-sm text-slate-600">
                 Photos, aerial drone footage, brochures, and site layout plans.
@@ -566,14 +452,14 @@ export function PropertyWorkspace({
               href={`/admin/properties/${id}/media`}
               className="rounded-lg bg-[var(--brand-navy)] px-4 py-2 text-xs font-bold text-white shadow-xs hover:opacity-90 transition-opacity"
             >
-              Upload & manage media
+              Add or Manage Photos
             </Link>
           </div>
 
           {mediaList.length === 0 ? (
             <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center">
               <p className="text-sm font-medium text-slate-600">
-                No visual media assets uploaded yet.
+                No photos or listing media have been added yet.
               </p>
               <p className="mt-1 text-xs text-slate-400">
                 A property requires at least one approved cover image for public website display.
@@ -635,8 +521,7 @@ export function PropertyWorkspace({
         </section>
       )}
 
-      {/* Tab 3: Documents (Batch Uploader + List) */}
-      {activeTab === "documents" && (
+      {activeTab === "media" && (
         <section aria-labelledby="documents-heading" className="space-y-6">
           <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
             <div className="flex flex-wrap items-start justify-between gap-4">
@@ -645,23 +530,23 @@ export function PropertyWorkspace({
                   id="documents-heading"
                   className="font-display text-xl font-bold text-slate-900"
                 >
-                  Private Property Documents ({documentList.length})
+                  Private Documents ({documentList.length})
                 </h2>
                 <p className="mt-1 text-sm text-slate-600">
                   Deeds, 7/12 extracts, title search reports, and legal records.
                 </p>
               </div>
               <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 border border-emerald-200">
-                🔒 Private; accessible only to authorized admins.
+                Private · Staff access only
               </span>
             </div>
 
             {/* Batch Document Uploader Form */}
             <form onSubmit={handleDocumentUpload} className="mt-6 border-t border-slate-100 pt-6">
-              <h3 className="text-sm font-bold text-slate-900">Upload Private Documents</h3>
+              <h3 className="text-sm font-bold text-slate-900">Add Documents</h3>
               <p className="mt-0.5 text-xs text-slate-500">
-                Upload files directly. Documents are stored in secure admin storage. Uploading does
-                not require completing questionnaires or verification gates.
+                Add deeds, land records, plans, and other documents. These files are not shown
+                publicly.
               </p>
 
               <div className="mt-4 grid gap-4 sm:grid-cols-3">
@@ -836,101 +721,12 @@ export function PropertyWorkspace({
         </section>
       )}
 
-      {/* Tab 4: Review (Marketing Readiness + Optional Verification Link) */}
-      {activeTab === "review" && (
-        <section aria-labelledby="review-heading" className="space-y-6">
-          <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-5">
-            <h2 id="review-heading" className="font-display text-xl font-bold text-slate-900">
-              Publication Review & Marketing Readiness
-            </h2>
-            <p className="mt-1 text-sm text-slate-700">
-              Review listing data before making this property live on the public portal.
-              Category-specific fields (e.g. Agricultural tenure, NA orders, Industrial load) are
-              optional and do not block publication unless required for public display.
-            </p>
-            <p className="mt-2 text-xs font-semibold text-blue-900">
-              ℹ️ Successful publication/update triggers the configured Next.js cache/path
-              revalidation so the public website reflects the change.
-            </p>
-          </div>
-
-          {/* Marketing Readiness Checklist */}
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-            <h3 className="font-display text-base font-bold text-slate-900">
-              Marketing Essentials Checklist
-            </h3>
-            <div className="mt-3 space-y-2 text-sm">
-              <CheckItem
-                passed={Boolean(row.listing_title && row.listing_title.trim().length >= 5)}
-                label="Listing Title recorded and descriptive"
-              />
-              <CheckItem
-                passed={Boolean(row.display_area_value && Number(row.display_area_value) > 0)}
-                label="Area and measurement unit specified"
-              />
-              <CheckItem
-                passed={Boolean(
-                  property.offer?.price_mode === "PRICE_ON_REQUEST" ||
-                  (property.offer?.price_amount && Number(property.offer.price_amount) > 0),
-                )}
-                label="Price recorded (or marked Price on Request)"
-              />
-              <CheckItem
-                passed={hasCoverImage}
-                label="Approved Cover Image uploaded for card and hero presentation"
-              />
-              <CheckItem
-                passed={Boolean(row.public_address)}
-                label="Public-safe location/locality provided"
-              />
-            </div>
-          </div>
-
-          {/* Embedded Official Publication Readiness Panel */}
-          {readiness ? (
-            <PropertyPublicationPanel
-              readiness={readiness}
-              expectedUpdatedAt={row.updated_at}
-              publishAction={publishAction}
-              unpublishAction={unpublishAction}
-            />
-          ) : null}
-
-          {/* Advanced due-diligence review (non-blocking) */}
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h3 className="font-display text-base font-bold text-slate-900">
-                  Advanced Review (Optional)
-                </h3>
-                <p className="mt-0.5 text-xs text-slate-500">
-                  Status:{" "}
-                  <strong className="text-slate-800">
-                    {property.verificationCount > 0
-                      ? `${property.verificationCount} recorded check(s)`
-                      : "Not started"}
-                  </strong>
-                  . Independent professional due diligence is available when needed and does not
-                  block standard marketing publication.
-                </p>
-              </div>
-              <Link
-                href={`/admin/verification/${id}`}
-                className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50"
-              >
-                Advanced Review ↗
-              </Link>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Tab 5: Interested Buyers */}
+      {/* Interested leads */}
       {activeTab === "buyers" && (
         <section aria-labelledby="buyers-heading" className="space-y-6">
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
             <h2 id="buyers-heading" className="font-display text-xl font-bold text-slate-900">
-              Interested Buyers & Site Visits
+              Interested Leads & Site Visits
             </h2>
             <p className="mt-1 text-sm text-slate-600">
               Matched buyer leads and scheduled on-site inspections for this property.
@@ -941,14 +737,13 @@ export function PropertyWorkspace({
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
             <div className="flex items-center justify-between">
               <h3 className="font-display text-lg font-bold text-slate-900">
-                Matched Buyers ({matchesCount})
+                Interested Leads ({matchesCount})
               </h3>
             </div>
 
             {matchesCount === 0 ? (
               <p className="mt-3 text-sm text-slate-500">
-                No buyer leads currently matched with this property. Match buyers directly from any
-                Lead Workspace.
+                No buyer leads are linked to this property yet. Open a lead to add a property match.
               </p>
             ) : (
               <div className="mt-4 divide-y divide-slate-100">
@@ -1050,9 +845,7 @@ export function PropertyWorkspace({
           </h2>
 
           <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
-            <h3 className="font-display text-xl font-semibold text-slate-900">
-              Inventory Lifecycle & Availability
-            </h3>
+            <h3 className="font-display text-xl font-semibold text-slate-900">Property Status</h3>
             <p className="mt-1 text-sm text-slate-600">
               Current availability is{" "}
               <strong className="rounded bg-slate-100 px-2 py-0.5 text-slate-900 font-bold">
@@ -1073,12 +866,11 @@ export function PropertyWorkspace({
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <h4 className="font-display text-base font-bold text-purple-950">
-                      Explicit Action: Mark Property as Sold
+                      Mark this property as sold
                     </h4>
                     <p className="mt-1 text-xs text-purple-900">
-                      Record that a transaction has completed for this property. Marking a buyer
-                      lead as CLOSED_WON does not automatically change property availability; this
-                      explicit action must be used.
+                      Use this after the transaction has completed. The property will no longer
+                      appear as available.
                     </p>
                   </div>
                   <form
@@ -1144,6 +936,23 @@ export function PropertyWorkspace({
                   </button>
                 </form>
               ) : null}
+
+              {deletePropertyDraftAction ? (
+                <DeleteDraftButton
+                  propertyId={id}
+                  expectedUpdatedAt={row.updated_at}
+                  propertyTitle={row.listing_title ?? row.property_code}
+                  isPublished={row.publication_status === "PUBLISHED"}
+                  action={deletePropertyDraftAction}
+                  variant="danger-button"
+                  buttonText={
+                    row.publication_status === "PUBLISHED"
+                      ? "Unpublish & delete permanently"
+                      : "Delete draft permanently"
+                  }
+                  className="px-4 py-2 text-sm"
+                />
+              ) : null}
             </div>
           </div>
 
@@ -1184,21 +993,6 @@ export function PropertyWorkspace({
   );
 }
 
-function CheckItem({ passed, label }: Readonly<{ passed: boolean; label: string }>) {
-  return (
-    <div className="flex items-center gap-2.5">
-      <span
-        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-          passed ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
-        }`}
-      >
-        {passed ? "✓" : "!"}
-      </span>
-      <span className={passed ? "text-slate-700" : "font-medium text-amber-900"}>{label}</span>
-    </div>
-  );
-}
-
 function DetailSection({
   title,
   children,
@@ -1218,4 +1012,13 @@ function Detail({ label, value }: Readonly<{ label: string; value: string | null
       <dd className="break-words font-medium text-slate-900">{value || "Not recorded"}</dd>
     </div>
   );
+}
+
+function friendly(value: string | null | undefined) {
+  return value
+    ? value
+        .toLowerCase()
+        .replaceAll("_", " ")
+        .replace(/^./, (letter) => letter.toUpperCase())
+    : null;
 }

@@ -15,6 +15,7 @@ import {
   archivePropertyAction,
   changeAvailabilityAction,
   createDocumentSignedUrlAction,
+  deletePropertyDraftAction,
   markPropertySoldAction,
   publishPropertyAction,
   restorePropertyAction,
@@ -35,17 +36,21 @@ export default async function AdminPropertyDetailPage({
   await requireActiveAdminPage();
   const query = await searchParams;
   const allowedTabs = ["overview", "media", "documents", "review", "buyers", "activity"] as const;
-  const activeTab = allowedTabs.find((tab) => tab === query.tab) ?? "overview";
+  const requestedTab = allowedTabs.find((tab) => tab === query.tab) ?? "overview";
+  const activeTab =
+    requestedTab === "documents" ? "media" : requestedTab === "review" ? "overview" : requestedTab;
   const [property, readiness, mediaList, documentList, interestedBuyers, activity] =
     await Promise.all([
-      getAdminProperty(id),
-      activeTab === "review" ? getPublicationReadiness(id) : Promise.resolve(undefined),
-      activeTab === "media" || activeTab === "review"
-        ? getAdminPropertyVisualMedia(id).catch(() => [])
-        : Promise.resolve([]),
-      activeTab === "documents"
-        ? getAdminPropertyDocuments(id).catch(() => [])
-        : Promise.resolve([]),
+      getAdminProperty(id).catch((err) => {
+        console.error("getAdminProperty error:", err);
+        return null;
+      }),
+      getPublicationReadiness(id).catch((error) => {
+        console.error("property_readiness_load_failed", error);
+        return undefined;
+      }),
+      activeTab === "media" ? getAdminPropertyVisualMedia(id).catch(() => []) : Promise.resolve([]),
+      activeTab === "media" ? getAdminPropertyDocuments(id).catch(() => []) : Promise.resolve([]),
       activeTab === "buyers"
         ? getPropertyInterestedBuyers(id).catch(() => ({ matches: [], siteVisits: [] }))
         : Promise.resolve({ matches: [], siteVisits: [] }),
@@ -69,6 +74,7 @@ export default async function AdminPropertyDetailPage({
       markPropertySoldAction={markPropertySoldAction}
       archivePropertyAction={archivePropertyAction}
       restorePropertyAction={restorePropertyAction}
+      deletePropertyDraftAction={deletePropertyDraftAction}
       uploadBatchPropertyDocumentsAction={uploadBatchPropertyDocumentsAction}
       createDocumentSignedUrlAction={createDocumentSignedUrlAction}
     />

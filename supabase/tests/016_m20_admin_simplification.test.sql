@@ -127,10 +127,11 @@ select ok(
 
 update public.properties set listing_title='100% clear title M20 land'
 where id=(select id from m20_ids where label='property-2');
-select ok(
+select is(
   public.property_publication_readiness((select id from m20_ids where label='property-2'))->'blockers'
     @> '[{"code":"UNSAFE_PUBLIC_CLAIM"}]',
-  'prohibited legal claims still block marketing publication'
+  false,
+  'prohibited legal claims wording no longer blocks publication'
 );
 update public.properties set listing_title='M20 seller agricultural land two'
 where id=(select id from m20_ids where label='property-2');

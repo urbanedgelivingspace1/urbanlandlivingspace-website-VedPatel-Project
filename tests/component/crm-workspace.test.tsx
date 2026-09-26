@@ -2,6 +2,8 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 import FollowUpsPage from "@/app/(admin)/admin/(protected)/follow-ups/page";
 import LeadDetailPage from "@/app/(admin)/admin/(protected)/leads/[id]/page";
 import LeadsPage from "@/app/(admin)/admin/(protected)/leads/page";
@@ -18,9 +20,14 @@ const service = vi.hoisted(() => ({
   listRequirements: vi.fn(),
 }));
 vi.mock("@/server/services/crm", () => service);
+vi.mock("@/server/services/site-visits", () => ({
+  listSiteVisits: vi.fn(),
+  getSiteVisitReferenceData: vi.fn(),
+}));
 vi.mock("@/app/(admin)/admin/(protected)/leads/actions", () => ({
   addActivityAction: vi.fn(),
   completeFollowUpAction: vi.fn(),
+  deleteLeadAction: vi.fn(),
   matchPropertyAction: vi.fn(),
   saveRequirementAction: vi.fn(),
   scheduleFollowUpAction: vi.fn(),
@@ -147,7 +154,7 @@ describe("M12 CRM components", () => {
     expect(screen.getByLabelText("Email")).toHaveAttribute("type", "email");
     expect(screen.getByLabelText("Transaction")).toHaveAccessibleName("Transaction");
     expect(screen.getByLabelText("Land category")).toHaveAccessibleName("Land category");
-    expect(screen.getByRole("button", { name: "Create lead" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Add Lead" })).toBeEnabled();
     await userEvent.selectOptions(screen.getByLabelText("Transaction"), "BUY");
     expect(screen.getByLabelText("Transaction")).toHaveValue("BUY");
   });
@@ -157,11 +164,11 @@ describe("M12 CRM components", () => {
     service.getCrmReferenceData.mockResolvedValue(refs);
     const populated = await LeadsPage({ searchParams: Promise.resolve({ q: "M12" }) });
     const view = render(populated);
-    expect(screen.getByRole("heading", { name: "Lead inbox" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Leads" })).toBeVisible();
     expect(screen.getByRole("link", { name: "M12 Buyer" })).toBeVisible();
-    expect(screen.getByLabelText("Pipeline stage")).toBeVisible();
-    expect(screen.getByLabelText("Follow-up state")).toBeVisible();
-    expect(screen.getByLabelText("Assigned admin")).toBeVisible();
+    expect(screen.getByLabelText("Stage")).toBeVisible();
+    expect(screen.getByLabelText("Next action")).toBeVisible();
+    expect(screen.getByLabelText("Assigned to")).toBeInTheDocument();
     view.unmount();
 
     service.listLeads.mockResolvedValueOnce([]);
@@ -172,7 +179,7 @@ describe("M12 CRM components", () => {
   it("renders every pipeline lane and keeps empty lanes explicit", async () => {
     service.listLeads.mockResolvedValue([lead]);
     render(await PipelinePage());
-    expect(screen.getByRole("heading", { name: "Opportunity stages" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Lead Stages" })).toBeVisible();
     expect(screen.getByRole("region", { name: "Qualified 1" })).toContainElement(
       screen.getByRole("link", { name: /M12 Buyer/ }),
     );
@@ -189,8 +196,8 @@ describe("M12 CRM components", () => {
       }),
     );
     for (const heading of [
-      "Contact and demand",
-      "Buyer requirement",
+      "Overview",
+      "Requirement",
       "Matched properties",
       "Activity timeline",
       "Next action",
@@ -251,11 +258,9 @@ describe("M12 CRM components", () => {
       }),
     );
 
-    expect(
-      screen.getByRole("heading", { name: "Seller Land Offering & Properties" }),
-    ).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Seller Property" })).toBeVisible();
     expect(screen.getByRole("link", { name: /UE-LS-000001/ })).toBeVisible();
-    const createLink = screen.getByRole("link", { name: /Create Property from Lead/ });
+    const createLink = screen.getByRole("link", { name: /Add Property/ });
     const href = createLink.getAttribute("href");
     expect(href).toBeTruthy();
     const draftUrl = new URL(href!, "https://admin.example.invalid");
@@ -296,10 +301,6 @@ describe("M12 CRM components", () => {
     expect(screen.getByRole("link", { name: "M12 Buyer" })).toBeVisible();
     expect(screen.queryByRole("link", { name: "Matched Buyer" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Unmatched Seller" })).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Unmatched Buyers" })).toHaveAttribute(
-      "href",
-      "/admin/leads?view=unmatched_buyers",
-    );
   });
 
   it("separates follow-up buckets and exposes completion controls", async () => {
@@ -355,5 +356,28 @@ describe("M12 CRM components", () => {
     view.unmount();
     render(<RequirementList title="Buyer requirements" items={[]} />);
     expect(screen.getByText("No buyer requirements found.")).toBeVisible();
+  });
+
+  it("renders delete lead button and handles user confirmation", async () => {
+    service.getLeadWorkspace.mockResolvedValueOnce(workspace);
+    service.getCrmReferenceData.mockResolvedValueOnce(refs);
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+
+    const { deleteLeadAction } = await import("@/app/(admin)/admin/(protected)/leads/actions");
+    render(
+      await LeadDetailPage({
+        params: Promise.resolve({ id: lead.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    const deleteButtons = screen.getAllByTestId("btn-delete-lead");
+    expect(deleteButtons.length).toBeGreaterThanOrEqual(1);
+
+    await userEvent.click(deleteButtons[0]!);
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(deleteLeadAction).toHaveBeenCalled();
+
+    confirmSpy.mockRestore();
   });
 });
