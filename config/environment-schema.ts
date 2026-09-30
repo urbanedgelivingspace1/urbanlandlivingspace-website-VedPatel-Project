@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const CANONICAL_PRODUCTION_ORIGIN = "https://urbanedgelandspace.com";
+const CANONICAL_PRODUCTION_ORIGIN = "https://theurbanedgelandspace.com";
 
 const cleanString = (value: unknown) => {
   if (typeof value !== "string") return value;
@@ -155,7 +155,7 @@ export const serverEnvironmentSchema = z
     }
     if (
       environment.APP_ENV === "preview" &&
-      ["urbanedgelandspace.com", "www.urbanedgelandspace.com"].includes(siteUrl.hostname)
+      ["theurbanedgelandspace.com", "www.theurbanedgelandspace.com"].includes(siteUrl.hostname)
     ) {
       addRequiredIssue(
         context,

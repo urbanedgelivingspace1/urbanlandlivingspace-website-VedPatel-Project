@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AdminPageHeader, EmptyState } from "@/components/admin/admin-ui";
 import { DeleteDraftButton } from "@/components/admin/delete-draft-button";
 import { measureAdminPerf } from "@/server/admin-perf";
 import { requireActiveAdminPage } from "@/server/auth/require-admin-page";
@@ -100,20 +101,16 @@ export default async function AdminPropertiesPage({
         </div>
       ) : null}
 
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-sm font-semibold text-emerald-800">Listings and land records</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
-            Properties
-          </h1>
-          <p className="mt-2 text-base text-slate-600">
-            {result.total} propert{result.total === 1 ? "y" : "ies"} in your records.
-          </p>
-        </div>
-        <Link href="/admin/properties/new" className="button button-primary">
-          + Add Property
-        </Link>
-      </header>
+      <AdminPageHeader
+        eyebrow="Inventory operations"
+        title="Properties"
+        description={`${result.total} propert${result.total === 1 ? "y" : "ies"} across draft, verification and live inventory.`}
+        actions={
+          <Link href="/admin/properties/new" className="button button-primary">
+            + Add property
+          </Link>
+        }
+      />
 
       <nav
         aria-label="Property views"
@@ -214,82 +211,137 @@ export default async function AdminPropertiesPage({
       </form>
 
       {result.items.length ? (
-        <div className="grid gap-3">
-          {result.items.map((property) => (
-            <article
-              key={property.id}
-              className="rounded-xl border border-slate-200 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,.03)] hover:border-emerald-500 sm:p-5"
-            >
-              <div className="grid gap-4 sm:grid-cols-[minmax(15rem,1.5fr)_minmax(9rem,.7fr)_minmax(10rem,.8fr)_auto] sm:items-center">
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-emerald-800">{property.propertyCode}</p>
-                  <Link
-                    href={`/admin/properties/${property.id}`}
-                    prefetch={false}
-                    className="mt-1 block truncate text-base font-bold text-slate-950 hover:text-emerald-800"
-                  >
-                    {property.title ||
-                      `${property.areaValue} ${property.areaUnit} ${friendly(property.category)} land`}
-                  </Link>
-                  <p className="mt-1 text-sm text-slate-600">
-                    {property.districtName} · {friendly(property.transactionType)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-slate-500">Area</p>
-                  <p className="mt-1 text-sm font-bold text-slate-900">
-                    {property.areaValue} {property.areaUnit}
-                  </p>
-                  <p className="mt-1 text-xs text-slate-500">
-                    {property.mediaCount} photos · {property.documentCount} docs
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-slate-500">Price</p>
-                  <p className="mt-1 text-sm font-bold text-slate-950">
-                    {formatPrice(property.priceMode, property.priceAmount)}
-                  </p>
-                  <p className="mt-1 text-xs text-slate-500">
-                    Updated {formatDate(property.updatedAt)}
-                  </p>
-                </div>
-                <div className="flex flex-col gap-2 sm:items-end">
-                  <div className="flex flex-wrap gap-2">
-                    <Status value={property.publicationStatus} />
-                    <Status value={property.availabilityStatus} />
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2 pt-1">
+        <>
+          <div className="hidden overflow-x-auto rounded-xl border border-slate-200 bg-white md:block">
+            <table className="w-full min-w-[980px] text-left text-sm">
+              <thead className="bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                <tr>
+                  <th className="px-4 py-3">Property</th>
+                  <th className="px-4 py-3">Area</th>
+                  <th className="px-4 py-3">Price</th>
+                  <th className="px-4 py-3">Publication</th>
+                  <th className="px-4 py-3">Availability</th>
+                  <th className="px-4 py-3">Media</th>
+                  <th className="px-4 py-3">Updated</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {result.items.map((property) => (
+                  <tr key={property.id} className="hover:bg-slate-50/70">
+                    <td className="max-w-xs px-4 py-3">
+                      <Link
+                        href={`/admin/properties/${property.id}`}
+                        prefetch={false}
+                        className="font-bold text-slate-950 hover:text-emerald-800"
+                      >
+                        {property.propertyCode}
+                      </Link>
+                      <p className="mt-0.5 truncate text-xs text-slate-600">
+                        {property.title || `${friendly(property.category)} land`}
+                      </p>
+                      <p className="mt-0.5 text-xs text-slate-400">
+                        {property.districtName} · {friendly(property.transactionType)}
+                      </p>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 font-semibold">
+                      {property.areaValue} {property.areaUnit}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 font-semibold">
+                      {formatPrice(property.priceMode, property.priceAmount)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Status value={property.publicationStatus} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <Status value={property.availabilityStatus} />
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-xs text-slate-600">
+                      {property.mediaCount} photos · {property.documentCount} docs
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-xs text-slate-500">
+                      {formatDate(property.updatedAt)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-2">
+                        <Link
+                          href={`/admin/properties/${property.id}`}
+                          prefetch={false}
+                          className="button button-secondary"
+                        >
+                          Open
+                        </Link>
+                        <details className="relative">
+                          <summary
+                            className="button button-secondary cursor-pointer list-none"
+                            aria-label={`More actions for ${property.propertyCode}`}
+                          >
+                            •••
+                          </summary>
+                          <div className="absolute right-0 z-20 mt-1 min-w-44 rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
+                            <Link
+                              href={`/admin/properties/${property.id}/edit`}
+                              prefetch={false}
+                              className="block rounded-md px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                            >
+                              Edit property
+                            </Link>
+                            <DeleteDraftButton
+                              propertyId={property.id}
+                              expectedUpdatedAt={property.updatedAt}
+                              propertyTitle={property.title ?? property.propertyCode}
+                              isPublished={property.publicationStatus === "PUBLISHED"}
+                              action={deletePropertyDraftAction}
+                            />
+                          </div>
+                        </details>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="grid gap-3 md:hidden">
+            {result.items.map((property) => (
+              <article
+                key={property.id}
+                className="rounded-xl border border-slate-200 bg-white p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
                     <Link
                       href={`/admin/properties/${property.id}`}
-                      prefetch={false}
-                      className="button button-secondary px-3 py-1.5 text-xs font-semibold"
+                      className="font-bold text-slate-950"
                     >
-                      View
+                      {property.propertyCode}
                     </Link>
-                    <Link
-                      href={`/admin/properties/${property.id}/edit`}
-                      prefetch={false}
-                      className="button button-secondary px-3 py-1.5 text-xs font-semibold"
-                    >
-                      Edit
-                    </Link>
-                    <DeleteDraftButton
-                      propertyId={property.id}
-                      expectedUpdatedAt={property.updatedAt}
-                      propertyTitle={property.title ?? property.propertyCode}
-                      isPublished={property.publicationStatus === "PUBLISHED"}
-                      action={deletePropertyDraftAction}
-                    />
+                    <p className="mt-1 truncate text-sm text-slate-600">
+                      {property.title || `${friendly(property.category)} land`}
+                    </p>
                   </div>
+                  <Status value={property.publicationStatus} />
                 </div>
-              </div>
-            </article>
-          ))}
-        </div>
+                <p className="mt-3 text-xs text-slate-500">
+                  {property.districtName} · {property.areaValue} {property.areaUnit} ·{" "}
+                  {formatPrice(property.priceMode, property.priceAmount)}
+                </p>
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <Status value={property.availabilityStatus} />
+                  <Link href={`/admin/properties/${property.id}`} className="button button-primary">
+                    Open workspace
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+        </>
       ) : (
-        <p className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-600">
-          No properties match these filters.
-        </p>
+        <EmptyState
+          title="No properties found"
+          description="Try clearing a filter or add the first property to this inventory view."
+          action={{ href: "/admin/properties/new", label: "Add property" }}
+        />
       )}
 
       {result.totalPages > 1 ? (

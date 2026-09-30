@@ -30,7 +30,7 @@ describe("M16 canonical, metadata and crawl policy", () => {
       "/locations/ahmedabad?a=1&b=2",
     );
     expect(absoluteCanonical("/guides/checklist")).toBe(
-      "https://urbanedgelandspace.com/guides/checklist",
+      "https://theurbanedgelandspace.com/guides/checklist",
     );
     expect(approvedSameSitePath("https://attacker.invalid/private", "/safe")).toBe("/safe");
   });
@@ -43,11 +43,11 @@ describe("M16 canonical, metadata and crawl policy", () => {
       robots: INDEX_FOLLOW,
     });
     expect(metadata.alternates).toEqual({
-      canonical: "https://urbanedgelandspace.com/guides/useful",
+      canonical: "https://theurbanedgelandspace.com/guides/useful",
     });
     expect(metadata.openGraph).toMatchObject({
       title: "Useful Ahmedabad land guide",
-      url: "https://urbanedgelandspace.com/guides/useful",
+      url: "https://theurbanedgelandspace.com/guides/useful",
     });
     expect(effectiveRobots(INDEX_FOLLOW, "preview")).toEqual(NOINDEX_NOFOLLOW);
     expect(effectiveRobots(INDEX_FOLLOW, undefined)).toEqual(NOINDEX_NOFOLLOW);
@@ -154,7 +154,7 @@ describe("M16 structured data, breadcrumbs and redirects", () => {
     ]);
     expect(data.itemListElement.map(({ name }) => name)).toEqual(["Home", "Ahmedabad", "NA Land"]);
     expect(data.itemListElement[1]).toMatchObject({
-      item: "https://urbanedgelandspace.com/locations/ahmedabad",
+      item: "https://theurbanedgelandspace.com/locations/ahmedabad",
     });
   });
 

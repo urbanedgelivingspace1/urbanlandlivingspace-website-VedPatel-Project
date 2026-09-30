@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { indiaLocalDateTimeToUtc } from "@/features/site-visits/domain/workflow";
 import {
   addOwnerSubmissionNote,
   assignOwnerSubmission,
@@ -55,7 +56,7 @@ export async function transitionOwnerSubmissionAction(id: string, data: FormData
       nextStatus: text(data, "nextStatus"),
       note: optional(data, "note"),
       nextActionAt: optional(data, "nextActionAt")
-        ? new Date(text(data, "nextActionAt")).toISOString()
+        ? indiaLocalDateTimeToUtc(text(data, "nextActionAt"))
         : undefined,
     });
   } catch (error) {

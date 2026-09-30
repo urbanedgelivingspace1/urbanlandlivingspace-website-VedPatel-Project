@@ -3,11 +3,13 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { LeadStatus } from "@/features/admin/contracts";
-import type {
-  FollowUpType,
-  LeadListItem,
-  LeadWorkspace,
-  PropertyInterestedBuyers,
+import {
+  LEAD_STATUSES,
+  type FollowUpType,
+  type LeadListItem,
+  type LeadWorkspace,
+  type MatchableProperty,
+  type PropertyInterestedBuyers,
 } from "@/features/crm/domain/contracts";
 import { classifyFollowUp } from "@/features/crm/domain/follow-ups";
 import {
@@ -590,16 +592,102 @@ export async function getCrmReferenceData() {
   };
 }
 
+export async function searchMatchableProperties(
+  filters: Readonly<{ query?: string; category?: string; transaction?: string }> = {},
+): Promise<MatchableProperty[]> {
+  await requireActiveAdmin();
+  const client = db();
+  let request = client
+    .from("properties")
+    .select(
+      "id,property_code,listing_title,land_category,primary_transaction_type,availability_status,public_address,district_id,display_area_value,display_area_unit_id",
+    )
+    .is("deleted_at", null)
+    .in("availability_status", ["AVAILABLE", "UNDER_NEGOTIATION"])
+    .order("updated_at", { ascending: false })
+    .limit(30);
+  const safeQuery = filters.query?.trim().replaceAll(/[,%()]/g, "");
+  if (safeQuery) {
+    request = request.or(
+      `property_code.ilike.%${safeQuery}%,listing_title.ilike.%${safeQuery}%,public_address.ilike.%${safeQuery}%`,
+    );
+  }
+  if (filters.category) {
+    request = request.eq(
+      "land_category",
+      filters.category as Database["public"]["Enums"]["land_category"],
+    );
+  }
+  if (filters.transaction) {
+    request = request.eq(
+      "primary_transaction_type",
+      filters.transaction as Database["public"]["Enums"]["transaction_type"],
+    );
+  }
+  const properties = await request;
+  check(properties.error);
+  const rows = properties.data ?? [];
+  if (!rows.length) return [];
+  const propertyIds = rows.map((row) => row.id);
+  const [offers, units, districts] = await Promise.all([
+    client
+      .from("property_offers")
+      .select("property_id,price_mode,price_amount,price_min,price_max")
+      .in("property_id", propertyIds)
+      .eq("is_primary", true)
+      .is("archived_at", null),
+    client
+      .from("area_units")
+      .select("id,display_name,symbol")
+      .in("id", [...new Set(rows.map((row) => row.display_area_unit_id))]),
+    client
+      .from("districts")
+      .select("id,name")
+      .in("id", [...new Set(rows.map((row) => row.district_id))]),
+  ]);
+  [offers, units, districts].forEach((result) => check(result.error));
+  return rows.map((row) => {
+    const offer = offers.data?.find((item) => item.property_id === row.id);
+    const unit = units.data?.find((item) => item.id === row.display_area_unit_id);
+    const district = districts.data?.find((item) => item.id === row.district_id);
+    return {
+      id: row.id,
+      propertyCode: row.property_code,
+      title: row.listing_title,
+      category: row.land_category,
+      transaction: row.primary_transaction_type,
+      availability: row.availability_status,
+      location: row.public_address || district?.name || null,
+      areaValue: row.display_area_value,
+      areaUnit: unit?.symbol ?? unit?.display_name ?? null,
+      priceMode: offer?.price_mode ?? null,
+      priceAmount: offer?.price_amount ?? null,
+      priceMin: offer?.price_min ?? null,
+      priceMax: offer?.price_max ?? null,
+    };
+  });
+}
+
 export async function listFollowUps() {
   await requireActiveAdmin();
   const client = db();
-  const result = await client
-    .from("lead_follow_ups")
-    .select("*")
-    .order("due_at", { ascending: true })
-    .limit(200);
-  check(result.error);
-  const rows = result.data ?? [];
+  const [openResult, completedResult] = await Promise.all([
+    client
+      .from("lead_follow_ups")
+      .select("*")
+      .is("completed_at", null)
+      .order("due_at", { ascending: true })
+      .limit(500),
+    client
+      .from("lead_follow_ups")
+      .select("*")
+      .not("completed_at", "is", null)
+      .order("completed_at", { ascending: false })
+      .limit(100),
+  ]);
+  check(openResult.error);
+  check(completedResult.error);
+  const rows = [...(openResult.data ?? []), ...(completedResult.data ?? [])];
   const leadIds = [...new Set(rows.map((r) => r.lead_id))];
   if (!leadIds.length) return [];
   const leads = await client
@@ -609,7 +697,7 @@ export async function listFollowUps() {
   check(leads.error);
   const parties = await client
     .from("parties")
-    .select("id,display_name")
+    .select("id,display_name,phone")
     .in("id", [...new Set((leads.data ?? []).map((l) => l.party_id))]);
   check(parties.error);
   return rows.map((row) => {
@@ -619,6 +707,7 @@ export async function listFollowUps() {
       leadReference: lead?.lead_reference ?? "Unknown",
       leadStatus: lead?.status ?? "NEW",
       leadName: parties.data?.find((p) => p.id === lead?.party_id)?.display_name ?? "Unknown",
+      leadPhone: parties.data?.find((p) => p.id === lead?.party_id)?.phone ?? null,
     };
   });
 }
@@ -721,6 +810,23 @@ export async function getDashboardLeadMetrics() {
     .is("archived_at", null);
   check(result.error);
   return { newLeadsCount: result.count ?? 0 };
+}
+
+export async function getDashboardLeadStageMetrics() {
+  await requireActiveAdmin();
+  const client = db();
+  const results = await Promise.all(
+    LEAD_STATUSES.map(async (status) => {
+      const result = await client
+        .from("leads")
+        .select("*", { count: "exact", head: true })
+        .eq("status", status)
+        .is("archived_at", null);
+      check(result.error);
+      return [status, result.count ?? 0] as const;
+    }),
+  );
+  return Object.fromEntries(results) as Record<(typeof LEAD_STATUSES)[number], number>;
 }
 
 export async function getDashboardFollowUpMetrics() {
@@ -888,4 +994,3 @@ export async function deleteLead(leadId: string, reason?: string): Promise<void>
     console.warn("deleteLead audit logging warning:", auditError);
   }
 }
-

@@ -12,18 +12,42 @@ type AdminShellProps = Readonly<{
 
 export function AdminShell({ admin, signOutAction, children }: AdminShellProps) {
   return (
-    <div className="admin-app min-h-screen bg-[#f4f6f3] text-slate-950">
-      <header className="sticky top-0 z-40 flex min-h-[4.5rem] items-center justify-between gap-4 border-b border-white/10 bg-[#102d27] px-4 py-3 text-white sm:px-6">
+    <div className="admin-app min-h-screen text-slate-950">
+      <header className="admin-topbar">
         <Link href="/admin/dashboard" className="flex items-center gap-3 no-underline">
-          <span className="grid h-10 w-10 place-items-center rounded-lg border border-[#d7bd7a]/35 bg-[#d7bd7a]/10 font-display text-xl font-bold text-[#ead9a8]">
-            U
-          </span>
+          <span className="admin-brand-mark">UE</span>
           <span>
-            <span className="block text-sm font-bold tracking-wide">Urban Land</span>
-            <span className="block text-xs text-emerald-100/65">Brokerage Admin</span>
+            <span className="block text-sm font-bold tracking-wide">UrbanEdge</span>
+            <span className="block text-[11px] text-emerald-100/65">Real-estate operations</span>
           </span>
         </Link>
-        <div className="flex items-center gap-3">
+        <form action="/admin/leads" className="admin-global-search" role="search">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-4-4" />
+          </svg>
+          <input
+            name="q"
+            aria-label="Search customers, phone or email"
+            placeholder="Search customers or phone…"
+          />
+        </form>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <details className="admin-create-menu">
+            <summary>+ Create</summary>
+            <div>
+              <Link href="/admin/leads/new">New lead</Link>
+              <Link href="/admin/properties/new">New property</Link>
+              <Link href="/admin/submissions">Seller enquiry</Link>
+              <Link href="/admin/site-visits">Site visit</Link>
+            </div>
+          </details>
           <div className="hidden text-right text-sm sm:block">
             <p className="font-semibold">{admin.displayName}</p>
             <p className="text-xs capitalize text-emerald-100/60">
@@ -40,8 +64,8 @@ export function AdminShell({ admin, signOutAction, children }: AdminShellProps) 
           </form>
         </div>
       </header>
-      <div className="mx-auto grid max-w-[1680px] md:grid-cols-[15.5rem_1fr]">
-        <aside className="border-b border-slate-200 bg-white md:sticky md:top-[4.5rem] md:h-[calc(100vh-4.5rem)] md:border-r md:border-b-0">
+      <div className="mx-auto grid max-w-[1800px] md:grid-cols-[15rem_1fr]">
+        <aside className="admin-sidebar">
           <details className="group md:hidden">
             <summary className="cursor-pointer px-5 py-4 font-semibold">Menu</summary>
             <AdminNavigation
@@ -54,8 +78,17 @@ export function AdminShell({ admin, signOutAction, children }: AdminShellProps) 
             />
           </div>
         </aside>
-        <main className="min-w-0 p-4 sm:p-7 lg:p-10">{children}</main>
+        <main className="min-w-0 p-4 pb-24 sm:p-6 sm:pb-24 lg:p-8 lg:pb-12">{children}</main>
       </div>
+      <nav aria-label="Quick actions" className="admin-mobile-actions">
+        <Link href="/admin/leads">Leads</Link>
+        <Link href="/admin/follow-ups">Follow-ups</Link>
+        <Link href="/admin/leads/new" className="admin-mobile-add">
+          +
+        </Link>
+        <Link href="/admin/site-visits">Visits</Link>
+        <Link href="/admin/properties">Properties</Link>
+      </nav>
     </div>
   );
 }

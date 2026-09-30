@@ -1,11 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { FOLLOW_UP_TYPES, LOSS_REASONS } from "@/features/crm/domain/contracts";
+import { FOLLOW_UP_TYPES } from "@/features/crm/domain/contracts";
 import type { LeadWorkspace } from "@/features/crm/domain/contracts";
 import { formatIndiaDateTime } from "@/features/crm/domain/follow-ups";
 import { leadStatusLabel, nextLeadStatuses } from "@/features/crm/domain/pipeline";
-import { getCrmReferenceData, getLeadWorkspace } from "@/server/services/crm";
+import {
+  getCrmReferenceData,
+  getLeadWorkspace,
+  searchMatchableProperties,
+} from "@/server/services/crm";
 import { DeleteLeadButton } from "@/components/admin/delete-lead-button";
+import { LeadStageForm } from "@/components/admin/lead-stage-form";
+import { QuickActionBar, StatusBadge, WorkspaceTabs } from "@/components/admin/admin-ui";
 import {
   addActivityAction,
   completeFollowUpAction,
@@ -25,85 +31,163 @@ export default async function LeadDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ saved?: string | string[] }>;
+  searchParams: Promise<{
+    saved?: string | string[];
+    propertyQ?: string;
+    propertyCategory?: string;
+    propertyTransaction?: string;
+  }>;
 }) {
   const { id } = await params;
-  const saved = (await searchParams).saved;
-  const [workspace, refs] = await Promise.all([getLeadWorkspace(id), getCrmReferenceData()]);
+  const query = await searchParams;
+  const saved = query.saved;
+  const [workspace, refs, matchableProperties] = await Promise.all([
+    getLeadWorkspace(id),
+    getCrmReferenceData(),
+    searchMatchableProperties({
+      query: query.propertyQ,
+      category: query.propertyCategory,
+      transaction: query.propertyTransaction,
+    }),
+  ]);
   if (!workspace) notFound();
   const { lead, requirement, matches, followUps, activities, documents } = workspace;
   const openFollowUp = followUps.find((f) => !f.completedAt);
+  const matchedPropertyIds = new Set(matches.map((match) => match.propertyId));
+  const stageOptions = nextLeadStatuses(lead.status).filter((status) => status !== lead.status);
   const createPropertyHref = sellerPropertyDraftHref(lead, requirement, refs.districts);
   return (
     <section className="mx-auto max-w-7xl" aria-labelledby="lead-heading">
-      <div className="flex flex-wrap items-center justify-between gap-4 text-sm font-semibold text-[var(--brand-navy)]">
-        <div className="flex flex-wrap gap-4">
-          <Link href="/admin/leads">← Leads</Link>
-          <Link href={`/admin/leads?view=site-visits&q=${encodeURIComponent(lead.leadReference)}`}>
-            Site visits →
-          </Link>
-        </div>
-        <DeleteLeadButton
-          leadId={lead.id}
-          leadName={lead.name}
-          action={deleteLeadAction}
-          variant="danger-outline"
-          buttonText="Delete lead"
-        />
+      <div className="flex flex-wrap items-center justify-between gap-4 text-sm font-semibold text-emerald-800">
+        <Link href="/admin/leads">← All leads</Link>
+        <details className="relative">
+          <summary className="cursor-pointer list-none rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-600">
+            ••• More
+          </summary>
+          <div className="mt-2 min-w-52 rounded-lg border border-slate-200 bg-white p-2 shadow-lg sm:absolute sm:right-0 sm:z-30">
+            <Link
+              href={`/admin/site-visits?q=${encodeURIComponent(lead.leadReference)}`}
+              className="block rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+            >
+              View site visits
+            </Link>
+            <DeleteLeadButton
+              leadId={lead.id}
+              leadName={lead.name}
+              action={deleteLeadAction}
+              variant="danger-outline"
+              buttonText="Archive lead"
+            />
+          </div>
+        </details>
       </div>
       {saved ? (
         <p role="status" className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">
-          CRM update saved.
+          {saved === "stage"
+            ? `Lead stage updated to ${leadStatusLabel(lead.status)}.`
+            : "Lead update saved."}
         </p>
       ) : null}
-      <header className="mt-4 rounded-2xl bg-slate-950 p-6 text-white">
-        <p className="text-xs font-bold tracking-[.16em] text-[var(--brand-gold)] uppercase">
-          {lead.leadReference}
-        </p>
-        <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 id="lead-heading" className="font-display text-4xl">
+      <header className="mt-4 rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,.03)]">
+        <div className="flex flex-wrap items-start justify-between gap-5">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-bold text-emerald-800">{lead.leadReference}</span>
+              <StatusBadge tone={lead.inquiryType === "SELLER_LEAD" ? "success" : "info"}>
+                {lead.inquiryType === "SELLER_LEAD" ? "Seller" : "Buyer"}
+              </StatusBadge>
+            </div>
+            <h1
+              id="lead-heading"
+              className="mt-2 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl"
+            >
               {lead.name}
             </h1>
-            <div className="mt-3 flex flex-wrap gap-2 text-sm">
-              {lead.phone ? (
-                <>
-                  <a
-                    className="rounded-lg bg-white/10 px-3 py-2 hover:bg-white/20"
-                    href={`tel:${lead.phone}`}
-                  >
-                    Call {lead.phone}
-                  </a>
-                  <a
-                    className="rounded-lg bg-emerald-500 px-3 py-2 font-bold text-emerald-950 hover:bg-emerald-400"
-                    href={`https://wa.me/${whatsAppNumber(lead.phone)}`}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    WhatsApp
-                  </a>
-                </>
-              ) : (
-                <span className="text-slate-300">No phone</span>
-              )}
-              {lead.email ? (
-                <a
-                  className="rounded-lg bg-white/10 px-3 py-2 hover:bg-white/20"
-                  href={`mailto:${lead.email}`}
-                >
-                  {lead.email}
-                </a>
-              ) : null}
-            </div>
+            <p className="mt-1 text-sm text-slate-500">
+              {[lead.phone, lead.email].filter(Boolean).join(" · ") ||
+                "No contact details recorded"}
+            </p>
           </div>
-          <span className="rounded-full bg-white/10 px-4 py-2 text-sm font-bold">
-            {leadStatusLabel(lead.status)}
-          </span>
+          <div className="grid min-w-[15rem] grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+            <HeaderFact label="Stage" value={leadStatusLabel(lead.status)} />
+            <HeaderFact label="Budget" value={formatBudget(lead.budgetMin, lead.budgetMax)} />
+            <HeaderFact
+              label="Next action"
+              value={openFollowUp ? formatIndiaDateTime(openFollowUp.dueAt) : "Not scheduled"}
+            />
+          </div>
         </div>
       </header>
+      <QuickActionBar>
+        {lead.phone ? (
+          <a className="button button-secondary" href={`tel:${lead.phone}`}>
+            Call
+          </a>
+        ) : null}
+        {lead.phone ? (
+          <a
+            className="button button-primary"
+            href={`https://wa.me/${whatsAppNumber(lead.phone)}`}
+            rel="noreferrer"
+            target="_blank"
+          >
+            WhatsApp
+          </a>
+        ) : null}
+        <a className="button button-secondary" href="#activity">
+          Add note
+        </a>
+        <a className="button button-secondary" href="#next-action">
+          Follow-up
+        </a>
+        {lead.inquiryType !== "SELLER_LEAD" ? (
+          <a className="button button-secondary" href="#matches">
+            Match property
+          </a>
+        ) : null}
+        <Link
+          className="button button-secondary"
+          href={`/admin/site-visits?q=${encodeURIComponent(lead.leadReference)}`}
+        >
+          Site visits
+        </Link>
+      </QuickActionBar>
+      <WorkspaceTabs
+        label="Lead workspace"
+        active="overview"
+        tabs={[
+          { key: "overview", label: "Overview", href: "#overview" },
+          {
+            key: "requirement",
+            label: lead.inquiryType === "SELLER_LEAD" ? "Seller property" : "Requirement",
+            href: lead.inquiryType === "SELLER_LEAD" ? "#seller-property" : "#requirement",
+          },
+          ...(lead.inquiryType === "SELLER_LEAD"
+            ? []
+            : [
+                {
+                  key: "matches",
+                  label: "Property matches",
+                  href: "#matches",
+                  count: matches.length,
+                },
+              ]),
+          { key: "activity", label: "Activity", href: "#activity", count: activities.length },
+          ...(lead.inquiryType === "SELLER_LEAD"
+            ? [
+                {
+                  key: "documents",
+                  label: "Documents",
+                  href: "#documents",
+                  count: documents.length,
+                },
+              ]
+            : []),
+        ]}
+      />
       <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_22rem]">
         <div className="space-y-6">
-          <Panel title="Overview">
+          <Panel id="overview" title="Overview">
             <dl className="grid gap-3 text-sm sm:grid-cols-2">
               <Fact
                 label="Source"
@@ -114,7 +198,7 @@ export default async function LeadDetailPage({
                 value={lead.inquiryType === "SELLER_LEAD" ? "Seller" : "Buyer"}
               />
               <Fact
-                label="Intent"
+                label="Looking for"
                 value={[friendly(lead.transaction), friendly(lead.category)]
                   .filter(Boolean)
                   .join(" · ")}
@@ -213,14 +297,14 @@ export default async function LeadDetailPage({
             </details>
           </Panel>
           {lead.inquiryType === "SELLER_LEAD" ? (
-            <Panel title="Seller Property">
+            <Panel id="seller-property" title="Seller property">
               <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <span className="rounded-full bg-emerald-200 px-2.5 py-0.5 text-xs font-bold text-emerald-950 uppercase">
                       Seller Lead
                     </span>
-                    <h3 className="font-display mt-2 text-lg font-bold text-slate-900">
+                    <h3 className="mt-2 text-lg font-bold text-slate-900">
                       {[lead.transaction, lead.category].filter(Boolean).join(" · ") ||
                         "Land Offering"}
                     </h3>
@@ -307,7 +391,7 @@ export default async function LeadDetailPage({
                 )}
               </div>
 
-              <div className="mt-6 border-t border-slate-200 pt-5">
+              <div id="documents" className="mt-6 scroll-mt-32 border-t border-slate-200 pt-5">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
                   Private seller documents ({documents.length})
                 </h4>
@@ -378,7 +462,7 @@ export default async function LeadDetailPage({
             </Panel>
           ) : (
             <>
-              <Panel title="Requirement">
+              <Panel id="requirement" title="Requirement">
                 <form
                   action={saveRequirementAction.bind(null, id)}
                   className="grid gap-3 sm:grid-cols-2"
@@ -435,65 +519,143 @@ export default async function LeadDetailPage({
                   <button className="button button-primary sm:col-span-2">Save requirement</button>
                 </form>
               </Panel>
-              <Panel title="Matched properties">
-                <form
-                  action={matchPropertyAction.bind(null, id)}
-                  className="grid gap-3 sm:grid-cols-[1fr_10rem_1fr_auto]"
-                >
-                  <Select
-                    name="propertyId"
-                    label="Candidate property"
-                    options={refs.properties.map((p) => p.id)}
-                    labels={Object.fromEntries(
-                      refs.properties.map((p) => [
-                        p.id,
-                        `${p.property_code} · ${p.listing_title ?? p.land_category}`,
-                      ]),
-                    )}
-                  />
-                  <Select
-                    name="matchStatus"
-                    label="Match state"
-                    options={["ACTIVE", "PRESENTED", "ACCEPTED", "REJECTED"]}
-                  />
-                  <Field name="matchNotes" label="Internal match note" />
-                  <button className="button button-primary self-end">Link property</button>
-                </form>
-                <div className="mt-5 space-y-3">
-                  {matches.map((match) => (
-                    <article
-                      key={match.id}
-                      className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 p-3"
-                    >
-                      <div>
-                        <Link
-                          href={`/admin/properties/${match.propertyId}`}
-                          className="font-bold text-[var(--brand-navy)]"
+              <div id="matches" className="scroll-mt-32">
+                <Panel title="Property matches">
+                  <form className="grid gap-3 rounded-lg bg-slate-50 p-3 md:grid-cols-[1fr_11rem_11rem_auto]">
+                    <label className="text-sm font-semibold">
+                      Search inventory
+                      <input
+                        className={input}
+                        name="propertyQ"
+                        defaultValue={query.propertyQ}
+                        placeholder="ID, title or location"
+                      />
+                    </label>
+                    <Select
+                      name="propertyCategory"
+                      label="Category"
+                      value={query.propertyCategory ?? ""}
+                      options={["", "AGRICULTURAL", "NA", "INDUSTRIAL"]}
+                    />
+                    <Select
+                      name="propertyTransaction"
+                      label="Transaction"
+                      value={query.propertyTransaction ?? ""}
+                      options={["", "BUY", "RENT", "LEASE"]}
+                    />
+                    <button className="button button-secondary self-end" type="submit">
+                      Find properties
+                    </button>
+                  </form>
+                  <div className="mt-4 grid gap-2">
+                    {matchableProperties.map((property) => {
+                      const alreadyMatched = matchedPropertyIds.has(property.id);
+                      return (
+                        <article
+                          key={property.id}
+                          className="grid gap-3 rounded-lg border border-slate-200 p-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center"
                         >
-                          {match.propertyCode} · {match.title ?? match.category}
-                        </Link>
-                        <p className="text-xs text-slate-500">
-                          {match.status} · {match.availability}
-                          {match.notes ? ` · ${match.notes}` : ""}
-                        </p>
-                      </div>
-                      <form action={unmatchPropertyAction.bind(null, id)}>
-                        <input type="hidden" name="propertyId" value={match.propertyId} />
-                        <input type="hidden" name="reason" value="Removed from candidate set" />
-                        <button className="rounded-lg border border-red-300 px-3 py-2 text-sm font-bold text-red-800">
-                          Remove match
-                        </button>
-                      </form>
-                    </article>
-                  ))}
-                  {!matches.length ? (
-                    <p className="text-sm text-slate-500">No candidate properties linked.</p>
-                  ) : null}
-                </div>
-              </Panel>
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <strong className="text-sm text-slate-950">
+                                {property.propertyCode}
+                              </strong>
+                              <StatusBadge
+                                tone={property.availability === "AVAILABLE" ? "success" : "warning"}
+                              >
+                                {friendly(property.availability)}
+                              </StatusBadge>
+                            </div>
+                            <p className="mt-1 truncate text-sm font-semibold text-slate-800">
+                              {property.title ?? `${friendly(property.category)} land`}
+                            </p>
+                            <p className="mt-1 text-xs text-slate-500">
+                              {[
+                                friendly(property.transaction),
+                                friendly(property.category),
+                                property.location,
+                                `${property.areaValue} ${property.areaUnit ?? ""}`.trim(),
+                                formatPropertyPrice(
+                                  property.priceMode,
+                                  property.priceAmount,
+                                  property.priceMin,
+                                  property.priceMax,
+                                ),
+                              ]
+                                .filter(Boolean)
+                                .join(" · ")}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Link
+                              className="button button-secondary"
+                              href={`/admin/properties/${property.id}`}
+                            >
+                              View
+                            </Link>
+                            {alreadyMatched ? (
+                              <span className="text-xs font-bold text-emerald-700">Matched</span>
+                            ) : (
+                              <form action={matchPropertyAction.bind(null, id)}>
+                                <input type="hidden" name="propertyId" value={property.id} />
+                                <input type="hidden" name="matchStatus" value="ACTIVE" />
+                                <input
+                                  type="hidden"
+                                  name="matchNotes"
+                                  value="Added from property search"
+                                />
+                                <button className="button button-primary">Add match</button>
+                              </form>
+                            )}
+                          </div>
+                        </article>
+                      );
+                    })}
+                    {!matchableProperties.length ? (
+                      <p className="rounded-lg border border-dashed border-slate-300 p-5 text-center text-sm text-slate-500">
+                        No available properties match these filters.
+                      </p>
+                    ) : null}
+                  </div>
+                  <h3 className="mt-6 text-sm font-bold text-slate-900">
+                    Linked to this lead ({matches.length})
+                  </h3>
+                  <div className="mt-3 space-y-3">
+                    {matches.map((match) => (
+                      <article
+                        key={match.id}
+                        className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 p-3"
+                      >
+                        <div>
+                          <Link
+                            href={`/admin/properties/${match.propertyId}`}
+                            className="font-bold text-[var(--brand-navy)]"
+                          >
+                            {match.propertyCode} · {match.title ?? match.category}
+                          </Link>
+                          <p className="text-xs text-slate-500">
+                            {match.status} · {match.availability}
+                            {match.notes ? ` · ${match.notes}` : ""}
+                          </p>
+                        </div>
+                        <form action={unmatchPropertyAction.bind(null, id)}>
+                          <input type="hidden" name="propertyId" value={match.propertyId} />
+                          <input type="hidden" name="reason" value="Removed from candidate set" />
+                          <button className="rounded-lg border border-red-300 px-3 py-2 text-sm font-bold text-red-800">
+                            Remove match
+                          </button>
+                        </form>
+                      </article>
+                    ))}
+                    {!matches.length ? (
+                      <p className="text-sm text-slate-500">No candidate properties linked.</p>
+                    ) : null}
+                  </div>
+                </Panel>
+              </div>
             </>
           )}
-          <Panel title="Activity timeline">
+          <Panel id="activity" title="Activity timeline">
             <form
               action={addActivityAction.bind(null, id)}
               className="grid gap-3 sm:grid-cols-[13rem_1fr_auto]"
@@ -534,7 +696,7 @@ export default async function LeadDetailPage({
           </Panel>
         </div>
         <aside className="space-y-6">
-          <Panel title="Next action">
+          <Panel id="next-action" title="Next action">
             {openFollowUp ? (
               <div className="rounded-lg bg-amber-50 p-3">
                 <strong>{openFollowUp.type.replaceAll("_", " ")}</strong>
@@ -570,31 +732,17 @@ export default async function LeadDetailPage({
               <button className="button button-outline w-full">Schedule follow-up</button>
             </form>
           </Panel>
-          <Panel title="Change stage">
-            {nextLeadStatuses(lead.status).length ? (
-              <form action={transitionLeadAction.bind(null, id)} className="space-y-3">
-                <Select
-                  name="nextStatus"
-                  label="Next stage"
-                  options={[...nextLeadStatuses(lead.status)]}
-                />
-                <label className="text-sm font-semibold">
-                  Reason or outcome
-                  <input name="reason" list="loss-reasons" className={input} />
-                  <datalist id="loss-reasons">
-                    {LOSS_REASONS.map((r) => (
-                      <option key={r} value={r} />
-                    ))}
-                  </datalist>
-                  <span className="mt-1 block text-xs font-normal text-slate-500">
-                    Required for nurture and closed outcomes. Closed lost uses a listed reason.
-                  </span>
-                </label>
-                <button className="button button-primary w-full">Change stage</button>
-              </form>
+          <Panel title="Lead stage">
+            {stageOptions.length ? (
+              <LeadStageForm
+                key={lead.status}
+                currentStatus={lead.status}
+                nextStatuses={stageOptions}
+                action={transitionLeadAction.bind(null, id)}
+              />
             ) : (
               <p className="text-sm text-slate-600">
-                This outcome is terminal. Create a new opportunity for new business intent.
+                This lead is finished. Create a new lead if the customer starts a new search.
               </p>
             )}
           </Panel>
@@ -612,17 +760,18 @@ export default async function LeadDetailPage({
               ))}
             </ul>
           </Panel>
-          <Panel title="Danger Zone">
+          <Panel title="Record settings">
             <p className="text-sm text-slate-600">
-              Permanently remove this lead from the CRM pipeline, follow-ups, and active property matching.
+              Archive this lead to remove it from active CRM queues. Its history remains in the
+              audit record.
             </p>
             <div className="mt-4">
               <DeleteLeadButton
                 leadId={lead.id}
                 leadName={lead.name}
                 action={deleteLeadAction}
-                variant="danger-button"
-                buttonText="Delete lead permanently"
+                variant="danger-outline"
+                buttonText="Archive lead"
                 className="w-full text-center"
               />
             </div>
@@ -632,12 +781,25 @@ export default async function LeadDetailPage({
     </section>
   );
 }
-function Panel({ title, children }: { title: string; children: React.ReactNode }) {
+function Panel({ id, title, children }: { id?: string; title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5">
-      <h2 className="font-display mb-4 text-2xl font-semibold">{title}</h2>
+    <section
+      id={id}
+      className="scroll-mt-32 rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,.03)]"
+    >
+      <h2 className="mb-4 text-lg font-bold tracking-tight text-slate-950">{title}</h2>
       {children}
     </section>
+  );
+}
+function HeaderFact({ label, value }: { label: string; value: string | null | undefined }) {
+  return (
+    <div className="min-w-0">
+      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
+      <p className="mt-1 truncate text-xs font-bold text-slate-800" title={value ?? undefined}>
+        {value || "Not recorded"}
+      </p>
+    </div>
   );
 }
 function Fact({ label, value }: { label: string; value: string | null | undefined }) {
@@ -696,6 +858,18 @@ function formatBudget(min: number | null, max: number | null) {
     : min !== null
       ? `From ${money(min)}`
       : `Up to ${money(max as number)}`;
+}
+
+function formatPropertyPrice(
+  mode: string | null,
+  amount: number | null,
+  minimum: number | null,
+  maximum: number | null,
+) {
+  if (mode === "PRICE_ON_REQUEST") return "Price on request";
+  if (minimum !== null || maximum !== null) return formatBudget(minimum, maximum);
+  if (amount !== null) return formatBudget(amount, amount);
+  return "Price not recorded";
 }
 
 function friendly(value: string | null | undefined) {

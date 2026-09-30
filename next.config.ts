@@ -92,8 +92,8 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/:path*",
-        has: [{ type: "host", value: "www.urbanedgelandspace.com" }],
-        destination: "https://urbanedgelandspace.com/:path*",
+        has: [{ type: "host", value: "www.theurbanedgelandspace.com" }],
+        destination: "https://theurbanedgelandspace.com/:path*",
         permanent: true,
       },
     ];

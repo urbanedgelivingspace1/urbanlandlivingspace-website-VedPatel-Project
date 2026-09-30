@@ -77,11 +77,11 @@ export default async function PropertiesPage({ searchParams }: PageProps) {
           <Breadcrumbs items={breadcrumbs} />
           <p className="eyebrow mt-7 text-[var(--brand-gold)]">Published land search</p>
           <h1 className="public-page-title mt-3 max-w-4xl text-white">
-            Find land by the facts that matter.
+            Find land that fits your requirement.
           </h1>
           <p className="mt-4 max-w-2xl leading-7 text-slate-200">
-            Search public inventory by identity, land type, transaction, location, comparable budget
-            and authoritative area.
+            Start with location, land type, transaction, budget and area. Use more filters when the
+            property-specific details matter to your search.
           </p>
         </div>
       </section>

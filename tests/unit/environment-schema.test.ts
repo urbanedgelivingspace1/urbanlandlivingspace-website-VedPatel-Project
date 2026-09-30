@@ -45,7 +45,7 @@ describe("serverEnvironmentSchema", () => {
       serverEnvironmentSchema.parse({
         ...validEnvironment,
         APP_ENV: "preview",
-        NEXT_PUBLIC_SITE_URL: "https://urbanedgelandspace.com",
+        NEXT_PUBLIC_SITE_URL: "https://theurbanedgelandspace.com",
         NEXT_PUBLIC_SUPABASE_URL: "https://staging.supabase.co",
         NEXT_PUBLIC_TURNSTILE_SITE_KEY: "staging-site-key",
         TURNSTILE_SECRET_KEY: "staging-secret-key",
@@ -58,7 +58,7 @@ describe("serverEnvironmentSchema", () => {
     const productionEnvironment = {
       ...validEnvironment,
       APP_ENV: "production",
-      NEXT_PUBLIC_SITE_URL: "https://urbanedgelandspace.com",
+      NEXT_PUBLIC_SITE_URL: "https://theurbanedgelandspace.com",
       NEXT_PUBLIC_SUPABASE_URL: "https://production.supabase.co",
       NEXT_PUBLIC_TURNSTILE_SITE_KEY: "production-site-key",
       TURNSTILE_SECRET_KEY: "production-secret-key",

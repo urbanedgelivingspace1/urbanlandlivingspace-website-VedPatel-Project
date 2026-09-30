@@ -111,188 +111,196 @@ function FilterForm({
       method="get"
       onSubmit={onSubmit}
     >
-      <div className="search-field-grid">
-        <label className="search-field search-field-wide">
-          <span>Keyword or Property ID</span>
-          <input
-            name="q"
-            defaultValue={query.keyword ?? query.propertyId ?? ""}
-            maxLength={120}
-            placeholder="Location, landmark or UE-LS-000123"
+      <fieldset className="search-filter-group">
+        <legend>Primary filters</legend>
+        <div className="search-field-grid">
+          <label className="search-field search-field-wide">
+            <span>Keyword or Property ID</span>
+            <input
+              name="q"
+              defaultValue={query.keyword ?? query.propertyId ?? ""}
+              maxLength={120}
+              placeholder="Location, landmark or UE-LS-000123"
+            />
+          </label>
+          <SelectField
+            label="Location"
+            name="district"
+            value={query.district ?? ""}
+            options={districts}
+            onChange={(value) => {
+              setDistrict(value);
+              setTaluka("");
+              setPlace("");
+            }}
           />
-        </label>
-        <SelectField
-          label="Land category"
-          name="category"
-          value={query.category?.toLowerCase() ?? ""}
-          onChange={(value) => setCategory(value.toUpperCase())}
-          options={[
-            { value: "agricultural", label: "Agricultural", count: 0 },
-            { value: "na", label: "NA land", count: 0 },
-            { value: "industrial", label: "Industrial", count: 0 },
-          ]}
-        />
-        <SelectField
-          label="Transaction"
-          name="transaction"
-          value={query.transaction?.toLowerCase() ?? ""}
-          options={[
-            { value: "buy", label: "Buy", count: 0 },
-            { value: "rent", label: "Rent", count: 0 },
-            { value: "lease", label: "Lease", count: 0 },
-          ]}
-        />
-        <SelectField
-          label="District"
-          name="district"
-          value={query.district ?? ""}
-          options={districts}
-          onChange={(value) => {
-            setDistrict(value);
-            setTaluka("");
-            setPlace("");
-          }}
-        />
-        <SelectField
-          label="Taluka"
-          name="taluka"
-          value={taluka}
-          options={talukas}
-          onChange={(value) => {
-            setTaluka(value);
-            setPlace("");
-          }}
-        />
-        <SelectField
-          label="Place / village"
-          name="place"
-          value={place}
-          options={places}
-          onChange={setPlace}
-        />
-        <SelectField
-          label="Locality"
-          name="locality"
-          value={query.locality ?? ""}
-          options={localities}
-        />
-        <SelectField
-          label="Availability"
-          name="availability"
-          value={query.availability?.toLowerCase().replaceAll("_", "-") ?? ""}
-          options={availability}
-        />
-        <SelectField
-          label="Pricing"
-          name="pricing"
-          value={query.pricing?.toLowerCase() ?? ""}
-          options={[
-            { value: "listed", label: "Listed price", count: 0 },
-            { value: "por", label: "Price on request", count: 0 },
-          ]}
-        />
-        <label className="search-field">
-          <span>Minimum price (₹)</span>
-          <input
-            name="minPrice"
-            type="number"
-            min="0"
-            step="1"
-            defaultValue={query.minimumPrice ?? ""}
+          <SelectField
+            label="Land type"
+            name="category"
+            value={query.category?.toLowerCase() ?? ""}
+            onChange={(value) => setCategory(value.toUpperCase())}
+            options={[
+              { value: "agricultural", label: "Agricultural", count: 0 },
+              { value: "na", label: "NA land", count: 0 },
+              { value: "industrial", label: "Industrial", count: 0 },
+            ]}
           />
-        </label>
-        <label className="search-field">
-          <span>Maximum price (₹)</span>
-          <input
-            name="maxPrice"
-            type="number"
-            min="0"
-            step="1"
-            defaultValue={query.maximumPrice ?? ""}
+          <SelectField
+            label="Transaction"
+            name="transaction"
+            value={query.transaction?.toLowerCase() ?? ""}
+            options={[
+              { value: "buy", label: "Buy", count: 0 },
+              { value: "rent", label: "Rent", count: 0 },
+              { value: "lease", label: "Lease", count: 0 },
+            ]}
           />
-        </label>
-        <label className="search-field">
-          <span>Minimum area</span>
-          <input
-            name="minArea"
-            type="number"
-            min="0"
-            step="0.01"
-            defaultValue={query.minimumArea ?? ""}
+          <label className="search-field">
+            <span>Minimum budget (₹)</span>
+            <input
+              name="minPrice"
+              type="number"
+              min="0"
+              step="1"
+              defaultValue={query.minimumPrice ?? ""}
+            />
+          </label>
+          <label className="search-field">
+            <span>Maximum budget (₹)</span>
+            <input
+              name="maxPrice"
+              type="number"
+              min="0"
+              step="1"
+              defaultValue={query.maximumPrice ?? ""}
+            />
+          </label>
+          <label className="search-field">
+            <span>Minimum area</span>
+            <input
+              name="minArea"
+              type="number"
+              min="0"
+              step="0.01"
+              defaultValue={query.minimumArea ?? ""}
+            />
+          </label>
+          <label className="search-field">
+            <span>Maximum area</span>
+            <input
+              name="maxArea"
+              type="number"
+              min="0"
+              step="0.01"
+              defaultValue={query.maximumArea ?? ""}
+            />
+          </label>
+          <SelectField
+            label="Area unit"
+            name="areaUnit"
+            value={query.areaUnit}
+            options={[
+              { value: "sq_ft", label: "sq ft", count: 0 },
+              { value: "sq_m", label: "sq m", count: 0 },
+              { value: "sq_yd", label: "sq yd", count: 0 },
+              { value: "var", label: "var", count: 0 },
+              { value: "acre", label: "acre", count: 0 },
+              { value: "hectare", label: "hectare", count: 0 },
+            ]}
           />
-        </label>
-        <label className="search-field">
-          <span>Maximum area</span>
-          <input
-            name="maxArea"
-            type="number"
-            min="0"
-            step="0.01"
-            defaultValue={query.maximumArea ?? ""}
+        </div>
+      </fieldset>
+      <details className="search-more-filters" open={Boolean(category)}>
+        <summary>More filters</summary>
+        <div className="search-field-grid">
+          <SelectField
+            label="Taluka"
+            name="taluka"
+            value={taluka}
+            options={talukas}
+            onChange={(value) => {
+              setTaluka(value);
+              setPlace("");
+            }}
           />
-        </label>
-        <SelectField
-          label="Area unit"
-          name="areaUnit"
-          value={query.areaUnit}
-          options={[
-            { value: "sq_ft", label: "sq ft", count: 0 },
-            { value: "sq_m", label: "sq m", count: 0 },
-            { value: "sq_yd", label: "sq yd", count: 0 },
-            { value: "var", label: "var", count: 0 },
-            { value: "acre", label: "acre", count: 0 },
-            { value: "hectare", label: "hectare", count: 0 },
-          ]}
-        />
-        {category === "AGRICULTURAL" ? (
-          <>
-            <SelectField
-              label="Tenure"
-              name="agriTenure"
-              value={query.agriculturalTenure ?? ""}
-              options={facets.categorySpecific.agriculturalTenure}
-            />
-            <SelectField
-              label="Irrigation"
-              name="agriIrrigation"
-              value={query.agriculturalIrrigation ?? ""}
-              options={facets.categorySpecific.agriculturalIrrigation}
-            />
-          </>
-        ) : null}
-        {category === "NA" ? (
-          <>
-            <SelectField
-              label="NA status"
-              name="naStatus"
-              value={query.naStatus ?? ""}
-              options={facets.categorySpecific.naStatus}
-            />
-            <SelectField
-              label="NA purpose"
-              name="naPurpose"
-              value={query.naPurpose ?? ""}
-              options={facets.categorySpecific.naPurpose}
-            />
-          </>
-        ) : null}
-        {category === "INDUSTRIAL" ? (
-          <>
-            <SelectField
-              label="Industrial type"
-              name="industrialType"
-              value={query.industrialType ?? ""}
-              options={facets.categorySpecific.industrialType}
-            />
-            <SelectField
-              label="Power"
-              name="industrialPower"
-              value={query.industrialPower ?? ""}
-              options={facets.categorySpecific.industrialPower}
-            />
-          </>
-        ) : null}
-      </div>
+          <SelectField
+            label="Place / village"
+            name="place"
+            value={place}
+            options={places}
+            onChange={setPlace}
+          />
+          <SelectField
+            label="Locality"
+            name="locality"
+            value={query.locality ?? ""}
+            options={localities}
+          />
+          <SelectField
+            label="Availability"
+            name="availability"
+            value={query.availability?.toLowerCase().replaceAll("_", "-") ?? ""}
+            options={availability}
+          />
+          <SelectField
+            label="Pricing"
+            name="pricing"
+            value={query.pricing?.toLowerCase() ?? ""}
+            options={[
+              { value: "listed", label: "Listed price", count: 0 },
+              { value: "por", label: "Price on request", count: 0 },
+            ]}
+          />
+          {category === "AGRICULTURAL" ? (
+            <>
+              <SelectField
+                label="Tenure"
+                name="agriTenure"
+                value={query.agriculturalTenure ?? ""}
+                options={facets.categorySpecific.agriculturalTenure}
+              />
+              <SelectField
+                label="Irrigation"
+                name="agriIrrigation"
+                value={query.agriculturalIrrigation ?? ""}
+                options={facets.categorySpecific.agriculturalIrrigation}
+              />
+            </>
+          ) : null}
+          {category === "NA" ? (
+            <>
+              <SelectField
+                label="NA status"
+                name="naStatus"
+                value={query.naStatus ?? ""}
+                options={facets.categorySpecific.naStatus}
+              />
+              <SelectField
+                label="NA purpose"
+                name="naPurpose"
+                value={query.naPurpose ?? ""}
+                options={facets.categorySpecific.naPurpose}
+              />
+            </>
+          ) : null}
+          {category === "INDUSTRIAL" ? (
+            <>
+              <SelectField
+                label="Industrial type"
+                name="industrialType"
+                value={query.industrialType ?? ""}
+                options={facets.categorySpecific.industrialType}
+              />
+              <SelectField
+                label="Power / infrastructure"
+                name="industrialPower"
+                value={query.industrialPower ?? ""}
+                options={facets.categorySpecific.industrialPower}
+              />
+            </>
+          ) : null}
+        </div>
+      </details>
       {query.sort !== "DEFAULT" ? (
         <input
           type="hidden"

@@ -29,7 +29,11 @@ export function DeleteDraftButton({
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const title = propertyTitle ? `"${propertyTitle}"` : isPublished ? "this property" : "this property draft";
+    const title = propertyTitle
+      ? `"${propertyTitle}"`
+      : isPublished
+        ? "this property"
+        : "this property draft";
     const promptMessage = isPublished
       ? `Are you sure you want to permanently delete ${title}? This property is currently PUBLISHED. Deleting it will unpublish it from the website and remove it from the admin portal. This action cannot be undone.`
       : `Are you sure you want to permanently delete ${title}? This action cannot be undone.`;
@@ -84,4 +88,3 @@ export function DeleteDraftButton({
 }
 
 export const DeletePropertyButton = DeleteDraftButton;
-

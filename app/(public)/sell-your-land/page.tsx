@@ -2,9 +2,11 @@ import { randomUUID } from "node:crypto";
 import type { Metadata } from "next";
 
 import { Breadcrumbs } from "@/components/public/breadcrumbs";
-import { SellerContactForm } from "@/components/public/seller-contact-form";
-import { submitSellerLeadAction } from "@/app/(public)/intake-actions";
-import { getPublicGeographyOptions } from "@/server/queries/public-reference-data";
+import { OwnerSubmissionWizard } from "@/components/public/owner-submission-wizard";
+import {
+  getPublicAreaUnits,
+  getPublicGeographyOptions,
+} from "@/server/queries/public-reference-data";
 import { createPublicServerClient } from "@/server/supabase/public";
 import { buildPublicMetadata } from "@/lib/seo/metadata";
 import { breadcrumbJsonLd } from "@/lib/seo/breadcrumbs";
@@ -20,7 +22,10 @@ export const metadata: Metadata = buildPublicMetadata({
 
 export default async function SellYourLandPage() {
   const client = createPublicServerClient();
-  const geography = await getPublicGeographyOptions(client);
+  const [geography, units] = await Promise.all([
+    getPublicGeographyOptions(client),
+    getPublicAreaUnits(client),
+  ]);
   const districts = [
     ...new Map(
       geography.map((row) => [
@@ -41,35 +46,44 @@ export default async function SellYourLandPage() {
             Tell us about land you want to sell, rent or lease.
           </h1>
           <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-200">
-            Share your contact and land essentials in a single step. UrbanEdge reviews every inquiry
-            privately—nothing is automatically listed or published.
+            Share the details UrbanEdge needs to understand your opportunity. Your information and
+            documents are reviewed privately—nothing is automatically listed or published.
           </p>
         </div>
       </section>
       <section className="section">
         <div className="site-container conversion-layout">
           <aside>
-            <p className="eyebrow">Direct Brokerage Support</p>
-            <h2 className="section-title">A direct conversation, not an automated form.</h2>
+            <p className="eyebrow">Private brokerage review</p>
+            <h2 className="section-title">Your information stays private while we review it.</h2>
             <p className="section-copy">
-              UrbanEdge specializes in land brokerage across Gujarat. Once you submit this short
-              form, our land advisory desk will review what you shared and contact you directly.
+              UrbanEdge specializes in Agricultural, NA and Industrial land across Ahmedabad and
+              Gandhinagar. Our team reviews your submission before deciding the appropriate next
+              step.
             </p>
-            <div className="mt-6 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600">
-              <p className="font-bold text-slate-900">Why owners choose UrbanEdge:</p>
-              <ul className="list-disc pl-4 space-y-1">
-                <li>Private handling by the UrbanEdge team</li>
-                <li>Practical pricing discussion and buyer matching</li>
-                <li>Physical site visit and boundary assistance</li>
-                <li>Complete documentation & deal closing support</li>
+            <div className="owner-trust-card">
+              <p className="font-bold text-slate-900">Before you begin</p>
+              <ul>
+                <li>Your submission is reviewed privately by UrbanEdge.</li>
+                <li>Submitting does not automatically publish or accept the property.</li>
+                <li>
+                  UrbanEdge may contact you to clarify details or request supporting information.
+                </li>
+                <li>You choose how precisely your land location may be shared publicly.</li>
+                <li>
+                  Documents remain part of the private review process, not public listing media.
+                </li>
               </ul>
             </div>
           </aside>
-          <SellerContactForm
-            action={submitSellerLeadAction}
+          <OwnerSubmissionWizard
             idempotencyKey={randomUUID()}
             turnstileSiteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
             districts={districts}
+            units={units.map((unit) => ({
+              value: unit.id,
+              label: `${unit.display_name}${unit.symbol ? ` (${unit.symbol})` : ""}`,
+            }))}
           />
         </div>
       </section>

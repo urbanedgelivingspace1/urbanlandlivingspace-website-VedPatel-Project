@@ -14,7 +14,15 @@ export function SearchResults({
       <div className="empty-state" role="status">
         <p className="eyebrow">Temporarily unavailable</p>
         <h3>Search is unavailable right now.</h3>
-        <p>Please try again shortly. No private or unapproved records are used as a fallback.</p>
+        <p>Please try again shortly or contact UrbanEdge for help with your land requirement.</p>
+        <div className="empty-state-actions">
+          <Link className="button button-primary" href="/properties">
+            Retry
+          </Link>
+          <Link className="button button-outline" href="/contact" prefetch={false}>
+            Contact UrbanEdge
+          </Link>
+        </div>
       </div>
     );
   if (!result.properties.length)

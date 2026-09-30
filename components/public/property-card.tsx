@@ -50,7 +50,7 @@ export function PropertyCard({ property }: Readonly<{ property: PublicPropertyCa
           <p className="mt-2 text-xs text-slate-500">Negotiable</p>
         ) : null}
         <Link className="property-card-link" href={`/properties/${property.slug}`}>
-          View property <ArrowIcon className="size-4" />
+          View details <ArrowIcon className="size-4" />
         </Link>
       </div>
     </article>

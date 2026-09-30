@@ -8,11 +8,17 @@ export type PublicBusinessConfig = Readonly<{
   livingSpaceUrl: string | null;
 }>;
 
+export const OFFICIAL_PHONE_DISPLAY = "94086 63544";
+export const OFFICIAL_PHONE_NUMBER = "+919408663544";
+export const OFFICIAL_OFFICE_ADDRESS =
+  "SANSKRUTI BY KAVYARATNA, 130, Randesan, Gandhinagar, Gujarat 382426";
+export const OFFICIAL_OFFICE_MAP_URL = "https://maps.app.goo.gl/tvbr4DjA2SBPtNHq8";
+
 const emptyConfig: PublicBusinessConfig = {
-  phone: null,
-  whatsappNumber: null,
+  phone: OFFICIAL_PHONE_NUMBER,
+  whatsappNumber: OFFICIAL_PHONE_NUMBER,
   email: null,
-  officeAddress: null,
+  officeAddress: OFFICIAL_OFFICE_ADDRESS,
   livingSpaceUrl: null,
 };
 
@@ -41,10 +47,10 @@ export function resolvePublicBusinessConfig(
   settings: Readonly<Record<string, Json>>,
 ): PublicBusinessConfig {
   return {
-    phone: asString(settings.public_phone),
-    whatsappNumber: asString(settings.whatsapp_number),
+    phone: asString(settings.public_phone) ?? OFFICIAL_PHONE_NUMBER,
+    whatsappNumber: asString(settings.whatsapp_number) ?? OFFICIAL_PHONE_NUMBER,
     email: asPublicEmail(settings.public_email),
-    officeAddress: asString(settings.office_address),
+    officeAddress: asString(settings.office_address) ?? OFFICIAL_OFFICE_ADDRESS,
     livingSpaceUrl: normalizeExternalHttpsUrl(settings.living_space_url),
   };
 }
@@ -61,13 +67,29 @@ export function normalizeTelephone(value: string | null): string | null {
 
 export function buildWhatsAppUrl(
   config: PublicBusinessConfig,
-  context?: Readonly<{ propertyCode: string; title: string }>,
+  context?: Readonly<{
+    propertyCode: string;
+    title: string;
+    category?: string;
+    location?: string;
+  }>,
 ): string | null {
   const number = normalizeTelephone(config.whatsappNumber)?.replace(/^\+/, "");
   if (!number) return null;
   const message = context
-    ? `Hi UrbanEdge, I am interested in ${context.title} (Property ${context.propertyCode}).`
-    : "Hi UrbanEdge, I would like help finding land in Ahmedabad or Gandhinagar.";
+    ? [
+        "Hello UrbanEdge Land Space,",
+        "",
+        "I'm interested in:",
+        "",
+        `Property: ${context.title}`,
+        `Property ID: ${context.propertyCode}`,
+        ...(context.category ? [`Land Type: ${context.category}`] : []),
+        ...(context.location ? [`Location: ${context.location}`] : []),
+        "",
+        "Please share more details.",
+      ].join("\n")
+    : "Hello UrbanEdge Land Space, I would like help finding land in Ahmedabad or Gandhinagar.";
   return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 }
 

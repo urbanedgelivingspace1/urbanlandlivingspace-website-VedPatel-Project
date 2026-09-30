@@ -189,7 +189,7 @@ test("Ahmedabad and Gandhinagar district landings render useful server content",
     await expect(page.getByRole("link", { name: /Share your requirement/ })).toBeVisible();
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
       "href",
-      `https://urbanedgelandspace.com/locations/${city}`,
+      `https://theurbanedgelandspace.com/locations/${city}`,
     );
   }
 });
@@ -230,7 +230,7 @@ test("property metadata and JSON-LD never expose hidden exact location", async (
   const response = await request.get(`/properties/${publishedPropertySlug}`);
   expect(response.status()).toBe(200);
   const html = await response.text();
-  expect(html).toContain(`https://urbanedgelandspace.com/properties/${publishedPropertySlug}`);
+  expect(html).toContain(`https://theurbanedgelandspace.com/properties/${publishedPropertySlug}`);
   expect(html).toContain("https://schema.org/InStock");
   expect(html).not.toContain(privateCanary);
   expect(html).not.toContain("23.022505");

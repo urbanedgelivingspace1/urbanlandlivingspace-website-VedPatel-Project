@@ -24,8 +24,9 @@ export function PublicMap({
   if (location.visibility === "HIDDEN" || !location.point) {
     return (
       <div className="map-fallback">
-        <strong>Location details available through UrbanEdge</strong>
+        <strong>Exact location is shared by UrbanEdge where appropriate.</strong>
         <p>No pin or coordinate is published for this property.</p>
+        <p>Contact our team for property-specific location details.</p>
       </div>
     );
   }
@@ -74,8 +75,8 @@ export function PublicMap({
           </strong>
           <p>
             {location.visibility === "EXACT"
-              ? "This listing explicitly authorizes its public point."
-              : "The map uses only a deliberately broadened public point, not the private property coordinate."}
+              ? "This listing includes a public map point for discovery."
+              : "This map shows only the broader area. Contact UrbanEdge for property-specific details."}
           </p>
           {!styleUrl ? (
             <span className="map-unavailable">Interactive map provider is not configured.</span>

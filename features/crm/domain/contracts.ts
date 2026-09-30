@@ -160,3 +160,19 @@ export type PropertyInterestedBuyers = Readonly<{
     notes: string | null;
   }>[];
 }>;
+
+export type MatchableProperty = Readonly<{
+  id: string;
+  propertyCode: string;
+  title: string | null;
+  category: string;
+  transaction: string;
+  availability: string;
+  location: string | null;
+  areaValue: number;
+  areaUnit: string | null;
+  priceMode: string | null;
+  priceAmount: number | null;
+  priceMin: number | null;
+  priceMax: number | null;
+}>;

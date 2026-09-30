@@ -7,6 +7,7 @@ import { useRef, useState, useTransition } from "react";
 import { DeleteDraftButton } from "@/components/admin/delete-draft-button";
 import { PropertyPublicationPanel } from "@/components/admin/property-publication-panel";
 import type { PropertyInterestedBuyers } from "@/features/crm/domain/contracts";
+import { leadStatusLabel } from "@/features/crm/domain/pipeline";
 import type {
   AdminMediaAssetDto,
   AdminPrivateDocumentDto,
@@ -302,7 +303,10 @@ export function PropertyWorkspace({
             aria-current={activeTab === "media" ? "page" : undefined}
             className="admin-tab"
           >
-            Photos & Documents ({property.mediaCount + property.documentCount})
+            Media & documents ({property.mediaCount + property.documentCount})
+          </Link>
+          <Link href={`/admin/verification/${id}`} prefetch={false} className="admin-tab">
+            Verification
           </Link>
           <Link
             href={`/admin/properties/${id}?tab=buyers`}
@@ -310,7 +314,7 @@ export function PropertyWorkspace({
             aria-current={activeTab === "buyers" ? "page" : undefined}
             className="admin-tab"
           >
-            Interested Leads{activeTab === "buyers" ? ` (${matchesCount + visitsCount})` : ""}
+            Leads & visits{activeTab === "buyers" ? ` (${matchesCount + visitsCount})` : ""}
           </Link>
           <Link
             href={`/admin/properties/${id}?tab=activity`}
@@ -318,7 +322,7 @@ export function PropertyWorkspace({
             aria-current={activeTab === "activity" ? "page" : undefined}
             className="admin-tab"
           >
-            Activity
+            Status & history
           </Link>
         </nav>
       </div>
@@ -762,7 +766,7 @@ export function PropertyWorkspace({
                         </Link>
                         <span className="font-semibold text-slate-900">{match.leadName}</span>
                         <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-700">
-                          {match.leadStatus}
+                          {leadStatusLabel(match.leadStatus)}
                         </span>
                       </div>
                       {match.leadPhone ? (

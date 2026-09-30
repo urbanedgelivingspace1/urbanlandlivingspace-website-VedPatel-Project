@@ -43,7 +43,7 @@ const environment = (app: "local" | "production" = "local"): ServerEnvironment =
     ? {
         ...local,
         APP_ENV: "production",
-        NEXT_PUBLIC_SITE_URL: "https://urbanedgelandspace.com",
+        NEXT_PUBLIC_SITE_URL: "https://theurbanedgelandspace.com",
         HMAC_SECRET: "synthetic-production-hmac",
       }
     : local;
@@ -291,7 +291,7 @@ describe("M13 public demand domain", () => {
       new Response(
         JSON.stringify({
           success: true,
-          hostname: "urbanedgelandspace.com",
+          hostname: "theurbanedgelandspace.com",
           action: "property_inquiry",
         }),
         { status: 200 },

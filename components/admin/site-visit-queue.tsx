@@ -87,29 +87,34 @@ export function SiteVisitQueue({
           <table className="min-w-[1050px] w-full text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase text-slate-600">
               <tr>
-                {["Visit", "Status", "Schedule", "Lead", "Property", "Assignee", "Next action"].map(
-                  (heading) => (
-                    <th key={heading} className="px-4 py-3">
-                      {heading}
-                    </th>
-                  ),
-                )}
+                {[
+                  "Visit",
+                  "Status",
+                  "Schedule",
+                  "Customer",
+                  "Property",
+                  "Next action",
+                  "Actions",
+                ].map((heading) => (
+                  <th key={heading} className="px-4 py-3">
+                    {heading}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {visits.map((visit) => (
                 <tr key={visit.id} className="border-t border-slate-200 align-top">
                   <td className="px-4 py-3">
-                    <Link
-                      href={`/admin/site-visits/${visit.id}`}
-                      className="font-bold text-[var(--brand-navy)] hover:underline"
-                    >
-                      Open visit
-                    </Link>
-                    <span className="block text-xs text-slate-500">{visit.bucket}</span>
+                    <span className="font-bold text-slate-900">
+                      {visit.bucket === "TODAY" ? "Today" : friendly(visit.bucket)}
+                    </span>
+                    <span className="block text-xs text-slate-500">
+                      {visit.assignedName ?? "Unassigned"}
+                    </span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="rounded-full bg-slate-100 px-3 py-1 font-semibold">
+                    <span className="admin-badge admin-badge-blue">
                       {siteVisitStatusLabel(visit.status)}
                     </span>
                   </td>
@@ -147,9 +152,23 @@ export function SiteVisitQueue({
                       {visit.propertyTitle ?? "Untitled"} · {visit.availability}
                     </span>
                   </td>
-                  <td className="px-4 py-3">{visit.assignedName ?? "Unassigned"}</td>
                   <td className="px-4 py-3">
                     {visit.hasOpenFollowUp ? "Follow-up scheduled" : nextAction(visit.status)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      {visit.phone ? (
+                        <a className="text-xs font-bold text-slate-600" href={`tel:${visit.phone}`}>
+                          Call
+                        </a>
+                      ) : null}
+                      <Link
+                        href={`/admin/site-visits/${visit.id}`}
+                        className="button button-primary px-3 py-1.5 text-xs"
+                      >
+                        Open
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -157,13 +176,20 @@ export function SiteVisitQueue({
           </table>
         ) : (
           <div className="p-10 text-center">
-            <h2 className="font-display text-2xl">No site visits found</h2>
+            <h2 className="text-lg font-bold">No site visits found</h2>
             <p className="mt-2 text-slate-600">Adjust the filters or wait for a public request.</p>
           </div>
         )}
       </div>
     </>
   );
+}
+
+function friendly(value: string) {
+  return value
+    .toLowerCase()
+    .replaceAll("_", " ")
+    .replace(/^./, (letter) => letter.toUpperCase());
 }
 
 function nextAction(status: SiteVisitListItem["status"]) {

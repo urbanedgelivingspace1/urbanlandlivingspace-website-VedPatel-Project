@@ -6,14 +6,14 @@ export function VerificationExplainer({
 }: Readonly<{ verifications: readonly PublicVerificationSummaryDto[] }>) {
   return (
     <section className="detail-section" aria-labelledby="verification-heading">
-      <p className="eyebrow">Scoped review</p>
-      <h2 id="verification-heading">Understand what has—and has not—been reviewed</h2>
+      <p className="eyebrow">Property Information Review</p>
+      <h2 id="verification-heading">What UrbanEdge has reviewed</h2>
       {verifications.length === 0 ? (
         <div className="verification-education">
-          <strong>No property-specific verification claim is published.</strong>
+          <strong>No property-specific review summary is published.</strong>
           <p>
-            UrbanEdge may review selected records and property information for a defined purpose. A
-            review is not a title guarantee, legal opinion, boundary certification, or promise of
+            UrbanEdge may review selected records and property information for a specific purpose.
+            This is not a title guarantee, legal opinion, boundary certification or promise of
             approval.
           </p>
         </div>

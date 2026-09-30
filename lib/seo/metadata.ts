@@ -22,16 +22,20 @@ type PublicMetadataInput = Readonly<{
 
 export function buildPublicMetadata(input: PublicMetadataInput): Metadata {
   const canonical = absoluteCanonical(approvedSameSitePath(input.canonicalPath, input.path));
-  const images = input.image
-    ? [
-        {
-          url: input.image.url,
-          width: input.image.width ?? undefined,
-          height: input.image.height ?? undefined,
-          alt: input.image.alt,
-        },
-      ]
-    : undefined;
+  const image = input.image
+    ? {
+        url: input.image.url,
+        width: input.image.width ?? undefined,
+        height: input.image.height ?? undefined,
+        alt: input.image.alt,
+      }
+    : {
+        url: absoluteCanonical("/brand/urbanedge-land-space-logo.png"),
+        width: 1254,
+        height: 1254,
+        alt: "UrbanEdge Land Space",
+      };
+  const images = [image];
   return {
     title: input.title,
     description: input.description,
@@ -53,10 +57,10 @@ export function buildPublicMetadata(input: PublicMetadataInput): Metadata {
         : {}),
     },
     twitter: {
-      card: input.image ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title: input.title,
       description: input.description,
-      images: images?.map(({ url }) => url),
+      images: images.map(({ url }) => url),
     },
   };
 }

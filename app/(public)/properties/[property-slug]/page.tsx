@@ -36,6 +36,7 @@ import { buildPublicMetadata } from "@/lib/seo/metadata";
 import { propertyJsonLd } from "@/lib/seo/structured-data";
 import { safeSeoText } from "@/lib/seo/privacy-safe-seo";
 import { JsonLd } from "@/components/public/json-ld";
+import { NearbyConnectivity } from "@/components/public/nearby-connectivity";
 import { getPublicRedirect } from "@/server/queries/public-content";
 
 type Props = Readonly<{ params: Promise<{ "property-slug": string }> }>;
@@ -171,7 +172,7 @@ export default async function PropertyDetailPage({ params }: Props) {
               <p className="detail-description">
                 {property.description ||
                   property.summary ||
-                  "Speak with UrbanEdge for the approved public overview of this land opportunity."}
+                  "Speak with UrbanEdge for the current overview of this land opportunity."}
               </p>
             </section>
 
@@ -197,6 +198,14 @@ export default async function PropertyDetailPage({ params }: Props) {
                 />
               </div>
             </section>
+
+            <NearbyConnectivity
+              summary={
+                property.categoryDetails.category === "INDUSTRIAL"
+                  ? property.categoryDetails.connectivitySummary
+                  : null
+              }
+            />
 
             <VerificationExplainer verifications={property.verifications} />
 
@@ -266,10 +275,10 @@ export default async function PropertyDetailPage({ params }: Props) {
             <section className="property-disclaimer" aria-label="Property information disclaimer">
               <strong>Important information</strong>
               <p>
-                Property information is presented from approved public records and supplied material
-                for preliminary discovery. Buyers should complete property-specific legal, revenue,
-                planning, measurement and transaction due diligence with appropriate professionals
-                before proceeding.
+                Property information is provided for initial discovery from records and material
+                available to UrbanEdge. Buyers should complete property-specific legal, revenue,
+                planning, measurement and transaction checks with appropriate professionals before
+                proceeding.
               </p>
             </section>
           </div>

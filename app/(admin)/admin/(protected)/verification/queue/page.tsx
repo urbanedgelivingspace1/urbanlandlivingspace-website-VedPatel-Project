@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AdminPageHeader, EmptyState, StatusBadge } from "@/components/admin/admin-ui";
 import { requireActiveAdminPage } from "@/server/auth/require-admin-page";
 import { listVerificationQueue } from "@/server/services/verifications";
 
@@ -10,20 +11,17 @@ export default async function VerificationQueuePage() {
   const properties = await listVerificationQueue();
   return (
     <div className="space-y-6">
-      <header>
-        <p className="text-xs font-bold tracking-widest text-[var(--brand-gold-deep)] uppercase">
-          Scoped evidence workflow
-        </p>
-        <h1 className="font-display text-3xl font-semibold">Verification queue</h1>
-        <p className="mt-1 max-w-3xl text-sm text-slate-600">
-          Checks are property-, category-, transaction- and evidence-specific. Counts are workload
-          indicators only; they are never a property score or legal conclusion.
-        </p>
-      </header>
+      <AdminPageHeader
+        eyebrow="Inventory · Evidence workflow"
+        title="Verification queue"
+        description="Review applicable checks and supporting evidence before a property is considered for publishing. Progress is not a legal conclusion."
+      />
       {properties.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-600">
-          Create a property draft before starting verification.
-        </p>
+        <EmptyState
+          title="No properties to verify"
+          description="Create a property draft before starting the evidence workflow."
+          action={{ href: "/admin/properties/new", label: "Add property" }}
+        />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
           <table className="w-full text-left text-sm">
@@ -53,7 +51,15 @@ export default async function VerificationQueuePage() {
                     {property.category} · {property.transactionType}
                   </td>
                   <td className="p-3">
-                    {property.passed} scoped passed / {property.totalChecks} applicable
+                    <StatusBadge
+                      tone={
+                        property.passed === property.totalChecks && property.totalChecks > 0
+                          ? "success"
+                          : "warning"
+                      }
+                    >
+                      {property.passed} of {property.totalChecks} passed
+                    </StatusBadge>
                   </td>
                   <td className="p-3">
                     {property.inReview} in review · {property.requiresReview} requires review ·{" "}

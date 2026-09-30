@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AdminPageHeader, EmptyState, StatusBadge } from "@/components/admin/admin-ui";
 import { measureAdminPerf } from "@/server/admin-perf";
 import { formatIndiaDateTime } from "@/features/crm/domain/follow-ups";
 import { OWNER_SUBMISSION_STATUSES } from "@/features/owner-submissions/domain/contracts";
@@ -9,7 +10,7 @@ import {
   listOwnerSubmissions,
 } from "@/server/services/owner-submissions";
 
-export const metadata: Metadata = { title: "Owner submissions" };
+export const metadata: Metadata = { title: "Seller enquiries" };
 
 export default async function OwnerSubmissionsPage({
   searchParams,
@@ -58,15 +59,13 @@ export default async function OwnerSubmissionsPage({
   );
 
   return (
-    <section>
-      <p className="text-xs font-bold tracking-[.16em] text-[var(--brand-navy)] uppercase">
-        Private supply intake
-      </p>
-      <h1 className="font-display mt-2 text-4xl font-semibold">Owner submissions</h1>
-      <p className="mt-3 max-w-3xl text-slate-600">
-        Review owner-provided claims and private files. Nothing in this queue is public inventory.
-      </p>
-      <form className="mt-6 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-2 xl:grid-cols-4">
+    <section className="space-y-6">
+      <AdminPageHeader
+        eyebrow="Private supply intake"
+        title="Seller enquiries"
+        description={`${rows.length} result${rows.length === 1 ? "" : "s"}. Review seller-provided details, qualify the opportunity and convert approved enquiries into draft properties. Enquiries remain private until a property is published.`}
+      />
+      <form className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-2 xl:grid-cols-4">
         <input
           className="rounded-lg border border-slate-300 px-3 py-2"
           name="query"
@@ -164,7 +163,7 @@ export default async function OwnerSubmissionsPage({
           Filter
         </button>
       </form>
-      <div className="mt-6 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
         {rows.length ? (
           <table className="min-w-[900px] w-full text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase text-slate-600">
@@ -203,9 +202,19 @@ export default async function OwnerSubmissionsPage({
                   <td className="px-4 py-3">{row.land_category}</td>
                   <td className="px-4 py-3">{row.district?.name ?? "—"}</td>
                   <td className="px-4 py-3">
-                    <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-bold">
+                    <StatusBadge
+                      tone={
+                        row.status === "APPROVED"
+                          ? "success"
+                          : row.status === "REJECTED"
+                            ? "danger"
+                            : row.status === "UNDER_REVIEW"
+                              ? "warning"
+                              : "neutral"
+                      }
+                    >
                       {row.status.replaceAll("_", " ")}
-                    </span>
+                    </StatusBadge>
                   </td>
                   <td className="px-4 py-3">{row.assignee?.display_name ?? "Unassigned"}</td>
                   <td className="px-4 py-3">
@@ -217,9 +226,10 @@ export default async function OwnerSubmissionsPage({
             </tbody>
           </table>
         ) : (
-          <p className="p-10 text-center text-slate-500">
-            No owner submissions match these filters.
-          </p>
+          <EmptyState
+            title="No seller enquiries found"
+            description="Try clearing one or more filters to widen the queue."
+          />
         )}
       </div>
     </section>

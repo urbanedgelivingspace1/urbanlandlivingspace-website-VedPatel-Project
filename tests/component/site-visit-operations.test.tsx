@@ -105,12 +105,12 @@ describe("M14 site-visit operations components", () => {
       admins: [{ user_id: "admin-1", display_name: "Visit Admin" }],
     });
     render(await SiteVisitsPage({ searchParams: Promise.resolve({ status: "REQUESTED" }) }));
-    expect(screen.getByRole("heading", { name: "Site visit queue" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Site visits" })).toBeVisible();
     expect(screen.getByLabelText("Search site visits")).toBeVisible();
     expect(screen.getByLabelText("Visit status")).toHaveValue("REQUESTED");
     expect(screen.getByLabelText("Schedule window")).toBeVisible();
     expect(screen.getByLabelText("Follow-up state")).toBeVisible();
-    expect(screen.getByRole("link", { name: "Open visit" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Open" })).toBeVisible();
     expect(screen.getByText("Record contact")).toBeVisible();
   });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useRef, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 
 import {
   initialOwnerSubmissionState,
@@ -9,16 +9,16 @@ import {
 import type { PublicFormOption } from "@/features/intake/domain/contracts";
 
 const steps = [
-  "Intent",
+  "Your goal",
   "Land type",
-  "Owner",
-  "Location",
+  "Owner details",
+  "Private location",
   "Land area",
-  "Commercials",
-  "Property details",
-  "Media",
-  "Documents",
-  "Consent",
+  "Commercial expectations",
+  "Land details",
+  "Photos and media",
+  "Private documents",
+  "Review and consent",
 ] as const;
 
 function ErrorSummary({ state }: Readonly<{ state: OwnerSubmissionFormState }>) {
@@ -64,6 +64,18 @@ export function OwnerSubmissionWizard({
   const [priceUnitId, setPriceUnitId] = useState(state.values?.priceUnitId ?? "");
   const formRef = useRef<HTMLFormElement>(null);
   const categoryClaimsHiddenRef = useRef<HTMLInputElement>(null);
+  const firstStepRender = useRef(true);
+
+  useEffect(() => {
+    if (firstStepRender.current) {
+      firstStepRender.current = false;
+      return;
+    }
+    const fieldset = formRef.current?.querySelector<HTMLFieldSetElement>(`[data-step='${step}']`);
+    if (!fieldset) return;
+    fieldset.scrollIntoView?.({ block: "start" });
+    fieldset.querySelector<HTMLElement>("input,select,textarea")?.focus({ preventScroll: true });
+  }, [step]);
 
   function advance() {
     const fieldset = formRef.current?.querySelector<HTMLFieldSetElement>(`[data-step='${step}']`);
@@ -145,7 +157,11 @@ export function OwnerSubmissionWizard({
 
   return (
     <form ref={formRef} onSubmit={submit} className="public-intake-form owner-wizard" noValidate>
-      <div className="owner-progress" aria-label={`Step ${step + 1} of ${steps.length}`}>
+      <div
+        className="owner-progress"
+        aria-label={`Step ${step + 1} of ${steps.length}`}
+        aria-live="polite"
+      >
         <div>
           <span>
             Step {step + 1} of {steps.length}
@@ -204,6 +220,9 @@ export function OwnerSubmissionWizard({
 
       <fieldset className={fieldsetClass(2)} data-step="2">
         <legend>Owner and contact details</legend>
+        <p className="form-help">
+          UrbanEdge uses these details only to review and follow up on this submission.
+        </p>
         <div className="public-form-grid">
           <label>
             <span>Name</span>
@@ -266,6 +285,10 @@ export function OwnerSubmissionWizard({
 
       <fieldset className={fieldsetClass(3)} data-step="3">
         <legend>Where is the land?</legend>
+        <p className="form-help">
+          Location details in this step are private. Your preference helps guide any future public
+          display.
+        </p>
         <div className="public-form-grid">
           <label>
             <span>District</span>
@@ -549,7 +572,11 @@ export function OwnerSubmissionWizard({
       </fieldset>
 
       <fieldset className={fieldsetClass(7)} data-step="7">
-        <legend>Media</legend>
+        <legend>Photos and media</legend>
+        <p className="form-help">
+          Upload clear files that help UrbanEdge understand the land. Nothing is published
+          automatically.
+        </p>
         <label>
           <span>Photos (JPEG or PNG)</span>
           <input name="photos" type="file" accept="image/jpeg,image/png" multiple />
@@ -577,7 +604,7 @@ export function OwnerSubmissionWizard({
       <fieldset className={fieldsetClass(8)} data-step="8">
         <legend>Private supporting documents</legend>
         <p className="form-help">
-          Optional PDF, JPEG or PNG files. They are private, security-scanned, and never public
+          Optional PDF, JPEG or PNG files. They stay private for UrbanEdge review—never public
           listing media.
         </p>
         <label>

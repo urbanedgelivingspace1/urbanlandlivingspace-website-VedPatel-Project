@@ -18,16 +18,29 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://urbanedgelandspace.com"),
+  metadataBase: new URL("https://theurbanedgelandspace.com"),
   title: {
     default: "UrbanEdge Land Space",
     template: "%s | UrbanEdge Land Space",
   },
-  description: "A focused land discovery and advisory experience for Ahmedabad and Gandhinagar.",
+  description:
+    "Specialist land advisory and brokerage for Agricultural, NA and Industrial land across Ahmedabad and Gandhinagar.",
+  icons: {
+    icon: "/brand/urbanedge-land-space-logo.png",
+    apple: "/brand/urbanedge-land-space-logo.png",
+  },
   openGraph: {
     siteName: "UrbanEdge Land Space",
     locale: "en_IN",
     type: "website",
+    images: [
+      {
+        url: "/brand/urbanedge-land-space-logo.png",
+        width: 1254,
+        height: 1254,
+        alt: "UrbanEdge Land Space",
+      },
+    ],
   },
 };
 

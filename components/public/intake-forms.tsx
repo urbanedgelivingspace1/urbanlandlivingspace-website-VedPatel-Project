@@ -232,12 +232,13 @@ export function BuyerRequirementForm({
       className="public-intake-form requirement-form"
       noValidate
     >
-      <fieldset>
-        <legend>Contact</legend>
+      <fieldset aria-label="Contact">
+        <legend>1. Your contact details</legend>
+        <p className="form-help">Required fields help UrbanEdge respond to your requirement.</p>
         <ContactFields state={state} />
       </fieldset>
-      <fieldset>
-        <legend>Requirement</legend>
+      <fieldset className="requirement-section" aria-label="Requirement">
+        <legend>2. What kind of land do you need?</legend>
         <div className="public-form-grid">
           <label>
             <span>Buyer profile</span>
@@ -282,6 +283,11 @@ export function BuyerRequirementForm({
             </select>
             <ErrorMessage state={state} name="landCategory" />
           </label>
+        </div>
+      </fieldset>
+      <fieldset className="requirement-section">
+        <legend>3. Preferred location</legend>
+        <div className="public-form-grid">
           <label>
             <span>District</span>
             <select
@@ -322,6 +328,14 @@ export function BuyerRequirementForm({
             <span>Locality or preferred belt (optional)</span>
             <input name="localityText" maxLength={180} defaultValue={state.values?.localityText} />
           </label>
+        </div>
+      </fieldset>
+      <fieldset className="requirement-section">
+        <legend>4. Budget and area</legend>
+        <p className="form-help">
+          Add a range where possible. Leave fields blank if you are still deciding.
+        </p>
+        <div className="public-form-grid">
           <label>
             <span>Minimum budget (₹)</span>
             <input
@@ -388,12 +402,19 @@ export function BuyerRequirementForm({
             </select>
             <ErrorMessage state={state} name="areaUnitId" />
           </label>
+        </div>
+      </fieldset>
+      <details className="requirement-more-details">
+        <summary>
+          5. More details <span>Optional</span>
+        </summary>
+        <div className="public-form-grid mt-5">
           <label>
-            <span>Intended use (optional)</span>
+            <span>Intended use</span>
             <input name="intendedUse" maxLength={240} defaultValue={state.values?.intendedUse} />
           </label>
           <label>
-            <span>Timeline (optional)</span>
+            <span>Timeline</span>
             <select name="timeline" defaultValue={state.values?.timeline ?? ""}>
               <option value="">Not decided</option>
               <option value="Within 1 month">Within 1 month</option>
@@ -403,8 +424,8 @@ export function BuyerRequirementForm({
             </select>
           </label>
         </div>
-        <label>
-          <span>Requirement notes (optional)</span>
+        <label className="mt-5">
+          <span>Requirement notes</span>
           <textarea
             name="message"
             rows={5}
@@ -414,7 +435,7 @@ export function BuyerRequirementForm({
           />
           <ErrorMessage state={state} name="message" />
         </label>
-      </fieldset>
+      </details>
       <Consent state={state} />
       <ProtectionFields
         idempotencyKey={idempotencyKey}

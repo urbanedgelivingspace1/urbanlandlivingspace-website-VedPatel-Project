@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { ArrowIcon, CheckIcon, CompassIcon } from "@/components/public/icons";
+import {
+  ArrowIcon,
+  CheckIcon,
+  CompassIcon,
+  MessageIcon,
+  PhoneIcon,
+} from "@/components/public/icons";
 import { PropertyCollection } from "@/components/public/property-collection";
 import { JsonLd } from "@/components/public/json-ld";
 import { SectionHeading } from "@/components/public/section-heading";
@@ -9,6 +15,7 @@ import { SearchEntryForm } from "@/components/search/search-entry-form";
 import { loadPublicBusinessConfig, loadPublicInventory } from "@/server/queries/public-page-data";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/seo/structured-data";
 import { buildPublicMetadata } from "@/lib/seo/metadata";
+import { buildTelephoneUrl, buildWhatsAppUrl } from "@/lib/config/public-business";
 
 export const dynamic = "force-dynamic";
 
@@ -25,19 +32,19 @@ const categories = [
     href: "/agricultural-land",
     index: "01",
     title: "Agricultural Land",
-    text: "Area, access, water and present-use context for rural and peri-urban land.",
+    text: "Location, access, irrigation, tenure and the land context that shapes agricultural use.",
   },
   {
     href: "/na-land",
     index: "02",
     title: "NA Land",
-    text: "Recorded status, purpose, planning and access information—without development guarantees.",
+    text: "NA status, permitted purpose, area, access and the commercial context around each site.",
   },
   {
     href: "/industrial-land",
     index: "03",
     title: "Industrial Land",
-    text: "Infrastructure, authority, estate and logistics context for operating decisions.",
+    text: "Industrial use, infrastructure, connectivity, power and access context for operations.",
   },
 ] as const;
 
@@ -46,6 +53,8 @@ export default async function HomePage() {
     loadPublicInventory({ featuredOnly: true, limit: 6 }),
     loadPublicBusinessConfig(),
   ]);
+  const telephone = buildTelephoneUrl(config);
+  const whatsapp = buildWhatsAppUrl(config);
   return (
     <main>
       <JsonLd data={organizationJsonLd(config)} />
@@ -56,63 +65,50 @@ export default async function HomePage() {
           <div>
             <p className="eyebrow text-[var(--brand-gold)]">Ahmedabad · Gandhinagar</p>
             <h1 className="hero-title mt-4">
-              Land opportunities,
+              Find the right land in
               <br />
-              <em>curated by UrbanEdge.</em>
+              <em>Ahmedabad &amp; Gandhinagar.</em>
             </h1>
             <p className="mt-7 max-w-2xl text-base leading-8 text-slate-200 sm:text-lg">
-              Agricultural, NA and industrial land with the public facts buyers need—and local
-              guidance from first enquiry to site visit.
+              Explore Agricultural, NA and Industrial land for buy, rent or lease—with local
+              UrbanEdge guidance from discovery to site visit.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link href="/properties" className="button button-gold">
                 Explore land <ArrowIcon className="size-4" />
               </Link>
               <Link href="/sell-your-land" className="button button-outline-light" prefetch={false}>
-                Sell your land
+                Sell, rent or lease your land
               </Link>
             </div>
           </div>
           <div className="discovery-panel" aria-labelledby="discovery-heading">
-            <span className="discovery-index">LAND / 01</span>
-            <h2 id="discovery-heading">Begin with what matters.</h2>
+            <span className="discovery-index">LAND SEARCH</span>
+            <h2 id="discovery-heading">Tell us what you need.</h2>
             <p>
-              Choose a land type or transaction to see the most relevant published opportunities.
+              Start with location, land type, transaction and budget. Refine technical details on
+              the results page.
             </p>
             <div className="mt-5">
               <SearchEntryForm />
             </div>
-            <div className="discovery-links">
-              <Link href="/agricultural-land">
-                Agricultural <ArrowIcon className="size-4" />
-              </Link>
-              <Link href="/na-land">
-                NA Land <ArrowIcon className="size-4" />
-              </Link>
-              <Link href="/industrial-land">
-                Industrial <ArrowIcon className="size-4" />
-              </Link>
-            </div>
-            <div className="discovery-transactions">
-              <Link href="/buy">Buy</Link>
-              <Link href="/rent">Rent</Link>
-              <Link href="/lease">Lease</Link>
+            <div className="discovery-transactions" aria-label="Quick transaction links">
+              <Link href="/buy">Browse to buy</Link>
+              <Link href="/rent">Browse to rent</Link>
+              <Link href="/lease">Browse to lease</Link>
             </div>
           </div>
         </div>
         <div className="hero-proof">
-          <div className="site-container grid grid-cols-2 gap-px sm:grid-cols-4">
+          <div className="site-container grid gap-px sm:grid-cols-3">
             <span>
-              <strong>3</strong> specialist land categories
+              <strong>Ahmedabad &amp; Gandhinagar</strong> focused local land guidance
             </span>
             <span>
-              <strong>2</strong> focused service districts
+              <strong>Agricultural · NA · Industrial</strong> purpose-built land discovery
             </span>
             <span>
-              <strong>ID</strong> on every published listing
-            </span>
-            <span>
-              <strong>Human</strong> brokerage guidance
+              <strong>Direct UrbanEdge support</strong> from requirement to site visit
             </span>
           </div>
         </div>
@@ -146,7 +142,7 @@ export default async function HomePage() {
             <SectionHeading
               eyebrow="Selected opportunities"
               title="Featured published land"
-              description="A limited selection of current public inventory, shown through the same safe card system used across the site."
+              description="A limited selection of current land, with clear location, area, price and availability details."
             />
             <Link href="/properties" className="text-link shrink-0">
               View all land <ArrowIcon className="size-4" />
@@ -155,9 +151,33 @@ export default async function HomePage() {
           <div className="mt-10">
             <PropertyCollection
               result={featured}
-              emptyTitle="No featured land is publicly listed right now."
-              emptyBody="Explore the full published collection or return soon as UrbanEdge curates new opportunities."
+              emptyTitle="Can't find the right land?"
+              emptyBody="Tell UrbanEdge what you're looking for and our team can assist with suitable opportunities."
+              contactConfig={config}
             />
+          </div>
+        </div>
+      </section>
+
+      <section className="requirement-band">
+        <div className="site-container requirement-band-inner">
+          <div>
+            <p className="eyebrow">Looking for something specific?</p>
+            <h2>Share your requirement with our land advisory team.</h2>
+            <p>
+              Tell us the location, land type, area and budget you have in mind. UrbanEdge will
+              review it privately and contact you to discuss suitable options.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/requirements" className="button button-primary" prefetch={false}>
+              Share Your Requirement
+            </Link>
+            {whatsapp ? (
+              <a className="button button-outline" href={whatsapp} target="_blank" rel="noreferrer">
+                <MessageIcon className="size-4" /> WhatsApp
+              </a>
+            ) : null}
           </div>
         </div>
       </section>
@@ -171,19 +191,19 @@ export default async function HomePage() {
             </h2>
             <span className="gold-rule" />
             <p className="mt-5 max-w-xl leading-8 text-slate-300">
-              UrbanEdge helps buyers move from discovery to informed conversation. We present
-              approved public facts, make property identity easy to reference and keep private owner
-              information private.
+              UrbanEdge helps buyers, investors, developers, businesses and landowners move from a
+              broad requirement to a useful local conversation—without publishing private owner or
+              property information.
             </p>
           </div>
           <div className="trust-grid">
             {[
-              "Curated published inventory",
-              "Ahmedabad and Gandhinagar focus",
-              "Immutable Property ID",
-              "Privacy-aware location display",
-              "Scoped review language",
-              "Site-visit assistance",
+              "Local land specialization",
+              "Buyer and investor requirement support",
+              "Private landowner submissions",
+              "Clear property references",
+              "Responsible information review",
+              "Site-visit coordination",
             ].map((item) => (
               <div key={item}>
                 <CheckIcon className="size-5" />
@@ -203,11 +223,11 @@ export default async function HomePage() {
           />
           <ol className="process-grid mt-12">
             {[
-              ["01", "Discover", "Browse curated public inventory."],
-              ["02", "Understand", "Review land, location and commercial context."],
-              ["03", "Enquire", "Reference one clear Property ID."],
-              ["04", "Visit", "Coordinate an appropriate site visit."],
-              ["05", "Proceed", "Take the next step with relevant guidance."],
+              ["01", "Share the need", "Search published land or tell us your requirement."],
+              ["02", "Compare", "Review the location, area, price and relevant land details."],
+              ["03", "Speak with us", "Use the Property ID for a focused conversation."],
+              ["04", "Request a visit", "UrbanEdge will coordinate and confirm the schedule."],
+              ["05", "Take the next step", "Continue with the property-specific checks you need."],
             ].map(([n, t, d]) => (
               <li key={n}>
                 <span>{n}</span>
@@ -253,22 +273,21 @@ export default async function HomePage() {
             <p className="eyebrow">A careful trust model</p>
             <h2>“Reviewed” should always tell you what it means.</h2>
             <p>
-              UrbanEdge uses scoped language for specific checks and their limitations. We do not
-              use a generic “Verified” badge or imply clear title, guaranteed legality or guaranteed
-              development.
+              Where information has been reviewed, UrbanEdge explains what was checked and any
+              limits. A review supports discovery; it is not a title guarantee or blanket approval.
             </p>
             <div className="scope-example">
-              <span>Example structure</span>
-              <strong>Information reviewed</strong>
-              <small>Defined scope · review date · limitation</small>
+              <span>Property Information Review</span>
+              <strong>What UrbanEdge has reviewed</strong>
+              <small>Specific scope · review date · important limits</small>
             </div>
           </div>
           <div className="guide-preview">
             <p className="eyebrow">Land guides</p>
             <h2>Useful context before the conversation.</h2>
             <p>
-              Read reviewed guidance on comparing public facts, preparing questions and planning
-              property-specific professional checks.
+              Practical guides for comparing land, preparing questions and understanding what to
+              check before a transaction.
             </p>
             <Link className="text-link mt-5" href="/guides">
               Read land guides <ArrowIcon className="size-4" />
@@ -280,22 +299,22 @@ export default async function HomePage() {
       <section className="sell-band">
         <div className="site-container grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
           <div>
-            <p className="eyebrow text-[var(--brand-gold)]">Own land?</p>
-            <h2>Bring your land opportunity to UrbanEdge.</h2>
+            <p className="eyebrow text-[var(--brand-gold)]">For landowners</p>
+            <h2>Sell, rent or lease your land with UrbanEdge.</h2>
             <p>
-              Share the category, location and basic details. Submission does not mean automatic
-              acceptance or publication.
+              Share your land details through our private review process. UrbanEdge may contact you,
+              and nothing is published automatically.
             </p>
           </div>
           <Link href="/sell-your-land" className="button button-gold" prefetch={false}>
-            Sell your land <ArrowIcon className="size-4" />
+            Share your land <ArrowIcon className="size-4" />
           </Link>
         </div>
       </section>
       <section className="final-band">
         <div className="site-container text-center">
-          <p className="eyebrow">Your land search can start simply</p>
-          <h2>Explore what is published—or tell us what you need.</h2>
+          <p className="eyebrow">Speak with a local land specialist</p>
+          <h2>Explore published land—or tell UrbanEdge exactly what you need.</h2>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
             <Link href="/properties" className="button button-primary">
               Explore land
@@ -303,6 +322,11 @@ export default async function HomePage() {
             <Link href="/requirements" className="button button-outline" prefetch={false}>
               Tell UrbanEdge your requirement
             </Link>
+            {telephone ? (
+              <a className="button button-outline" href={telephone}>
+                <PhoneIcon className="size-4" /> Call UrbanEdge
+              </a>
+            ) : null}
           </div>
         </div>
       </section>

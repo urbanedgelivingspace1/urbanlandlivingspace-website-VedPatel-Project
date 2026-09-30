@@ -2,40 +2,35 @@ import Link from "next/link";
 
 import { BrandWordmark } from "@/components/foundation/brand-wordmark";
 import type { PublicBusinessConfig } from "@/lib/config/public-business";
-import { buildTelephoneUrl, buildWhatsAppUrl } from "@/lib/config/public-business";
+import {
+  buildTelephoneUrl,
+  buildWhatsAppUrl,
+  OFFICIAL_OFFICE_MAP_URL,
+  OFFICIAL_PHONE_DISPLAY,
+} from "@/lib/config/public-business";
 
 export function SiteFooter({ config }: Readonly<{ config: PublicBusinessConfig }>) {
   const telephoneUrl = buildTelephoneUrl(config);
   const whatsAppUrl = buildWhatsAppUrl(config);
   return (
     <footer className="site-footer">
-      <div className="site-container grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr] lg:py-18">
+      <div className="site-container footer-grid py-14 lg:py-18">
         <div className="max-w-sm">
           <BrandWordmark />
           <p className="mt-5 text-sm leading-7 text-slate-300">
-            Curated land discovery and local brokerage guidance across Ahmedabad and Gandhinagar.
+            Specialist land advisory and brokerage for Ahmedabad &amp; Gandhinagar.
           </p>
           <p className="mt-4 text-xs leading-6 text-slate-400">
-            A specialist land initiative from the UrbanEdge family.
+            Part of the UrbanEdge real-estate ecosystem alongside UrbanEdge Living Space.
           </p>
         </div>
-        <FooterGroup title="Discover">
-          <Link href="/properties">All land</Link>
+        <FooterGroup title="Explore">
+          <Link href="/properties">Explore land</Link>
           <Link href="/agricultural-land">Agricultural land</Link>
           <Link href="/na-land">NA land</Link>
           <Link href="/industrial-land">Industrial land</Link>
-          <Link href="/locations/ahmedabad">Ahmedabad</Link>
-          <Link href="/locations/gandhinagar">Gandhinagar</Link>
         </FooterGroup>
-        <FooterGroup title="Transactions">
-          <Link href="/buy">Buy</Link>
-          <Link href="/rent">Rent</Link>
-          <Link href="/lease">Lease</Link>
-          <Link href="/sell-your-land" prefetch={false}>
-            Sell your land
-          </Link>
-        </FooterGroup>
-        <FooterGroup title="UrbanEdge">
+        <FooterGroup title="Company">
           <Link href="/about" prefetch={false}>
             About
           </Link>
@@ -43,15 +38,27 @@ export function SiteFooter({ config }: Readonly<{ config: PublicBusinessConfig }
             Contact
           </Link>
           <Link href="/guides" prefetch={false}>
-            Land guides
+            Guides
           </Link>
-          {telephoneUrl ? <a href={telephoneUrl}>Call UrbanEdge</a> : null}
+        </FooterGroup>
+        <FooterGroup title="Owners">
+          <Link href="/sell-your-land" prefetch={false}>
+            Sell your land
+          </Link>
+          <Link href="/sell-your-land" prefetch={false}>
+            Rent out your land
+          </Link>
+          <Link href="/sell-your-land" prefetch={false}>
+            Lease your land
+          </Link>
+        </FooterGroup>
+        <FooterGroup title="Contact">
+          {telephoneUrl ? <a href={telephoneUrl}>{OFFICIAL_PHONE_DISPLAY}</a> : null}
           {whatsAppUrl ? <a href={whatsAppUrl}>WhatsApp</a> : null}
-          {config.livingSpaceUrl ? (
-            <a href={config.livingSpaceUrl} rel="noreferrer" target="_blank">
-              UrbanEdge Living Space
-            </a>
-          ) : null}
+          {config.officeAddress ? <address>{config.officeAddress}</address> : null}
+          <a href={OFFICIAL_OFFICE_MAP_URL} rel="noreferrer" target="_blank">
+            Open in Google Maps
+          </a>
         </FooterGroup>
       </div>
       <div className="border-t border-white/10">

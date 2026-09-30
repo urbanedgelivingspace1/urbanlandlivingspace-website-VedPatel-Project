@@ -13,8 +13,7 @@ export async function proxy(request: NextRequest) {
   }
 
   const isPrefetch =
-    request.headers.has("next-router-prefetch") ||
-    request.headers.get("purpose") === "prefetch";
+    request.headers.has("next-router-prefetch") || request.headers.get("purpose") === "prefetch";
   if (isPrefetch) {
     const response = NextResponse.next({ request });
     response.headers.set("Cache-Control", "private, no-store");

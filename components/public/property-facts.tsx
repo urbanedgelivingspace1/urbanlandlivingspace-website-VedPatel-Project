@@ -3,7 +3,11 @@ import type {
   PublicPlanningDetailsDto,
   PublicPropertyDetailDto,
 } from "@/features/properties/domain/contracts";
-import { formatPublicArea, humanizePropertyValue } from "@/lib/formatting/property-values";
+import {
+  formatPublicArea,
+  formatPublicPrice,
+  humanizePropertyValue,
+} from "@/lib/formatting/property-values";
 
 type Fact = readonly [label: string, value: string | number | boolean | null | undefined];
 
@@ -21,7 +25,9 @@ function FactGrid({ facts }: Readonly<{ facts: readonly Fact[] }>) {
     return display ? [{ label, display }] : [];
   });
   if (visible.length === 0)
-    return <p className="section-copy">Ask UrbanEdge for the currently approved property facts.</p>;
+    return (
+      <p className="section-copy">Ask UrbanEdge for the currently available property details.</p>
+    );
   return (
     <dl className="fact-grid">
       {visible.map((fact) => (
@@ -149,7 +155,7 @@ export function PropertyFacts({ property }: Readonly<{ property: PublicPropertyD
 
       <section className="detail-section" aria-labelledby="planning-context">
         <p className="eyebrow">Planning context</p>
-        <h2 id="planning-context">Approved public planning information</h2>
+        <h2 id="planning-context">Available planning information</h2>
         <FactGrid facts={planningFacts(property.planning)} />
         {property.planning.publicNotes ? (
           <p className="detail-note">{property.planning.publicNotes}</p>
@@ -159,7 +165,7 @@ export function PropertyFacts({ property }: Readonly<{ property: PublicPropertyD
       {property.parcelIdentifiers.length > 0 ? (
         <section className="detail-section" aria-labelledby="parcel-references">
           <p className="eyebrow">Parcel references</p>
-          <h2 id="parcel-references">Approved public identifiers</h2>
+          <h2 id="parcel-references">Available parcel references</h2>
           <dl className="fact-grid">
             {property.parcelIdentifiers.map((identifier, index) => (
               <div key={`${identifier.type}-${identifier.value}-${index}`}>
@@ -182,16 +188,16 @@ export function CoreFactStrip({ property }: Readonly<{ property: PublicPropertyD
         <dd>{formatPublicArea(property.area)}</dd>
       </div>
       <div>
+        <dt>Price</dt>
+        <dd>{property.price ? formatPublicPrice(property.price) : "Price on request"}</dd>
+      </div>
+      <div>
         <dt>Transaction</dt>
         <dd>{humanizePropertyValue(property.transactionType)}</dd>
       </div>
       <div>
         <dt>Land type</dt>
         <dd>{property.category === "NA" ? "NA Land" : humanizePropertyValue(property.category)}</dd>
-      </div>
-      <div>
-        <dt>Location</dt>
-        <dd>{property.location.label || "Through UrbanEdge"}</dd>
       </div>
     </dl>
   );

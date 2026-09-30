@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 
+import { AdminPageHeader, WorkspaceTabs } from "@/components/admin/admin-ui";
 import { measureAdminPerf } from "@/server/admin-perf";
 import { SiteVisitQueue } from "@/components/admin/site-visit-queue";
 import { getSiteVisitReferenceData, listSiteVisits } from "@/server/services/site-visits";
@@ -34,23 +35,27 @@ export default async function SiteVisitsPage({
     ]),
   );
   return (
-    <section aria-labelledby="site-visits-heading">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-xs font-bold tracking-[.16em] text-[var(--brand-navy)] uppercase">
-            Visit operations
-          </p>
-          <h1 id="site-visits-heading" className="font-display mt-2 text-4xl font-semibold">
-            Site visit queue
-          </h1>
-          <p className="mt-2 text-slate-600">
-            Manual coordination in Asia/Kolkata. Up to 100 operational matches.
-          </p>
-        </div>
-        <Link href="/admin/site-visits/calendar" className="button button-outline">
-          Schedule view
-        </Link>
-      </div>
+    <section className="mx-auto max-w-[1500px]">
+      <AdminPageHeader
+        eyebrow="CRM · Field operations"
+        title="Site visits"
+        description="Confirm appointments, keep customer and property context together, and record the next step."
+        actions={
+          <Link href="/admin/site-visits/calendar" className="button button-primary">
+            Schedule view
+          </Link>
+        }
+      />
+      <WorkspaceTabs
+        label="CRM workspaces"
+        active="site-visits"
+        tabs={[
+          { key: "leads", label: "Leads", href: "/admin/leads" },
+          { key: "pipeline", label: "Pipeline", href: "/admin/leads/pipeline" },
+          { key: "follow-ups", label: "Follow-ups", href: "/admin/follow-ups" },
+          { key: "site-visits", label: "Site visits", href: "/admin/site-visits" },
+        ]}
+      />
       <SiteVisitQueue visits={visits} admins={refs.admins} filters={filters} />
     </section>
   );

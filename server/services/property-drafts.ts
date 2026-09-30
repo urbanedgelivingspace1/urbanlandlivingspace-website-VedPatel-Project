@@ -517,6 +517,50 @@ export async function getDashboardPropertyMetrics() {
   return { draftCount: result.count ?? 0 };
 }
 
+export async function getDashboardInventoryMetrics() {
+  await requireActiveAdmin();
+  const client = privilegedClient();
+  const queries = [
+    [
+      "draft",
+      client
+        .from("properties")
+        .select("*", { count: "exact", head: true })
+        .eq("publication_status", "DRAFT")
+        .is("deleted_at", null),
+    ],
+    [
+      "published",
+      client
+        .from("properties")
+        .select("*", { count: "exact", head: true })
+        .eq("publication_status", "PUBLISHED")
+        .is("deleted_at", null),
+    ],
+    [
+      "offMarket",
+      client
+        .from("properties")
+        .select("*", { count: "exact", head: true })
+        .eq("availability_status", "OFF_MARKET")
+        .is("deleted_at", null),
+    ],
+  ] as const;
+  const results = await Promise.all(
+    queries.map(async ([key, request]) => {
+      const result = await request;
+      if (result.error) throw result.error;
+      return [key, result.count ?? 0] as const;
+    }),
+  );
+  const counts = Object.fromEntries(results);
+  return {
+    draftCount: counts.draft ?? 0,
+    publishedCount: counts.published ?? 0,
+    offMarketCount: counts.offMarket ?? 0,
+  };
+}
+
 async function maybeSingle<Row>(
   request: PromiseLike<PostgrestSingleResponse<Row>>,
 ): Promise<Row | null> {

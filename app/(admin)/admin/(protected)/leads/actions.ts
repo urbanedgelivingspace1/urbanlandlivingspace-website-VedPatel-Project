@@ -190,4 +190,3 @@ export async function deleteLeadAction(formData: FormData): Promise<never> {
   revalidatePath(`/admin/leads/${leadId}`);
   redirect("/admin/leads?deleted=1");
 }
-

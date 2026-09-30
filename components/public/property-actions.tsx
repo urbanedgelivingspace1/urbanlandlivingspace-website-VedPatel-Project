@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { PublicBusinessConfig } from "@/lib/config/public-business";
 import { buildTelephoneUrl, buildWhatsAppUrl } from "@/lib/config/public-business";
 import type { PublicPropertyDetailDto } from "@/features/properties/domain/contracts";
-import { isClosedPublicAvailability } from "@/lib/formatting/property-values";
+import { categoryLabels, isClosedPublicAvailability } from "@/lib/formatting/property-values";
 
 import { MessageIcon, PhoneIcon } from "./icons";
 
@@ -20,6 +20,8 @@ export function PropertyActions({
   const whatsApp = buildWhatsAppUrl(config, {
     propertyCode: property.propertyCode,
     title: property.title,
+    category: categoryLabels[property.category],
+    location: property.location.label || "Shared by UrbanEdge on request",
   });
   const telephone = buildTelephoneUrl(config);
   const className = mobile

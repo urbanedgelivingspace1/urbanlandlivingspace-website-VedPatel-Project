@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AdminPageHeader, EmptyState, StatusBadge } from "@/components/admin/admin-ui";
 import { requireActiveAdminPage } from "@/server/auth/require-admin-page";
 import { getAdminStorageHealth, listAdminMedia } from "@/server/services/property-media";
 
@@ -11,16 +12,11 @@ export default async function AdminMediaPage() {
   const unused = media.filter((asset) => asset.archivedAt || asset.processingStatus === "FAILED");
   return (
     <div className="space-y-6">
-      <header>
-        <p className="text-xs font-bold tracking-widest text-[var(--brand-gold-deep)] uppercase">
-          Inventory operations
-        </p>
-        <h1 className="font-display text-3xl font-semibold">Media registry</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Review asset status, detect failed/archived candidates, and return to the owning property
-          for controlled changes.
-        </p>
-      </header>
+      <AdminPageHeader
+        eyebrow="Inventory operations"
+        title="Media registry"
+        description="Review processing and visibility, identify failed assets, and return to the owning property for changes."
+      />
       <section className="grid gap-4 sm:grid-cols-4">
         <Metric label="All assets" value={media.length} />
         <Metric
@@ -46,9 +42,11 @@ export default async function AdminMediaPage() {
         {` ${storage.hardStopPercent}%`}.
       </p>
       {media.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-600">
-          No media assets are registered.
-        </div>
+        <EmptyState
+          title="No media assets"
+          description="Upload photos and documents from a property workspace."
+          action={{ href: "/admin/properties", label: "Open properties" }}
+        />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
           <table className="w-full text-left text-sm">
@@ -76,7 +74,19 @@ export default async function AdminMediaPage() {
                     </span>
                   </td>
                   <td className="p-3">{asset.mediaSubtype || asset.mediaType}</td>
-                  <td className="p-3">{asset.archivedAt ? "ARCHIVED" : asset.processingStatus}</td>
+                  <td className="p-3">
+                    <StatusBadge
+                      tone={
+                        asset.archivedAt || asset.processingStatus === "FAILED"
+                          ? "danger"
+                          : asset.processingStatus === "APPROVED"
+                            ? "success"
+                            : "warning"
+                      }
+                    >
+                      {asset.archivedAt ? "ARCHIVED" : asset.processingStatus}
+                    </StatusBadge>
+                  </td>
                   <td className="p-3">{asset.visibility}</td>
                 </tr>
               ))}

@@ -95,10 +95,10 @@ afterEach(cleanup);
 describe("M15 owner submission admin", () => {
   it("renders the bounded operational filters and private queue", async () => {
     render(await OwnerSubmissionsPage({ searchParams: Promise.resolve({}) }));
-    expect(screen.getByRole("heading", { name: "Owner submissions" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Seller enquiries" })).toBeVisible();
     expect(screen.getByText("Synthetic Owner")).toBeVisible();
     expect(screen.getAllByText("M15 Admin")).toHaveLength(2);
-    expect(screen.getByText(/Nothing in this queue is public inventory/i)).toBeVisible();
+    expect(screen.getByText(/remain private until a property is published/i)).toBeVisible();
     expect(screen.getByRole("option", { name: "Pending scan" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Unassigned" })).toBeInTheDocument();
   });

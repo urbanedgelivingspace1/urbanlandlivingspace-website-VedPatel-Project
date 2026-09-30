@@ -8,6 +8,7 @@ import { buildPublicMediaUrl } from "@/lib/media/public-media-url";
 import { absoluteCanonical } from "./canonical";
 import type { BreadcrumbItem } from "./breadcrumbs";
 import { breadcrumbJsonLd } from "./breadcrumbs";
+import { OFFICIAL_OFFICE_MAP_URL } from "@/lib/config/public-business";
 
 const availability: Record<PublicPropertyDetailDto["availability"], string> = {
   AVAILABLE: "https://schema.org/InStock",
@@ -28,14 +29,27 @@ export function organizationJsonLd(
 ) {
   return {
     "@context": "https://schema.org",
-    "@type": "Organization",
+    "@type": "RealEstateAgent",
     "@id": `${absoluteCanonical("/")}#organization`,
     name: "UrbanEdge Land Space",
     url: absoluteCanonical("/"),
+    logo: absoluteCanonical("/brand/urbanedge-land-space-logo.png"),
     areaServed: ["Ahmedabad", "Gandhinagar"],
     ...(config.phone ? { telephone: config.phone } : {}),
     ...(config.email ? { email: config.email } : {}),
-    ...(config.officeAddress ? { address: config.officeAddress } : {}),
+    ...(config.officeAddress
+      ? {
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: "SANSKRUTI BY KAVYARATNA, 130, Randesan",
+            addressLocality: "Gandhinagar",
+            addressRegion: "Gujarat",
+            postalCode: "382426",
+            addressCountry: "IN",
+          },
+          hasMap: OFFICIAL_OFFICE_MAP_URL,
+        }
+      : {}),
     ...(config.livingSpaceUrl ? { sameAs: [config.livingSpaceUrl] } : {}),
   } as const;
 }

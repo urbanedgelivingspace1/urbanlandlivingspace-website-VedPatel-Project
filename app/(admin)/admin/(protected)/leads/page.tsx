@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
+import {
+  AdminPageHeader,
+  EmptyState,
+  StatusBadge,
+  WorkspaceTabs,
+} from "@/components/admin/admin-ui";
 import { LEAD_STATUSES, type LeadListItem } from "@/features/crm/domain/contracts";
 import { classifyFollowUp, formatIndiaDateTime } from "@/features/crm/domain/follow-ups";
 import { leadStatusLabel } from "@/features/crm/domain/pipeline";
@@ -31,6 +38,16 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
   const params = await searchParams;
   const value = (key: string) => (typeof params[key] === "string" ? params[key] : undefined);
   const requestedView = value("view");
+  if (requestedView === "follow-ups") redirect("/admin/follow-ups");
+  if (requestedView === "site-visits") {
+    const next = new URLSearchParams();
+    for (const key of ["q", "status", "bucket", "followUp", "assigned"] as const) {
+      const current = value(key);
+      if (current) next.set(key, current);
+    }
+    redirect(`/admin/site-visits${next.size ? `?${next.toString()}` : ""}`);
+  }
+  if (requestedView === "stages") redirect("/admin/leads/pipeline");
   const unmatchedBuyersOnly = requestedView === "unmatched_buyers" || value("unmatched") === "true";
   const view: LeadView = ["follow-ups", "site-visits", "stages"].includes(requestedView ?? "")
     ? (requestedView as LeadView)
@@ -112,25 +129,27 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
     ) : null;
 
   return (
-    <section className="mx-auto max-w-[1400px]" aria-labelledby="leads-heading">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-sm font-semibold text-emerald-800">Customers and next actions</p>
-          <h1
-            id="leads-heading"
-            className="mt-1 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl"
-          >
-            Leads
-          </h1>
-          <p className="mt-2 text-base text-slate-600">
-            Keep every conversation, follow-up, and visit in one place.
-          </p>
-        </div>
-        <Link href="/admin/leads/new" className="button button-primary">
-          + Add Lead
-        </Link>
-      </header>
-      <LeadTabs active={view} />
+    <section className="mx-auto max-w-[1400px]">
+      <AdminPageHeader
+        eyebrow="CRM"
+        title="Leads"
+        description="Scan customers quickly, see the next action, and open the full CRM workspace."
+        actions={
+          <Link href="/admin/leads/new" className="button button-primary">
+            + New lead
+          </Link>
+        }
+      />
+      <WorkspaceTabs
+        label="CRM workspaces"
+        active="leads"
+        tabs={[
+          { key: "leads", label: "Leads", href: "/admin/leads" },
+          { key: "pipeline", label: "Pipeline", href: "/admin/leads/pipeline" },
+          { key: "follow-ups", label: "Follow-ups", href: "/admin/follow-ups" },
+          { key: "site-visits", label: "Site visits", href: "/admin/site-visits" },
+        ]}
+      />
       {value("deleted") === "1" ? (
         <div
           role="status"
@@ -162,32 +181,6 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
         content
       )}
     </section>
-  );
-}
-
-function LeadTabs({ active }: Readonly<{ active: LeadView }>) {
-  const tabs: readonly [LeadView, string][] = [
-    ["all", "All Leads"],
-    ["follow-ups", "Follow-ups"],
-    ["site-visits", "Site Visits"],
-    ["stages", "Stage View"],
-  ];
-  return (
-    <nav
-      aria-label="Lead views"
-      className="mt-7 flex gap-1 overflow-x-auto border-b border-slate-200"
-    >
-      {tabs.map(([key, label]) => (
-        <Link
-          key={key}
-          href={key === "all" ? "/admin/leads" : `/admin/leads?view=${key}`}
-          aria-current={active === key ? "page" : undefined}
-          className="admin-tab"
-        >
-          {label}
-        </Link>
-      ))}
-    </nav>
   );
 }
 
@@ -301,75 +294,186 @@ function LeadList({
         </details>
       </form>
       {leads.length ? (
-        <div className="mt-5 grid gap-3">
-          {leads.map((lead) => (
-            <LeadCard key={lead.id} lead={lead} />
-          ))}
-        </div>
+        <LeadTable leads={leads} />
       ) : (
-        <Empty title="No leads found">Adjust the filters or add a new lead.</Empty>
+        <div className="mt-5">
+          <EmptyState
+            title="No leads found"
+            description="Adjust the filters or add the first lead to start the CRM workflow."
+            action={{ href: "/admin/leads/new", label: "Add lead" }}
+          />
+        </div>
       )}
     </>
   );
 }
 
-function LeadCard({ lead }: Readonly<{ lead: LeadListItem }>) {
+function LeadTable({ leads }: Readonly<{ leads: readonly LeadListItem[] }>) {
+  return (
+    <div className="mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white">
+      <div className="hidden overflow-x-auto md:block">
+        <table className="admin-table min-w-[1120px]">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Requirement</th>
+              <th>Location</th>
+              <th>Budget</th>
+              <th>Stage</th>
+              <th>Next follow-up</th>
+              <th>Last activity</th>
+              <th>Matches</th>
+              <th>
+                <span className="sr-only">Actions</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {leads.map((lead) => (
+              <LeadRow key={lead.id} lead={lead} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="divide-y divide-slate-100 md:hidden">
+        {leads.map((lead) => (
+          <LeadMobileCard key={lead.id} lead={lead} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function LeadRow({ lead }: Readonly<{ lead: LeadListItem }>) {
   const seller = lead.inquiryType === "SELLER_LEAD";
   return (
-    <article className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,.03)] md:grid-cols-[minmax(14rem,1.2fr)_1fr_1fr_auto] md:items-center">
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <span
-            className={seller ? "admin-badge admin-badge-green" : "admin-badge admin-badge-blue"}
-          >
-            {seller ? "Seller" : "Buyer"}
-          </span>
-          <span className="text-xs font-semibold text-slate-400">{lead.leadReference}</span>
-        </div>
+    <tr>
+      <td>
         <Link
           href={`/admin/leads/${lead.id}`}
-          className="mt-2 block truncate text-base font-bold text-slate-950 hover:text-emerald-800"
+          className="font-bold text-slate-950 hover:text-emerald-800"
         >
           {lead.name}
         </Link>
-        <p className="mt-1 text-sm text-slate-600">
-          {lead.phone ?? lead.email ?? "No contact details"}
-        </p>
-      </div>
-      <div>
-        <p className="text-xs font-semibold text-slate-500">Looking for</p>
-        <p className="mt-1 text-sm font-semibold text-slate-900">
+        <span className="mt-0.5 block text-xs text-slate-500">
+          {lead.phone ?? lead.email ?? lead.leadReference}
+        </span>
+        <span className="mt-1 block text-[10px] font-bold text-slate-400">
+          {seller ? "SELLER" : "BUYER"} · {lead.leadReference}
+        </span>
+      </td>
+      <td>
+        <span className="font-semibold text-slate-800">
           {[friendly(lead.transaction), friendly(lead.category)].filter(Boolean).join(" · ") ||
             "General enquiry"}
-        </p>
-        <p className="mt-1 text-sm text-slate-500">
-          {[lead.localityText, lead.districtName].filter(Boolean).join(", ") || "Location not set"}
-        </p>
+        </span>
+      </td>
+      <td>{[lead.localityText, lead.districtName].filter(Boolean).join(", ") || "Not set"}</td>
+      <td>{formatBudget(lead.budgetMin, lead.budgetMax)}</td>
+      <td>
+        <StatusBadge
+          tone={
+            lead.status.startsWith("CLOSED")
+              ? "neutral"
+              : lead.status === "NEGOTIATION"
+                ? "warning"
+                : "info"
+          }
+        >
+          {leadStatusLabel(lead.status)}
+        </StatusBadge>
+      </td>
+      <td className={lead.nextFollowUpAt ? "font-semibold text-slate-900" : "text-amber-700"}>
+        {lead.nextFollowUpAt ? formatIndiaDateTime(lead.nextFollowUpAt) : "Not scheduled"}
+      </td>
+      <td>{lead.lastContactedAt ? formatIndiaDateTime(lead.lastContactedAt) : "No activity"}</td>
+      <td>{lead.matchCount}</td>
+      <td>
+        <div className="flex items-center justify-end gap-2">
+          {lead.phone ? (
+            <a href={`tel:${lead.phone}`} className="text-xs font-bold text-slate-600">
+              Call
+            </a>
+          ) : null}
+          <Link
+            href={`/admin/leads/${lead.id}`}
+            className="button button-primary px-3 py-1.5 text-xs"
+          >
+            Open
+          </Link>
+          <details className="relative">
+            <summary
+              className="cursor-pointer list-none px-2 py-1 font-bold text-slate-500"
+              aria-label={`More actions for ${lead.name}`}
+            >
+              •••
+            </summary>
+            <div className="absolute right-0 z-10 mt-1 min-w-44 rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
+              <DeleteLeadButton leadId={lead.id} leadName={lead.name} action={deleteLeadAction} />
+            </div>
+          </details>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+function LeadMobileCard({ lead }: Readonly<{ lead: LeadListItem }>) {
+  return (
+    <article className="p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <span className="text-[10px] font-bold text-slate-400">
+            {lead.inquiryType === "SELLER_LEAD" ? "SELLER" : "BUYER"} · {lead.leadReference}
+          </span>
+          <Link href={`/admin/leads/${lead.id}`} className="mt-1 block font-bold text-slate-950">
+            {lead.name}
+          </Link>
+          <a
+            href={lead.phone ? `tel:${lead.phone}` : undefined}
+            className="mt-0.5 block text-sm text-slate-600"
+          >
+            {lead.phone ?? lead.email ?? "No contact details"}
+          </a>
+        </div>
+        <StatusBadge tone="info">{leadStatusLabel(lead.status)}</StatusBadge>
       </div>
-      <div>
-        <p className="text-xs font-semibold text-slate-500">Next action</p>
-        <p className="mt-1 text-sm font-semibold text-slate-900">
-          {lead.nextFollowUpAt ? formatIndiaDateTime(lead.nextFollowUpAt) : "Not scheduled"}
-        </p>
-        <p className="mt-1 text-sm text-slate-500">
-          {leadStatusLabel(lead.status)} · {lead.matchCount}{" "}
-          {lead.matchCount === 1 ? "match" : "matches"}
-        </p>
+      <p className="mt-3 text-sm font-semibold text-slate-800">
+        {[friendly(lead.transaction), friendly(lead.category), lead.localityText]
+          .filter(Boolean)
+          .join(" · ") || "Requirement not captured"}
+      </p>
+      <div className="mt-3 grid grid-cols-2 gap-3 rounded-lg bg-slate-50 p-3 text-xs">
+        <div>
+          <span className="block text-slate-500">Next action</span>
+          <strong className="mt-0.5 block">
+            {lead.nextFollowUpAt ? formatIndiaDateTime(lead.nextFollowUpAt) : "Not scheduled"}
+          </strong>
+        </div>
+        <div>
+          <span className="block text-slate-500">Property matches</span>
+          <strong className="mt-0.5 block">{lead.matchCount}</strong>
+        </div>
       </div>
-      <div className="flex flex-wrap items-center gap-2 md:justify-end">
+      <div className="mt-3 flex gap-2">
         {lead.phone ? (
-          <a className="button button-secondary" href={`tel:${lead.phone}`}>
+          <a className="button button-secondary flex-1" href={`tel:${lead.phone}`}>
             Call
           </a>
         ) : null}
-        <Link className="button button-primary" href={`/admin/leads/${lead.id}`}>
+        {lead.phone ? (
+          <a
+            className="button button-secondary flex-1"
+            href={`https://wa.me/${lead.phone.replace(/\D/g, "")}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            WhatsApp
+          </a>
+        ) : null}
+        <Link className="button button-primary flex-1" href={`/admin/leads/${lead.id}`}>
           Open
         </Link>
-        <DeleteLeadButton
-          leadId={lead.id}
-          leadName={lead.name}
-          action={deleteLeadAction}
-        />
       </div>
     </article>
   );
@@ -510,13 +614,19 @@ function Filter({
     </label>
   );
 }
-function Empty({ title, children }: Readonly<{ title: string; children: React.ReactNode }>) {
-  return (
-    <div className="mt-5 rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
-      <h2 className="text-xl font-bold">{title}</h2>
-      <p className="mt-2 text-slate-600">{children}</p>
-    </div>
-  );
+function formatBudget(min: number | null, max: number | null) {
+  if (min === null && max === null) return "Not set";
+  const compact = (value: number) =>
+    value >= 10_000_000
+      ? `₹${(value / 10_000_000).toFixed(1)} Cr`
+      : value >= 100_000
+        ? `₹${(value / 100_000).toFixed(1)} L`
+        : `₹${new Intl.NumberFormat("en-IN").format(value)}`;
+  return min !== null && max !== null
+    ? `${compact(min)}–${compact(max)}`
+    : min !== null
+      ? `From ${compact(min)}`
+      : `Up to ${compact(max as number)}`;
 }
 function friendly(value: string | null | undefined) {
   return value

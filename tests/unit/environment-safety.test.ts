@@ -13,7 +13,7 @@ const safeEnvironment: TestSafetyEnvironment = {
   TEST_SUPABASE_PROJECT_REF: "urbanedge-landspace-test",
   PRODUCTION_SUPABASE_PROJECT_REF: "urbanedge-landspace-production",
   TEST_TARGET_URL: "http://127.0.0.1:54321",
-  PRODUCTION_SITE_URL: "https://urbanedgelandspace.com",
+  PRODUCTION_SITE_URL: "https://theurbanedgelandspace.com",
   TEST_SAFETY_TOKEN: EXPECTED_TEST_SAFETY_TOKEN,
 };
 
