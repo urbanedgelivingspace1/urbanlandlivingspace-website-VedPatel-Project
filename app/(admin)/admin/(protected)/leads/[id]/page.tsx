@@ -12,6 +12,7 @@ import {
 import { DeleteLeadButton } from "@/components/admin/delete-lead-button";
 import { LeadStageForm } from "@/components/admin/lead-stage-form";
 import { QuickActionBar, StatusBadge, WorkspaceTabs } from "@/components/admin/admin-ui";
+import { WhatsAppIcon } from "@/components/shared/whatsapp-icon";
 import {
   addActivityAction,
   completeFollowUpAction,
@@ -126,12 +127,12 @@ export default async function LeadDetailPage({
         ) : null}
         {lead.phone ? (
           <a
-            className="button button-primary"
+            className="button button-whatsapp"
             href={`https://wa.me/${whatsAppNumber(lead.phone)}`}
             rel="noreferrer"
             target="_blank"
           >
-            WhatsApp
+            <WhatsAppIcon className="size-4" /> WhatsApp
           </a>
         ) : null}
         <a className="button button-secondary" href="#activity">

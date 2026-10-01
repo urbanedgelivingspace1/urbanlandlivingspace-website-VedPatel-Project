@@ -9,7 +9,6 @@ import { loadPublicBusinessConfig } from "@/server/queries/public-page-data";
 import {
   buildTelephoneUrl,
   buildWhatsAppUrl,
-  OFFICIAL_OFFICE_MAP_URL,
   OFFICIAL_PHONE_DISPLAY,
 } from "@/lib/config/public-business";
 import { buildPublicMetadata } from "@/lib/seo/metadata";
@@ -17,6 +16,7 @@ import { breadcrumbJsonLd } from "@/lib/seo/breadcrumbs";
 import { JsonLd } from "@/components/public/json-ld";
 import { getRequestLocale } from "@/lib/i18n/server";
 import { translate } from "@/lib/i18n/dictionaries";
+import { WhatsAppIcon } from "@/components/shared/whatsapp-icon";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildPublicMetadata({
@@ -74,7 +74,7 @@ export default async function ContactPage() {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  WhatsApp
+                  <WhatsAppIcon className="size-4" /> WhatsApp
                 </a>
               ) : null}
               {config.email ? (
@@ -82,14 +82,6 @@ export default async function ContactPage() {
                   Email
                 </a>
               ) : null}
-              <a
-                className="button button-outline"
-                href={OFFICIAL_OFFICE_MAP_URL}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Open Google Maps
-              </a>
             </div>
           </div>
           <GeneralContactForm
@@ -102,11 +94,7 @@ export default async function ContactPage() {
       {config.officeAddress ? (
         <section className="section section-light contact-map-section">
           <div className="site-container">
-            <OfficeMap
-              address={config.officeAddress}
-              mapUrl={OFFICIAL_OFFICE_MAP_URL}
-              locale={locale}
-            />
+            <OfficeMap address={config.officeAddress} locale={locale} />
           </div>
         </section>
       ) : null}

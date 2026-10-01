@@ -12,6 +12,7 @@ import { LEAD_STATUSES, type LeadListItem } from "@/features/crm/domain/contract
 import { classifyFollowUp, formatIndiaDateTime } from "@/features/crm/domain/follow-ups";
 import { leadStatusLabel } from "@/features/crm/domain/pipeline";
 import { DeleteLeadButton } from "@/components/admin/delete-lead-button";
+import { WhatsAppIcon } from "@/components/shared/whatsapp-icon";
 import { SiteVisitQueue } from "@/components/admin/site-visit-queue";
 import { measureAdminPerf } from "@/server/admin-perf";
 import { getCrmReferenceData, listFollowUps, listLeads } from "@/server/services/crm";
@@ -463,12 +464,12 @@ function LeadMobileCard({ lead }: Readonly<{ lead: LeadListItem }>) {
         ) : null}
         {lead.phone ? (
           <a
-            className="button button-secondary flex-1"
+            className="button button-whatsapp flex-1"
             href={`https://wa.me/${lead.phone.replace(/\D/g, "")}`}
             target="_blank"
             rel="noreferrer"
           >
-            WhatsApp
+            <WhatsAppIcon className="size-4" /> WhatsApp
           </a>
         ) : null}
         <Link className="button button-primary flex-1" href={`/admin/leads/${lead.id}`}>

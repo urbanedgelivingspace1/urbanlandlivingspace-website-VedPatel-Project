@@ -192,6 +192,16 @@ export async function completeLeadFollowUp(followUpId: string, outcome?: string)
   });
   check(result.error);
 }
+export async function deleteCompletedLeadFollowUp(followUpId: string) {
+  const actor = await requireActiveAdmin();
+  const result = await db().rpc("delete_completed_lead_follow_up", {
+    requested_actor_id: actor.userId,
+    requested_follow_up_id: followUpId,
+  });
+  check(result.error);
+  if (!result.data) throw new Error("Completed follow-up not found.");
+  return result.data;
+}
 export async function matchLeadToProperty(
   leadId: string,
   propertyId: string,

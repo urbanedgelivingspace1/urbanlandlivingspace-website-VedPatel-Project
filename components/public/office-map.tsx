@@ -1,15 +1,11 @@
 import type { Locale } from "@/lib/i18n/config";
 import { translate } from "@/lib/i18n/dictionaries";
+import {
+  OFFICIAL_OFFICE_DIRECTIONS_URL,
+  OFFICIAL_OFFICE_MAP_EMBED_URL,
+} from "@/lib/config/public-business";
 
-export function OfficeMap({
-  address,
-  mapUrl,
-  locale,
-}: Readonly<{ address: string; mapUrl: string; locale: Locale }>) {
-  const encodedAddress = encodeURIComponent(address);
-  const embedUrl = `https://www.google.com/maps?q=${encodedAddress}&output=embed`;
-  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`;
-
+export function OfficeMap({ address, locale }: Readonly<{ address: string; locale: Locale }>) {
   return (
     <section className="office-map" aria-labelledby="office-map-heading">
       <div className="office-map-copy">
@@ -19,12 +15,9 @@ export function OfficeMap({
         </h2>
         <address>{address}</address>
         <div className="office-map-actions">
-          <a className="button button-primary" href={mapUrl} rel="noreferrer" target="_blank">
-            {translate(locale, "contact.openMaps")}
-          </a>
           <a
-            className="button button-outline"
-            href={directionsUrl}
+            className="button button-primary"
+            href={OFFICIAL_OFFICE_DIRECTIONS_URL}
             rel="noreferrer"
             target="_blank"
           >
@@ -34,10 +27,10 @@ export function OfficeMap({
       </div>
       <div className="office-map-frame">
         <iframe
-          src={embedUrl}
-          title={translate(locale, "contact.officeMap")}
+          src={OFFICIAL_OFFICE_MAP_EMBED_URL}
+          title="UrbanEdge Living Space office location on Google Maps"
           loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
+          referrerPolicy="strict-origin-when-cross-origin"
           allowFullScreen
         />
         <noscript>{translate(locale, "contact.mapFallback")}</noscript>

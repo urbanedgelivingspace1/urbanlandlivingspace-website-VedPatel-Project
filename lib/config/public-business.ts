@@ -12,7 +12,12 @@ export const OFFICIAL_PHONE_DISPLAY = "94086 63544";
 export const OFFICIAL_PHONE_NUMBER = "+919408663544";
 export const OFFICIAL_OFFICE_ADDRESS =
   "SANSKRUTI BY KAVYARATNA, 130, Randesan, Gandhinagar, Gujarat 382426";
-export const OFFICIAL_OFFICE_MAP_URL = "https://maps.app.goo.gl/tvbr4DjA2SBPtNHq8";
+export const OFFICIAL_OFFICE_MAP_URL =
+  "https://www.google.com/maps/search/?api=1&query=23.182744531338862%2C72.64757700084525";
+export const OFFICIAL_OFFICE_DIRECTIONS_URL =
+  "https://www.google.com/maps/dir/?api=1&destination=23.182744531338862%2C72.64757700084525";
+export const OFFICIAL_OFFICE_MAP_EMBED_URL =
+  "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d512.8504624219348!2d72.64757700084525!3d23.182744531338862!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395c2bb7ee82b9d7%3A0xc1bad8b5160abdeb!2sURBANEDGE%20LIVING%20SPACE!5e0!3m2!1sen!2sin!4v1790835383866!5m2!1sen!2sin";
 
 const emptyConfig: PublicBusinessConfig = {
   phone: OFFICIAL_PHONE_NUMBER,

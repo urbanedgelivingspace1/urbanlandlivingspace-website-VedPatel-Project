@@ -1,5 +1,6 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { cache } from "react";
 
 import type {
@@ -57,79 +58,99 @@ function projectGuide(row: {
   };
 }
 
-export async function listPublicGuides(categorySlug?: string): Promise<readonly PublicGuide[]> {
-  const client = createPublicServerClient();
-  let query = client
-    .from("public_guides")
-    .select(guideFields)
-    .order("published_at", { ascending: false })
-    .limit(100);
-  if (categorySlug) query = query.eq("category_slug", categorySlug);
-  const { data, error } = await query;
-  if (error) throw error;
-  return data.map(projectGuide);
-}
+export const listPublicGuides = unstable_cache(
+  async (categorySlug?: string): Promise<readonly PublicGuide[]> => {
+    const client = createPublicServerClient();
+    let query = client
+      .from("public_guides")
+      .select(guideFields)
+      .order("published_at", { ascending: false })
+      .limit(100);
+    if (categorySlug) query = query.eq("category_slug", categorySlug);
+    const { data, error } = await query;
+    if (error) throw error;
+    return data.map(projectGuide);
+  },
+  ["public-guides"],
+  { revalidate: 300, tags: ["public-guides"] },
+);
 
-export const getPublicGuide = cache(async (slug: string): Promise<PublicGuide | null> => {
-  const client = createPublicServerClient();
-  const { data, error } = await client
-    .from("public_guides")
-    .select(guideFields)
-    .eq("slug", slug)
-    .maybeSingle();
-  if (error) throw error;
-  return data ? projectGuide(data) : null;
-});
+const getCachedPublicGuide = unstable_cache(
+  async (slug: string): Promise<PublicGuide | null> => {
+    const client = createPublicServerClient();
+    const { data, error } = await client
+      .from("public_guides")
+      .select(guideFields)
+      .eq("slug", slug)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? projectGuide(data) : null;
+  },
+  ["public-guide"],
+  { revalidate: 300, tags: ["public-guides"] },
+);
 
-export async function listPublicGuideCategories(): Promise<readonly PublicGuideCategory[]> {
-  const client = createPublicServerClient();
-  const { data, error } = await client
-    .from("public_guide_categories")
-    .select("id,name,slug,description,sort_order")
-    .order("sort_order")
-    .limit(50);
-  if (error) throw error;
-  return data.map((row) => ({
-    id: row.id,
-    name: row.name,
-    slug: row.slug,
-    description: row.description,
-    sortOrder: row.sort_order,
-  }));
-}
+export const getPublicGuide = cache(getCachedPublicGuide);
 
-export const getPublicSeoPage = cache(async (slug: string): Promise<PublicSeoPage | null> => {
-  const client = createPublicServerClient();
-  const { data, error } = await client
-    .from("public_seo_pages")
-    .select(
-      "id,page_type,slug,district_id,land_category,title,intro_text,body_markdown,seo_title,seo_description,canonical_url,published_at,status",
+export const listPublicGuideCategories = unstable_cache(
+  async (): Promise<readonly PublicGuideCategory[]> => {
+    const client = createPublicServerClient();
+    const { data, error } = await client
+      .from("public_guide_categories")
+      .select("id,name,slug,description,sort_order")
+      .order("sort_order")
+      .limit(50);
+    if (error) throw error;
+    return data.map((row) => ({
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      description: row.description,
+      sortOrder: row.sort_order,
+    }));
+  },
+  ["public-guide-categories"],
+  { revalidate: 300, tags: ["public-guides"] },
+);
+
+const getCachedPublicSeoPage = unstable_cache(
+  async (slug: string): Promise<PublicSeoPage | null> => {
+    const client = createPublicServerClient();
+    const { data, error } = await client
+      .from("public_seo_pages")
+      .select(
+        "id,page_type,slug,district_id,land_category,title,intro_text,body_markdown,seo_title,seo_description,canonical_url,published_at,status",
+      )
+      .eq("slug", slug)
+      .maybeSingle();
+    if (error) throw error;
+    if (
+      !data ||
+      !data.district_id ||
+      (data.page_type !== "DISTRICT" && data.page_type !== "DISTRICT_CATEGORY")
     )
-    .eq("slug", slug)
-    .maybeSingle();
-  if (error) throw error;
-  if (
-    !data ||
-    !data.district_id ||
-    (data.page_type !== "DISTRICT" && data.page_type !== "DISTRICT_CATEGORY")
-  )
-    return null;
-  return {
-    id: data.id,
-    kind: data.page_type,
-    slug: data.slug,
-    districtId: data.district_id,
-    category: data.land_category,
-    title: data.title,
-    intro: data.intro_text,
-    body: data.body_markdown,
-    seoTitle: data.seo_title,
-    seoDescription: data.seo_description,
-    canonicalPath: data.canonical_url,
-    publishedAt: data.published_at as string,
-    status: data.status as PublicSeoPage["status"],
-  };
-});
+      return null;
+    return {
+      id: data.id,
+      kind: data.page_type,
+      slug: data.slug,
+      districtId: data.district_id,
+      category: data.land_category,
+      title: data.title,
+      intro: data.intro_text,
+      body: data.body_markdown,
+      seoTitle: data.seo_title,
+      seoDescription: data.seo_description,
+      canonicalPath: data.canonical_url,
+      publishedAt: data.published_at as string,
+      status: data.status as PublicSeoPage["status"],
+    };
+  },
+  ["public-seo-page"],
+  { revalidate: 300, tags: ["public-seo-pages"] },
+);
+
+export const getPublicSeoPage = cache(getCachedPublicSeoPage);
 
 export async function listPublicSeoPages(): Promise<readonly PublicSeoPage[]> {
   const client = createPublicServerClient();

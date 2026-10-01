@@ -30,10 +30,10 @@ export function buildPublicMetadata(input: PublicMetadataInput): Metadata {
         alt: input.image.alt,
       }
     : {
-        url: absoluteCanonical("/brand/urbanedge-land-space-logo.png"),
-        width: 1254,
-        height: 1254,
-        alt: "UrbanEdge Land Space",
+        url: absoluteCanonical(siteConfig.socialImage.path),
+        width: siteConfig.socialImage.width,
+        height: siteConfig.socialImage.height,
+        alt: siteConfig.socialImage.alt,
       };
   const images = [image];
   return {

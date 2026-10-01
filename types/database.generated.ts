@@ -6537,6 +6537,13 @@ export type Database = {
         };
         Returns: undefined;
       };
+      delete_completed_lead_follow_up: {
+        Args: {
+          requested_actor_id: string;
+          requested_follow_up_id: string;
+        };
+        Returns: string;
+      };
       consume_public_intake_rate_limit: {
         Args: {
           requested_action: string;

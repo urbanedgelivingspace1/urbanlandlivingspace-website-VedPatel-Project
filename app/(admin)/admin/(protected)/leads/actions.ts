@@ -15,6 +15,7 @@ import {
   addLeadActivity,
   scheduleLeadFollowUp,
   completeLeadFollowUp,
+  deleteCompletedLeadFollowUp,
   matchLeadToProperty,
   unmatchLeadFromProperty,
 } from "@/server/services/crm";
@@ -150,6 +151,26 @@ export async function completeFollowUpAction(leadId: string, form: FormData) {
   await completeLeadFollowUp(text(form, "followUpId"), optional(form, "outcome"));
   revalidatePath(`/admin/leads/${leadId}`);
   revalidatePath("/admin/follow-ups");
+}
+export async function deleteCompletedFollowUpAction(
+  _state: Readonly<{ ok: boolean; message: string }>,
+  form: FormData,
+): Promise<Readonly<{ ok: boolean; message: string }>> {
+  const followUpId = z.string().uuid().safeParse(text(form, "followUpId"));
+  if (!followUpId.success) {
+    return { ok: false, message: "Could not delete this follow-up. Please try again." };
+  }
+
+  try {
+    const leadId = await deleteCompletedLeadFollowUp(followUpId.data);
+    revalidatePath(`/admin/leads/${leadId}`);
+    revalidatePath("/admin/follow-ups");
+  } catch (error) {
+    console.error("delete_completed_follow_up_failed", { followUpId: followUpId.data, error });
+    return { ok: false, message: "Could not delete this follow-up. Please try again." };
+  }
+
+  redirect("/admin/follow-ups?bucket=COMPLETED&deleted=1");
 }
 export async function matchPropertyAction(leadId: string, form: FormData) {
   await requireActiveAdmin();

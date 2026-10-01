@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { seoPageInputSchema } from "@/features/content/domain/validation";
@@ -28,6 +28,7 @@ export async function saveSeoPageAction(id: string, formData: FormData) {
     seoDescription: text(formData, "seoDescription"),
   });
   await saveSeoPage(id, input);
+  revalidateTag("public-seo-pages", "max");
   revalidatePath("/locations/[city]", "page");
   revalidatePath("/locations/[city]/[category]", "page");
   revalidatePath("/sitemap.xml");
@@ -59,6 +60,7 @@ export async function seoPageStatusAction(id: string, formData: FormData) {
       );
   }
   await setSeoPageStatus(id, status);
+  revalidateTag("public-seo-pages", "max");
   revalidatePath("/locations/[city]", "page");
   revalidatePath("/locations/[city]/[category]", "page");
   revalidatePath("/sitemap.xml");

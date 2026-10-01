@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { guideInputSchema } from "@/features/content/domain/validation";
@@ -27,6 +27,7 @@ export async function saveGuideAction(id: string | null, formData: FormData) {
     heroHeight: positive(formData, "heroHeight"),
   });
   const guideId = await saveGuide(id, parsed);
+  revalidateTag("public-guides", "max");
   revalidatePath("/guides");
   revalidatePath("/sitemap.xml");
   revalidatePath("/admin/guides");
@@ -39,6 +40,7 @@ export async function guideStatusAction(id: string, formData: FormData) {
   if (status !== "REVIEW" && status !== "PUBLISHED" && status !== "UNPUBLISHED")
     throw new Error("Invalid guide status.");
   await setGuideStatus(id, status);
+  revalidateTag("public-guides", "max");
   revalidatePath("/guides");
   revalidatePath("/guides/[guide-slug]", "page");
   revalidatePath("/sitemap.xml");

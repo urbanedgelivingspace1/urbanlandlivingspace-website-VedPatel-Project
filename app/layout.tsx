@@ -10,6 +10,7 @@ import type { ReactNode } from "react";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./globals.css";
 
+import { siteConfig } from "@/config/site";
 import { getRequestLocale } from "@/lib/i18n/server";
 
 const montserrat = Montserrat({
@@ -37,29 +38,37 @@ const devanagari = Noto_Sans_Devanagari({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://theurbanedgelandspace.com"),
+  metadataBase: new URL(siteConfig.defaultUrl),
   title: {
-    default: "UrbanEdge Land Space",
-    template: "%s | UrbanEdge Land Space",
+    default: siteConfig.name,
+    template: `%s | ${siteConfig.name}`,
   },
-  description:
-    "Specialist land advisory and brokerage for Agricultural, NA and Industrial land across Ahmedabad and Gandhinagar.",
+  description: siteConfig.description,
   icons: {
     icon: "/brand/urbanedge-land-space-logo.png",
     apple: "/brand/urbanedge-land-space-logo.png",
   },
   openGraph: {
-    siteName: "UrbanEdge Land Space",
+    title: siteConfig.name,
+    description: siteConfig.description,
+    url: siteConfig.defaultUrl,
+    siteName: siteConfig.name,
     locale: "en_IN",
     type: "website",
     images: [
       {
-        url: "/brand/urbanedge-land-space-logo.png",
-        width: 1254,
-        height: 1254,
-        alt: "UrbanEdge Land Space",
+        url: siteConfig.socialImage.path,
+        width: siteConfig.socialImage.width,
+        height: siteConfig.socialImage.height,
+        alt: siteConfig.socialImage.alt,
       },
     ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.name,
+    description: siteConfig.description,
+    images: [siteConfig.socialImage.path],
   },
 };
 

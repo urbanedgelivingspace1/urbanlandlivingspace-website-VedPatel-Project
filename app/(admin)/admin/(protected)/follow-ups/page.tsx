@@ -6,17 +6,19 @@ import {
   StatusBadge,
   WorkspaceTabs,
 } from "@/components/admin/admin-ui";
+import { DeleteFollowUpButton } from "@/components/admin/delete-follow-up-button";
+import { WhatsAppIcon } from "@/components/shared/whatsapp-icon";
 import type { FollowUpBucket } from "@/features/crm/domain/contracts";
 import { classifyFollowUp, formatIndiaDateTime } from "@/features/crm/domain/follow-ups";
 import { leadStatusLabel } from "@/features/crm/domain/pipeline";
 import { listFollowUps } from "@/server/services/crm";
-import { completeFollowUpAction } from "../leads/actions";
+import { completeFollowUpAction, deleteCompletedFollowUpAction } from "../leads/actions";
 
 const buckets: readonly FollowUpBucket[] = ["OVERDUE", "TODAY", "UPCOMING", "COMPLETED"];
 
 export default async function FollowUpsPage({
   searchParams = Promise.resolve({}),
-}: Readonly<{ searchParams?: Promise<{ bucket?: string }> }>) {
+}: Readonly<{ searchParams?: Promise<{ bucket?: string; deleted?: string }> }>) {
   const params = await searchParams;
   const active = buckets.includes(params.bucket as FollowUpBucket)
     ? (params.bucket as FollowUpBucket)
@@ -60,6 +62,15 @@ export default async function FollowUpsPage({
           { key: "site-visits", label: "Site visits", href: "/admin/site-visits" },
         ]}
       />
+
+      {params.deleted === "1" ? (
+        <p
+          className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900"
+          role="status"
+        >
+          Follow-up deleted successfully. The lead/customer remains unchanged.
+        </p>
+      ) : null}
 
       <nav aria-label="Follow-up queues" className="mt-5 flex gap-2 overflow-x-auto pb-1">
         {buckets.map((bucket) => (
@@ -131,12 +142,12 @@ export default async function FollowUpsPage({
                       ) : null}
                       {phone ? (
                         <a
-                          className="button button-secondary px-3 text-xs"
+                          className="button button-whatsapp px-3 text-xs"
                           href={`https://wa.me/${phone.replace(/\D/g, "")}`}
                           target="_blank"
                           rel="noreferrer"
                         >
-                          WhatsApp
+                          <WhatsAppIcon className="size-4" /> WhatsApp
                         </a>
                       ) : null}
                       <details className="w-full lg:w-auto">
@@ -168,12 +179,18 @@ export default async function FollowUpsPage({
                       </details>
                     </div>
                   ) : (
-                    <Link
-                      href={`/admin/leads/${item.lead_id}`}
-                      className="text-sm font-bold text-emerald-800 lg:text-right"
-                    >
-                      Open lead →
-                    </Link>
+                    <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+                      <Link
+                        href={`/admin/leads/${item.lead_id}`}
+                        className="text-sm font-bold text-emerald-800"
+                      >
+                        Open lead →
+                      </Link>
+                      <DeleteFollowUpButton
+                        followUpId={item.id}
+                        action={deleteCompletedFollowUpAction}
+                      />
+                    </div>
                   )}
                 </li>
               );

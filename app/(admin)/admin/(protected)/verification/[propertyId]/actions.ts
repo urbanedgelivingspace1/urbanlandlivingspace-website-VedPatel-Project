@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import {
@@ -42,6 +42,7 @@ const sourceClass = z.enum([
 ]);
 
 function refresh(propertyId: string) {
+  revalidateTag("public-properties", "max");
   revalidatePath("/admin/verification");
   revalidatePath("/admin/verification/queue");
   revalidatePath(`/admin/verification/${propertyId}`);

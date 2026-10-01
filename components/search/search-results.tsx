@@ -19,7 +19,7 @@ export function SearchResults({
           <Link className="button button-primary" href="/properties">
             Retry
           </Link>
-          <Link className="button button-outline" href="/contact" prefetch={false}>
+          <Link className="button button-outline" href="/contact">
             Contact UrbanEdge
           </Link>
         </div>
@@ -47,7 +47,7 @@ export function SearchResults({
           <Link className="button button-outline" href="/industrial-land">
             Industrial land
           </Link>
-          <Link className="button button-outline" href={requirementHref(query)} prefetch={false}>
+          <Link className="button button-outline" href={requirementHref(query)}>
             Share a requirement
           </Link>
         </div>

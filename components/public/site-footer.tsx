@@ -5,11 +5,11 @@ import type { PublicBusinessConfig } from "@/lib/config/public-business";
 import {
   buildTelephoneUrl,
   buildWhatsAppUrl,
-  OFFICIAL_OFFICE_MAP_URL,
   OFFICIAL_PHONE_DISPLAY,
 } from "@/lib/config/public-business";
 import type { Locale } from "@/lib/i18n/config";
 import { translate } from "@/lib/i18n/dictionaries";
+import { WhatsAppIcon } from "@/components/shared/whatsapp-icon";
 
 export function SiteFooter({
   config,
@@ -36,38 +36,23 @@ export function SiteFooter({
           <Link href="/industrial-land">{translate(locale, "nav.industrial")}</Link>
         </FooterGroup>
         <FooterGroup title={translate(locale, "footer.company")}>
-          <Link href="/about" prefetch={false}>
-            {translate(locale, "nav.about")}
-          </Link>
-          <Link href="/contact" prefetch={false}>
-            {translate(locale, "nav.contact")}
-          </Link>
-          <Link href="/guides" prefetch={false}>
-            {translate(locale, "nav.guides")}
-          </Link>
+          <Link href="/about">{translate(locale, "nav.about")}</Link>
+          <Link href="/contact">{translate(locale, "nav.contact")}</Link>
+          <Link href="/guides">{translate(locale, "nav.guides")}</Link>
         </FooterGroup>
         <FooterGroup title={translate(locale, "footer.owners")}>
-          <Link href="/sell-your-land" prefetch={false}>
-            {translate(locale, "nav.sell")}
-          </Link>
-          <Link href="/sell-your-land" prefetch={false}>
-            {translate(locale, "footer.rentOut")}
-          </Link>
-          <Link href="/sell-your-land" prefetch={false}>
-            {translate(locale, "footer.leaseOut")}
-          </Link>
+          <Link href="/sell-your-land">{translate(locale, "nav.sell")}</Link>
+          <Link href="/sell-your-land">{translate(locale, "footer.rentOut")}</Link>
+          <Link href="/sell-your-land">{translate(locale, "footer.leaseOut")}</Link>
         </FooterGroup>
         <FooterGroup title={translate(locale, "footer.contact")}>
           {telephoneUrl ? <a href={telephoneUrl}>{OFFICIAL_PHONE_DISPLAY}</a> : null}
           {whatsAppUrl ? (
             <a className="footer-whatsapp" href={whatsAppUrl} rel="noreferrer" target="_blank">
-              WhatsApp
+              <WhatsAppIcon className="size-4" /> WhatsApp
             </a>
           ) : null}
           {config.officeAddress ? <address>{config.officeAddress}</address> : null}
-          <a href={OFFICIAL_OFFICE_MAP_URL} rel="noreferrer" target="_blank">
-            {translate(locale, "contact.openMaps")}
-          </a>
         </FooterGroup>
       </div>
       <div className="border-t border-white/10">
@@ -76,15 +61,9 @@ export function SiteFooter({
             © {new Date().getFullYear()} {translate(locale, "footer.copyright")}
           </p>
           <div className="flex flex-wrap gap-x-5 gap-y-2">
-            <Link href="/privacy" prefetch={false}>
-              {translate(locale, "footer.privacy")}
-            </Link>
-            <Link href="/terms" prefetch={false}>
-              {translate(locale, "footer.terms")}
-            </Link>
-            <Link href="/disclaimer" prefetch={false}>
-              {translate(locale, "footer.disclaimer")}
-            </Link>
+            <Link href="/privacy">{translate(locale, "footer.privacy")}</Link>
+            <Link href="/terms">{translate(locale, "footer.terms")}</Link>
+            <Link href="/disclaimer">{translate(locale, "footer.disclaimer")}</Link>
           </div>
         </div>
       </div>

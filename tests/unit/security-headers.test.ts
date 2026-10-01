@@ -15,6 +15,9 @@ describe("M17 security headers", () => {
     expect(policy).toContain("form-action 'self'");
     expect(policy).toContain("object-src 'none'");
     expect(policy).toContain("https://challenges.cloudflare.com");
+    expect(policy).toContain(
+      "frame-src 'self' https://challenges.cloudflare.com https://www.google.com",
+    );
     expect(policy).toContain("https://project.supabase.co");
     expect(policy).toContain("upgrade-insecure-requests");
     expect(policy).not.toContain("'unsafe-eval'");

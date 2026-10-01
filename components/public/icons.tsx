@@ -51,12 +51,6 @@ export const PhoneIcon = (props: IconProps) => (
     <path d="M7 3H4a1 1 0 0 0-1 1c0 9.4 7.6 17 17 17a1 1 0 0 0 1-1v-3l-4-2-2 2c-3.5-1.5-6.5-4.5-8-8l2-2-2-4Z" />
   </Icon>
 );
-export const MessageIcon = (props: IconProps) => (
-  <Icon {...props}>
-    <path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.6L3 21l1.9-5.4A8.5 8.5 0 1 1 21 11.5Z" />
-    <path d="M8 9.5c.8 2.3 2.2 3.7 4.5 4.5" />
-  </Icon>
-);
 export const ShareIcon = (props: IconProps) => (
   <Icon {...props}>
     <circle cx="18" cy="5" r="2.5" />

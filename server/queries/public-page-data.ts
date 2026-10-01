@@ -1,5 +1,6 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import type {
   PublicPropertyCardDto,
@@ -23,7 +24,28 @@ export type PublicInventoryResult =
   | Readonly<{ status: "ready"; properties: readonly PublicPropertyCardDto[] }>
   | Readonly<{ status: "unavailable"; properties: readonly [] }>;
 
-export async function loadPublicInventory(
+const loadCachedPublicInventory = unstable_cache(
+  async (
+    options: Readonly<{
+      limit?: number;
+      category?: PublicPropertyCardDto["category"];
+      transactionType?: PublicPropertyCardDto["transactionType"];
+      featuredOnly?: boolean;
+    }>,
+  ): Promise<PublicInventoryResult> => {
+    try {
+      const client = createPublicServerClient();
+      const properties = await listPublicPropertyCards(client, options.limit, options);
+      return { status: "ready", properties };
+    } catch {
+      return { status: "unavailable", properties: [] };
+    }
+  },
+  ["public-inventory"],
+  { revalidate: 60, tags: ["public-properties"] },
+);
+
+export function loadPublicInventory(
   options: Readonly<{
     limit?: number;
     category?: PublicPropertyCardDto["category"];
@@ -31,36 +53,42 @@ export async function loadPublicInventory(
     featuredOnly?: boolean;
   }> = {},
 ): Promise<PublicInventoryResult> {
-  try {
-    const client = createPublicServerClient();
-    const properties = await listPublicPropertyCards(client, options.limit, options);
-    return { status: "ready", properties };
-  } catch {
-    return { status: "unavailable", properties: [] };
-  }
+  return loadCachedPublicInventory(options);
 }
 
 export const loadPublicProperty = cache(
-  async (slug: string): Promise<PublicPropertyDetailDto | null> => {
-    const client = createPublicServerClient();
-    return getPublicPropertyDetail(client, slug);
-  },
+  unstable_cache(
+    async (slug: string): Promise<PublicPropertyDetailDto | null> => {
+      const client = createPublicServerClient();
+      return getPublicPropertyDetail(client, slug);
+    },
+    ["public-property"],
+    { revalidate: 60, tags: ["public-properties"] },
+  ),
 );
 
-export async function loadPublicBusinessConfig(): Promise<PublicBusinessConfig> {
-  try {
-    const client = createPublicServerClient();
-    return resolvePublicBusinessConfig(await getPublicSettings(client));
-  } catch {
-    return unavailablePublicBusinessConfig();
-  }
-}
+export const loadPublicBusinessConfig = unstable_cache(
+  async (): Promise<PublicBusinessConfig> => {
+    try {
+      const client = createPublicServerClient();
+      return resolvePublicBusinessConfig(await getPublicSettings(client));
+    } catch {
+      return unavailablePublicBusinessConfig();
+    }
+  },
+  ["public-business-config"],
+  { revalidate: 300, tags: ["public-business-config"] },
+);
 
-export async function loadPublicFormOptions() {
-  const client = createPublicServerClient();
-  const [geography, units] = await Promise.all([
-    getPublicGeographyOptions(client),
-    getPublicAreaUnits(client),
-  ]);
-  return { geography, units } as const;
-}
+export const loadPublicFormOptions = unstable_cache(
+  async () => {
+    const client = createPublicServerClient();
+    const [geography, units] = await Promise.all([
+      getPublicGeographyOptions(client),
+      getPublicAreaUnits(client),
+    ]);
+    return { geography, units } as const;
+  },
+  ["public-form-options"],
+  { revalidate: 600, tags: ["public-reference-data"] },
+);

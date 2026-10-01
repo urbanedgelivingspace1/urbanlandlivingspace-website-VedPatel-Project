@@ -4,8 +4,9 @@ import type { PublicBusinessConfig } from "@/lib/config/public-business";
 import { buildTelephoneUrl, buildWhatsAppUrl } from "@/lib/config/public-business";
 import type { PublicPropertyDetailDto } from "@/features/properties/domain/contracts";
 import { categoryLabels, isClosedPublicAvailability } from "@/lib/formatting/property-values";
+import { WhatsAppIcon } from "@/components/shared/whatsapp-icon";
 
-import { MessageIcon, PhoneIcon } from "./icons";
+import { PhoneIcon } from "./icons";
 
 export function PropertyActions({
   property,
@@ -34,7 +35,7 @@ export function PropertyActions({
         <Link href="/properties" className="button button-primary">
           Find similar land
         </Link>
-        <Link href="/requirements" className="button button-outline" prefetch={false}>
+        <Link href="/requirements" className="button button-outline">
           Tell us your requirement
         </Link>
       </div>
@@ -71,7 +72,7 @@ export function PropertyActions({
           rel="noreferrer"
           target="_blank"
         >
-          <MessageIcon className="size-4" /> WhatsApp
+          <WhatsAppIcon className="size-4" /> WhatsApp
         </a>
       ) : (
         <span
@@ -79,13 +80,12 @@ export function PropertyActions({
           aria-disabled="true"
           title="WhatsApp is not configured"
         >
-          <MessageIcon className="size-4" /> WhatsApp
+          <WhatsAppIcon className="size-4" /> WhatsApp
         </span>
       )}
       <Link
         href={`/site-visit?property=${encodeURIComponent(property.slug)}`}
         className="button button-outline"
-        prefetch={false}
       >
         {mobile ? "Request visit" : "Request site visit"}
       </Link>

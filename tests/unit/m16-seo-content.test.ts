@@ -48,6 +48,17 @@ describe("M16 canonical, metadata and crawl policy", () => {
     expect(metadata.openGraph).toMatchObject({
       title: "Useful Ahmedabad land guide",
       url: "https://theurbanedgelandspace.com/guides/useful",
+      images: [
+        {
+          url: "https://theurbanedgelandspace.com/brand/urbanedge-social-share.png",
+          width: 1200,
+          height: 630,
+        },
+      ],
+    });
+    expect(metadata.twitter).toMatchObject({
+      card: "summary_large_image",
+      images: ["https://theurbanedgelandspace.com/brand/urbanedge-social-share.png"],
     });
     expect(effectiveRobots(INDEX_FOLLOW, "preview")).toEqual(NOINDEX_NOFOLLOW);
     expect(effectiveRobots(INDEX_FOLLOW, undefined)).toEqual(NOINDEX_NOFOLLOW);

@@ -28,6 +28,7 @@ vi.mock("@/server/services/site-visits", () => ({
 vi.mock("@/app/(admin)/admin/(protected)/leads/actions", () => ({
   addActivityAction: vi.fn(),
   completeFollowUpAction: vi.fn(),
+  deleteCompletedFollowUpAction: vi.fn(async () => ({ ok: false, message: "" })),
   deleteLeadAction: vi.fn(),
   matchPropertyAction: vi.fn(),
   saveRequirementAction: vi.fn(),
@@ -340,6 +341,45 @@ describe("M12 CRM components", () => {
     expect(screen.getByRole("link", { name: /Completed/ })).toBeVisible();
     await userEvent.click(screen.getByText("Complete"));
     expect(screen.getByLabelText(`Outcome for ${lead.leadReference}`)).toBeVisible();
+  });
+
+  it("offers a confirmed delete action only for completed follow-ups", async () => {
+    service.listFollowUps.mockResolvedValue([
+      {
+        id: "97000000-0000-4000-8000-000000000007",
+        lead_id: lead.id,
+        follow_up_type: "CALL",
+        context: "Completed context",
+        note: "Private follow-up",
+        due_at: "2026-09-04T06:30:00.000Z",
+        completed_at: "2026-09-05T06:30:00.000Z",
+        completed_by: "admin-1",
+        outcome: "Reached",
+        created_at: "2026-09-03T06:30:00.000Z",
+        created_by: "admin-1",
+        leadName: lead.name,
+        leadReference: lead.leadReference,
+        leadStatus: lead.status,
+        leadPhone: lead.phone,
+      },
+    ]);
+    const actions = await import("@/app/(admin)/admin/(protected)/leads/actions");
+    const deleteAction = vi.mocked(actions.deleteCompletedFollowUpAction);
+    const confirm = vi
+      .spyOn(window, "confirm")
+      .mockReturnValueOnce(false)
+      .mockReturnValueOnce(true);
+
+    render(await FollowUpsPage({ searchParams: Promise.resolve({ bucket: "COMPLETED" }) }));
+    const deleteButton = screen.getByRole("button", { name: "Delete completed follow-up" });
+
+    await userEvent.click(deleteButton);
+    expect(deleteAction).not.toHaveBeenCalled();
+
+    await userEvent.click(deleteButton);
+    expect(deleteAction).toHaveBeenCalledTimes(1);
+    expect(confirm).toHaveBeenCalledTimes(2);
+    expect(screen.getByRole("link", { name: /M12 Buyer/ })).toBeVisible();
   });
 
   it("renders structured requirement rows and an explicit empty state", () => {

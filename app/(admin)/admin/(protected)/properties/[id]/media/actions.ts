@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import { MediaValidationError, type MediaFormState } from "@/features/media/domain/contracts";
@@ -42,6 +42,7 @@ const fileFrom = (formData: FormData) => {
 };
 
 function refresh(propertyId: string) {
+  revalidateTag("public-properties", "max");
   revalidatePath(`/admin/properties/${propertyId}`);
   revalidatePath(`/admin/properties/${propertyId}/media`);
   revalidatePath("/admin/media");
