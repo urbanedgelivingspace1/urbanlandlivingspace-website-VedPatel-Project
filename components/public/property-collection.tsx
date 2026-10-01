@@ -49,7 +49,7 @@ export function PropertyCollection({
             Share Your Requirement
           </Link>
           {whatsapp ? (
-            <a className="button button-outline" href={whatsapp} target="_blank" rel="noreferrer">
+            <a className="button button-whatsapp" href={whatsapp} target="_blank" rel="noreferrer">
               <MessageIcon className="size-4" /> WhatsApp UrbanEdge
             </a>
           ) : null}

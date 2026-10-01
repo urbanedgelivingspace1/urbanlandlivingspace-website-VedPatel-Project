@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
-import { Montserrat, Playfair_Display } from "next/font/google";
+import {
+  Montserrat,
+  Noto_Sans_Devanagari,
+  Noto_Sans_Gujarati,
+  Playfair_Display,
+} from "next/font/google";
 import type { ReactNode } from "react";
 
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./globals.css";
+
+import { getRequestLocale } from "@/lib/i18n/server";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -15,6 +22,18 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-playfair",
+});
+
+const gujarati = Noto_Sans_Gujarati({
+  subsets: ["gujarati", "latin"],
+  display: "swap",
+  variable: "--font-gujarati",
+});
+
+const devanagari = Noto_Sans_Devanagari({
+  subsets: ["devanagari", "latin"],
+  display: "swap",
+  variable: "--font-devanagari",
 });
 
 export const metadata: Metadata = {
@@ -48,11 +67,13 @@ type RootLayoutProps = Readonly<{
   children: ReactNode;
 }>;
 
-export default function RootLayout({ children }: RootLayoutProps) {
+export default async function RootLayout({ children }: RootLayoutProps) {
+  const locale = await getRequestLocale();
   return (
     <html
-      lang="en"
-      className={`${montserrat.variable} ${playfair.variable}`}
+      lang={locale}
+      data-language={locale}
+      className={`${montserrat.variable} ${playfair.variable} ${gujarati.variable} ${devanagari.variable}`}
       data-scroll-behavior="smooth"
     >
       <body>{children}</body>

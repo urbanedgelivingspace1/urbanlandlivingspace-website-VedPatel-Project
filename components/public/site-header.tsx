@@ -7,32 +7,18 @@ import { useEffect, useRef, useState } from "react";
 import { BrandWordmark } from "@/components/foundation/brand-wordmark";
 import type { PublicBusinessConfig } from "@/lib/config/public-business";
 import { buildTelephoneUrl, buildWhatsAppUrl } from "@/lib/config/public-business";
+import { LanguageSwitcher } from "@/components/public/language-switcher";
+import { useLanguage } from "@/components/public/language-provider";
 
-import { CloseIcon, MenuIcon, MessageIcon, PhoneIcon } from "./icons";
-
-const primaryLinks = [
-  { href: "/properties", label: "Explore Land" },
-  { href: "/guides", label: "Guides" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
-] as const;
-
-const landTypeLinks = [
-  { href: "/agricultural-land", label: "Agricultural Land" },
-  { href: "/na-land", label: "NA Land" },
-  { href: "/industrial-land", label: "Industrial Land" },
-] as const;
-
-const locationLinks = [
-  { href: "/locations/ahmedabad", label: "Ahmedabad" },
-  { href: "/locations/gandhinagar", label: "Gandhinagar" },
-] as const;
-
-const transactionLinks = [
-  { href: "/buy", label: "Buy" },
-  { href: "/rent", label: "Rent" },
-  { href: "/lease", label: "Lease" },
-] as const;
+import {
+  ChevronIcon,
+  CloseIcon,
+  CompassIcon,
+  LocationIcon,
+  MenuIcon,
+  MessageIcon,
+  PhoneIcon,
+} from "./icons";
 
 function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
@@ -44,6 +30,27 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
   const mobilePanel = useRef<HTMLElement>(null);
   const whatsAppUrl = buildWhatsAppUrl(config);
   const telephoneUrl = buildTelephoneUrl(config);
+  const { t } = useLanguage();
+  const translatedPrimaryLinks = [
+    { href: "/properties", label: t("nav.explore") },
+    { href: "/guides", label: t("nav.guides") },
+    { href: "/about", label: t("nav.about") },
+    { href: "/contact", label: t("nav.contact") },
+  ] as const;
+  const translatedLandTypeLinks = [
+    { href: "/agricultural-land", label: t("nav.agricultural") },
+    { href: "/na-land", label: t("nav.na") },
+    { href: "/industrial-land", label: t("nav.industrial") },
+  ] as const;
+  const translatedLocationLinks = [
+    { href: "/locations/ahmedabad", label: t("common.ahmedabad") },
+    { href: "/locations/gandhinagar", label: t("common.gandhinagar") },
+  ] as const;
+  const translatedTransactionLinks = [
+    { href: "/buy", label: t("nav.buy") },
+    { href: "/rent", label: t("nav.rent") },
+    { href: "/lease", label: t("nav.lease") },
+  ] as const;
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -80,8 +87,11 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
   }, [open]);
   return (
     <header className="site-header">
-      <div className="site-container flex min-h-20 items-center justify-between gap-5">
-        <Link href="/" className="shrink-0" aria-label="UrbanEdge Land Space home">
+      <div
+        className="site-container flex min-h-16 items-center justify-between gap-5 xl:min-h-20"
+        inert={open ? true : undefined}
+      >
+        <Link href="/" className="shrink-0" aria-label={t("nav.home")}>
           <BrandWordmark compact />
         </Link>
 
@@ -91,12 +101,12 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
             className="nav-link"
             href="/properties"
           >
-            Explore Land
+            {t("nav.explore")}
           </Link>
           <details className="nav-menu">
-            <summary className="nav-link">Land Types</summary>
+            <summary className="nav-link">{t("nav.landTypes")}</summary>
             <div>
-              {landTypeLinks.map((link) => (
+              {translatedLandTypeLinks.map((link) => (
                 <Link href={link.href} key={link.href}>
                   {link.label}
                 </Link>
@@ -104,16 +114,16 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
             </div>
           </details>
           <details className="nav-menu">
-            <summary className="nav-link">Locations</summary>
+            <summary className="nav-link">{t("nav.locations")}</summary>
             <div>
-              {locationLinks.map((link) => (
+              {translatedLocationLinks.map((link) => (
                 <Link href={link.href} key={link.href}>
                   {link.label}
                 </Link>
               ))}
             </div>
           </details>
-          {primaryLinks.slice(1).map((link) => (
+          {translatedPrimaryLinks.slice(1).map((link) => (
             <Link
               aria-current={isActive(pathname, link.href) ? "page" : undefined}
               className="nav-link"
@@ -126,26 +136,27 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
         </nav>
 
         <div className="hidden items-center gap-3 xl:flex">
+          <LanguageSwitcher compact />
           <Link
             className="button button-gold button-compact"
             href="/sell-your-land"
             prefetch={false}
           >
-            Sell Your Land
+            {t("nav.sell")}
           </Link>
           {whatsAppUrl ? (
             <a
-              className="header-contact"
+              className="header-contact whatsapp-contact"
               href={whatsAppUrl}
               rel="noreferrer"
               target="_blank"
-              aria-label="Contact UrbanEdge on WhatsApp"
+              aria-label={t("contact.whatsapp")}
             >
               <MessageIcon className="size-5" />
             </a>
           ) : null}
           {telephoneUrl ? (
-            <a className="header-contact" href={telephoneUrl} aria-label="Call UrbanEdge">
+            <a className="header-contact" href={telephoneUrl} aria-label={t("contact.call")}>
               <PhoneIcon className="size-5" />
             </a>
           ) : null}
@@ -156,104 +167,174 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
           className="menu-trigger xl:hidden"
           aria-expanded={open}
           aria-controls="mobile-navigation"
-          aria-label={open ? "Close navigation menu" : "Open navigation menu"}
+          aria-label={open ? t("nav.close") : t("nav.open")}
           onClick={() => setOpen((value) => !value)}
         >
-          {open ? <CloseIcon className="size-6" /> : <MenuIcon className="size-6" />}
+          <MenuIcon className="size-5" />
         </button>
       </div>
 
       {open ? (
         <div className="mobile-nav-backdrop xl:hidden" onClick={() => setOpen(false)}>
-          <nav
-            id="mobile-navigation"
-            aria-label="Mobile navigation"
+          <section
+            aria-labelledby="mobile-navigation-title"
+            aria-modal="true"
             className="mobile-nav-panel"
             ref={mobilePanel}
             onClick={(event) => event.stopPropagation()}
+            role="dialog"
           >
-            <p className="eyebrow text-[var(--brand-gold)]">Explore UrbanEdge</p>
-            <div className="mt-4 grid gap-1">
+            <div className="mobile-nav-heading">
+              <div>
+                <p className="mobile-nav-kicker">UrbanEdge Land Space</p>
+                <h2 id="mobile-navigation-title">{t("nav.menu")}</h2>
+              </div>
+              <button
+                type="button"
+                className="mobile-nav-close"
+                aria-label={t("nav.close")}
+                onClick={() => setOpen(false)}
+              >
+                <CloseIcon className="size-5" />
+              </button>
+            </div>
+
+            <nav
+              id="mobile-navigation"
+              aria-label="Mobile navigation"
+              className="mobile-nav-content"
+            >
               <Link
-                className="mobile-nav-link"
+                className="mobile-nav-primary"
                 href="/properties"
                 aria-current={isActive(pathname, "/properties") ? "page" : undefined}
                 onClick={() => setOpen(false)}
               >
-                Explore Land
+                <span className="mobile-nav-primary-icon">
+                  <CompassIcon className="size-5" />
+                </span>
+                <span>
+                  <strong>{t("nav.exploreAll")}</strong>
+                  <small>{t("nav.exploreHint")}</small>
+                </span>
+                <ChevronIcon className="size-4" />
               </Link>
-              <p className="mobile-nav-label">Land types</p>
-              {landTypeLinks.map((link) => (
+
+              <section className="mobile-nav-section" aria-labelledby="mobile-transaction-title">
+                <p className="mobile-nav-label" id="mobile-transaction-title">
+                  {t("nav.intent")}
+                </p>
+                <div className="mobile-transaction-links">
+                  {translatedTransactionLinks.map((link) => (
+                    <Link
+                      aria-current={isActive(pathname, link.href) ? "page" : undefined}
+                      href={link.href}
+                      key={link.href}
+                      onClick={() => setOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              </section>
+
+              <section className="mobile-nav-section" aria-labelledby="mobile-land-title">
+                <p className="mobile-nav-label" id="mobile-land-title">
+                  {t("nav.landTypePrompt")}
+                </p>
+                <div className="mobile-nav-list">
+                  {translatedLandTypeLinks.map((link) => (
+                    <Link
+                      aria-current={isActive(pathname, link.href) ? "page" : undefined}
+                      className="mobile-nav-link"
+                      href={link.href}
+                      key={link.href}
+                      onClick={() => setOpen(false)}
+                    >
+                      <span>{link.label}</span>
+                      <ChevronIcon className="size-4" />
+                    </Link>
+                  ))}
+                </div>
+              </section>
+
+              <section className="mobile-nav-section" aria-labelledby="mobile-location-title">
+                <p className="mobile-nav-label" id="mobile-location-title">
+                  {t("nav.popularLocations")}
+                </p>
+                <div className="mobile-location-links">
+                  {translatedLocationLinks.map((link) => (
+                    <Link
+                      aria-current={isActive(pathname, link.href) ? "page" : undefined}
+                      href={link.href}
+                      key={link.href}
+                      onClick={() => setOpen(false)}
+                    >
+                      <LocationIcon className="size-4" />
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              </section>
+
+              <section className="mobile-nav-section" aria-labelledby="mobile-more-title">
+                <p className="mobile-nav-label" id="mobile-more-title">
+                  {t("nav.more")}
+                </p>
+                <div className="mobile-secondary-links">
+                  {translatedPrimaryLinks.slice(1).map((link) => (
+                    <Link
+                      aria-current={isActive(pathname, link.href) ? "page" : undefined}
+                      href={link.href}
+                      key={link.href}
+                      onClick={() => setOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              </section>
+
+              <div className="mobile-sell-wrapper">
                 <Link
-                  aria-current={isActive(pathname, link.href) ? "page" : undefined}
-                  className="mobile-nav-link"
-                  href={link.href}
-                  key={link.href}
+                  aria-current={isActive(pathname, "/sell-your-land") ? "page" : undefined}
+                  className="mobile-sell-link"
+                  href="/sell-your-land"
                   onClick={() => setOpen(false)}
+                  prefetch={false}
                 >
-                  {link.label}
+                  <span>
+                    <strong>{t("nav.sellPrompt")}</strong>
+                    <small>{t("nav.sellHint")}</small>
+                  </span>
+                  <ChevronIcon className="size-4" />
                 </Link>
-              ))}
-              <p className="mobile-nav-label">Locations</p>
-              {locationLinks.map((link) => (
-                <Link
-                  aria-current={isActive(pathname, link.href) ? "page" : undefined}
-                  className="mobile-nav-link"
-                  href={link.href}
-                  key={link.href}
-                  onClick={() => setOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              <p className="mobile-nav-label">Buy, rent or lease</p>
-              <div className="mobile-transaction-links">
-                {transactionLinks.map((link) => (
-                  <Link href={link.href} key={link.href} onClick={() => setOpen(false)}>
-                    {link.label}
-                  </Link>
-                ))}
               </div>
-              <Link
-                className="mobile-nav-link"
-                href="/sell-your-land"
-                onClick={() => setOpen(false)}
-                prefetch={false}
-              >
-                Sell Your Land
-              </Link>
-              {primaryLinks.slice(1).map((link) => (
-                <Link
-                  className="mobile-nav-link"
-                  href={link.href}
-                  key={link.href}
-                  onClick={() => setOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              ))}
+            </nav>
+
+            <div className="mobile-language-row">
+              <LanguageSwitcher />
             </div>
-            <div className="mt-5 grid grid-cols-2 gap-3 border-t border-white/15 pt-5">
+
+            <div className="mobile-nav-contact" aria-label="Contact UrbanEdge">
               {whatsAppUrl ? (
-                <a className="button button-gold button-compact" href={whatsAppUrl}>
-                  <MessageIcon className="size-4" /> WhatsApp
+                <a className="whatsapp-contact" href={whatsAppUrl} rel="noreferrer" target="_blank">
+                  <MessageIcon className="size-4" />
+                  <span>{t("nav.whatsapp")}</span>
                 </a>
               ) : (
-                <span className="button button-disabled button-compact" aria-disabled="true">
-                  WhatsApp
-                </span>
+                <span aria-disabled="true">{t("nav.whatsapp")}</span>
               )}
               {telephoneUrl ? (
-                <a className="button button-outline-light button-compact" href={telephoneUrl}>
-                  <PhoneIcon className="size-4" /> Call
+                <a href={telephoneUrl}>
+                  <PhoneIcon className="size-4" />
+                  <span>{t("nav.call")}</span>
                 </a>
               ) : (
-                <span className="button button-disabled button-compact" aria-disabled="true">
-                  Call
-                </span>
+                <span aria-disabled="true">{t("nav.call")}</span>
               )}
             </div>
-          </nav>
+          </section>
         </div>
       ) : null}
     </header>

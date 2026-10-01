@@ -8,6 +8,8 @@ import {
   type PublicIntakeFormState,
   type RequirementPrefill,
 } from "@/features/intake/domain/contracts";
+import { useLanguage } from "@/components/public/language-provider";
+import { minimumLocalVisitDate } from "@/lib/formatting/local-date";
 
 type IntakeAction = (
   state: PublicIntakeFormState,
@@ -92,13 +94,14 @@ function ContactFields({
   state,
   emailRequired = false,
 }: Readonly<{ state: PublicIntakeFormState; emailRequired?: boolean }>) {
+  const { t } = useLanguage();
   return (
     <div className="public-form-grid">
       <label>
-        <span>Name</span>
+        <span>{t("form.name")}</span>
         <input
           name="name"
-          aria-label="Name"
+          aria-label={t("form.name")}
           required
           maxLength={160}
           autoComplete="name"
@@ -108,14 +111,15 @@ function ContactFields({
         <ErrorMessage state={state} name="name" />
       </label>
       <label>
-        <span>Mobile number</span>
+        <span>{t("form.mobile")}</span>
         <input
           name="phone"
-          aria-label="Mobile number"
+          aria-label={t("form.mobile")}
+          type="tel"
           required
           inputMode="tel"
           autoComplete="tel"
-          placeholder="10-digit Indian mobile"
+          placeholder={t("form.mobileHint")}
           maxLength={20}
           defaultValue={state.values?.phone}
           {...fieldProps(state, "phone")}
@@ -123,7 +127,7 @@ function ContactFields({
         <ErrorMessage state={state} name="phone" />
       </label>
       <label>
-        <span>Email{emailRequired ? "" : " (optional)"}</span>
+        <span>{emailRequired ? "Email" : t("form.emailOptional")}</span>
         <input
           name="email"
           aria-label={emailRequired ? "Email" : "Email (optional)"}
@@ -141,6 +145,7 @@ function ContactFields({
 }
 
 function FormStatus({ state }: Readonly<{ state: PublicIntakeFormState }>) {
+  const { t } = useLanguage();
   if (!state.message) return null;
   return (
     <div
@@ -148,7 +153,7 @@ function FormStatus({ state }: Readonly<{ state: PublicIntakeFormState }>) {
       role={state.status === "error" ? "alert" : "status"}
       aria-live="polite"
     >
-      <strong>{state.status === "success" ? "Request received" : "Please review the form"}</strong>
+      <strong>{state.status === "success" ? t("form.requestReceived") : t("form.review")}</strong>
       <p>{state.message}</p>
       {state.status === "success" && state.propertyReference ? (
         <p>Property reference: {state.propertyReference}</p>
@@ -162,13 +167,14 @@ export function PropertyInquiryForm({
   idempotencyKey,
   turnstileSiteKey,
 }: Readonly<{ action: IntakeAction; idempotencyKey: string; turnstileSiteKey?: string }>) {
+  const { t } = useLanguage();
   const { state, formAction, pending, formRef } = useIntakeForm(action);
   if (state.status === "success") return <FormStatus state={state} />;
   return (
     <form ref={formRef} action={formAction} className="public-intake-form" noValidate>
       <ContactFields state={state} />
       <label>
-        <span>Preferred contact method</span>
+        <span>{t("form.preferredContact")}</span>
         <select
           name="preferredContact"
           defaultValue={state.values?.preferredContact ?? "PHONE"}
@@ -181,7 +187,7 @@ export function PropertyInquiryForm({
         <ErrorMessage state={state} name="preferredContact" />
       </label>
       <label>
-        <span>Question or context (optional)</span>
+        <span>{t("form.question")}</span>
         <textarea
           name="message"
           rows={4}
@@ -192,6 +198,7 @@ export function PropertyInquiryForm({
         <ErrorMessage state={state} name="message" />
       </label>
       <Consent state={state} />
+      <p className="form-reassurance">{t("form.privacy")}</p>
       <ProtectionFields
         idempotencyKey={idempotencyKey}
         turnstileSiteKey={turnstileSiteKey}
@@ -199,7 +206,7 @@ export function PropertyInquiryForm({
       />
       <FormStatus state={state} />
       <button className="button button-gold" disabled={pending} type="submit">
-        {pending ? "Sending…" : "Send property inquiry"}
+        {pending ? t("form.sending") : t("form.sendInquiry")}
       </button>
     </form>
   );
@@ -461,6 +468,7 @@ export function SiteVisitRequestForm({
   turnstileSiteKey?: string;
   minimumDate: string;
 }>) {
+  const { t } = useLanguage();
   const { state, formAction, pending, formRef } = useIntakeForm(action);
   return (
     <form ref={formRef} action={formAction} className="public-intake-form" noValidate>
@@ -472,6 +480,9 @@ export function SiteVisitRequestForm({
             name="preferredDate"
             type="date"
             min={minimumDate}
+            onFocus={(event) => {
+              event.currentTarget.min = minimumLocalVisitDate();
+            }}
             required
             defaultValue={state.values?.preferredDate}
             {...fieldProps(state, "requestedStartAt")}
@@ -523,7 +534,7 @@ export function SiteVisitRequestForm({
       />
       <FormStatus state={state} />
       <button className="button button-gold" disabled={pending} type="submit">
-        {pending ? "Sending…" : "Request site visit"}
+        {pending ? t("form.sending") : t("form.requestVisit")}
       </button>
     </form>
   );
@@ -534,13 +545,14 @@ export function GeneralContactForm({
   idempotencyKey,
   turnstileSiteKey,
 }: Readonly<{ action: IntakeAction; idempotencyKey: string; turnstileSiteKey?: string }>) {
+  const { t } = useLanguage();
   const { state, formAction, pending, formRef } = useIntakeForm(action);
   if (state.status === "success") return <FormStatus state={state} />;
   return (
     <form ref={formRef} action={formAction} className="public-intake-form" noValidate>
       <ContactFields state={state} />
       <label>
-        <span>Purpose</span>
+        <span>{t("form.purpose")}</span>
         <select
           name="purpose"
           required
@@ -553,7 +565,7 @@ export function GeneralContactForm({
         </select>
       </label>
       <label>
-        <span>Message</span>
+        <span>{t("form.message")}</span>
         <textarea
           name="message"
           required
@@ -566,6 +578,7 @@ export function GeneralContactForm({
         <ErrorMessage state={state} name="message" />
       </label>
       <Consent state={state} />
+      <p className="form-reassurance">{t("form.privacy")}</p>
       <ProtectionFields
         idempotencyKey={idempotencyKey}
         turnstileSiteKey={turnstileSiteKey}
@@ -573,7 +586,7 @@ export function GeneralContactForm({
       />
       <FormStatus state={state} />
       <button className="button button-gold" disabled={pending} type="submit">
-        {pending ? "Sending…" : "Send message"}
+        {pending ? t("form.sending") : t("form.sendMessage")}
       </button>
     </form>
   );

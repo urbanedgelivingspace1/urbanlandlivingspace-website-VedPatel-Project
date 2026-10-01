@@ -16,6 +16,8 @@ import { loadPublicBusinessConfig, loadPublicInventory } from "@/server/queries/
 import { organizationJsonLd, websiteJsonLd } from "@/lib/seo/structured-data";
 import { buildPublicMetadata } from "@/lib/seo/metadata";
 import { buildTelephoneUrl, buildWhatsAppUrl } from "@/lib/config/public-business";
+import { getRequestLocale } from "@/lib/i18n/server";
+import { translate } from "@/lib/i18n/dictionaries";
 
 export const dynamic = "force-dynamic";
 
@@ -49,10 +51,12 @@ const categories = [
 ] as const;
 
 export default async function HomePage() {
-  const [featured, config] = await Promise.all([
+  const [featured, config, locale] = await Promise.all([
     loadPublicInventory({ featuredOnly: true, limit: 6 }),
     loadPublicBusinessConfig(),
+    getRequestLocale(),
   ]);
+  const t = (key: Parameters<typeof translate>[1]) => translate(locale, key);
   const telephone = buildTelephoneUrl(config);
   const whatsapp = buildWhatsAppUrl(config);
   return (
@@ -63,39 +67,35 @@ export default async function HomePage() {
         <div className="survey-lines" aria-hidden="true" />
         <div className="site-container relative z-10 grid gap-10 py-16 sm:py-20 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:py-28">
           <div>
-            <p className="eyebrow text-[var(--brand-gold)]">Ahmedabad · Gandhinagar</p>
+            <p className="eyebrow text-[var(--brand-gold)]">{t("home.area")}</p>
             <h1 className="hero-title mt-4">
-              Find the right land in
+              {t("home.titleLead")}
               <br />
-              <em>Ahmedabad &amp; Gandhinagar.</em>
+              <em>{t("home.titlePlace")}</em>
             </h1>
             <p className="mt-7 max-w-2xl text-base leading-8 text-slate-200 sm:text-lg">
-              Explore Agricultural, NA and Industrial land for buy, rent or lease—with local
-              UrbanEdge guidance from discovery to site visit.
+              {t("home.intro")}
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link href="/properties" className="button button-gold">
-                Explore land <ArrowIcon className="size-4" />
+                {t("home.explore")} <ArrowIcon className="size-4" />
               </Link>
               <Link href="/sell-your-land" className="button button-outline-light" prefetch={false}>
-                Sell, rent or lease your land
+                {t("home.sell")}
               </Link>
             </div>
           </div>
           <div className="discovery-panel" aria-labelledby="discovery-heading">
             <span className="discovery-index">LAND SEARCH</span>
-            <h2 id="discovery-heading">Tell us what you need.</h2>
-            <p>
-              Start with location, land type, transaction and budget. Refine technical details on
-              the results page.
-            </p>
+            <h2 id="discovery-heading">{t("home.searchTitle")}</h2>
+            <p>{t("home.searchBody")}</p>
             <div className="mt-5">
               <SearchEntryForm />
             </div>
             <div className="discovery-transactions" aria-label="Quick transaction links">
-              <Link href="/buy">Browse to buy</Link>
-              <Link href="/rent">Browse to rent</Link>
-              <Link href="/lease">Browse to lease</Link>
+              <Link href="/buy">{t("home.browseBuy")}</Link>
+              <Link href="/rent">{t("home.browseRent")}</Link>
+              <Link href="/lease">{t("home.browseLease")}</Link>
             </div>
           </div>
         </div>
@@ -174,7 +174,12 @@ export default async function HomePage() {
               Share Your Requirement
             </Link>
             {whatsapp ? (
-              <a className="button button-outline" href={whatsapp} target="_blank" rel="noreferrer">
+              <a
+                className="button button-whatsapp"
+                href={whatsapp}
+                target="_blank"
+                rel="noreferrer"
+              >
                 <MessageIcon className="size-4" /> WhatsApp
               </a>
             ) : null}

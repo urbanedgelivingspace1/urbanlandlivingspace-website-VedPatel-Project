@@ -5,6 +5,7 @@ import { useEffect, useId, useRef, useState } from "react";
 
 import type { SearchFacetOption, SearchFacets } from "@/features/search/domain/contracts";
 import type { SearchQuery } from "@/features/search/domain/search-query";
+import { useLanguage } from "@/components/public/language-provider";
 
 function unique(options: readonly SearchFacetOption[]): SearchFacetOption[] {
   return [...new Map(options.map((option) => [option.value, option])).values()].sort((a, b) =>
@@ -25,6 +26,7 @@ function SelectField({
   options: readonly SearchFacetOption[];
   onChange?: (value: string) => void;
 }>) {
+  const { t } = useLanguage();
   const [internalValue, setInternalValue] = useState(value);
   const [prevPropValue, setPrevPropValue] = useState(value);
 
@@ -44,7 +46,7 @@ function SelectField({
           onChange?.(event.target.value);
         }}
       >
-        <option value="">Any</option>
+        <option value="">{t("search.any")}</option>
         {options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
@@ -67,6 +69,7 @@ function FilterForm({
   compact?: boolean;
   onSubmit: () => void;
 }>) {
+  const { t } = useLanguage();
   const [category, setCategory] = useState(query.category ?? "");
   const [district, setDistrict] = useState(query.district ?? "");
   const [taluka, setTaluka] = useState(query.taluka ?? "");
@@ -97,11 +100,11 @@ function FilterForm({
       .flatMap((item) => (item.locality ? [item.locality] : [])),
   );
   const availability = [
-    { value: "available", label: "Available", count: 0 },
-    { value: "under-negotiation", label: "Under negotiation", count: 0 },
-    { value: "sold", label: "Sold", count: 0 },
-    { value: "rented", label: "Rented", count: 0 },
-    { value: "leased", label: "Leased", count: 0 },
+    { value: "available", label: t("common.available"), count: 0 },
+    { value: "under-negotiation", label: t("common.underNegotiation"), count: 0 },
+    { value: "sold", label: t("common.sold"), count: 0 },
+    { value: "rented", label: t("common.rented"), count: 0 },
+    { value: "leased", label: t("common.leased"), count: 0 },
   ];
 
   return (
@@ -112,19 +115,19 @@ function FilterForm({
       onSubmit={onSubmit}
     >
       <fieldset className="search-filter-group">
-        <legend>Primary filters</legend>
+        <legend>{t("search.primary")}</legend>
         <div className="search-field-grid">
           <label className="search-field search-field-wide">
-            <span>Keyword or Property ID</span>
+            <span>{t("search.keyword")}</span>
             <input
               name="q"
               defaultValue={query.keyword ?? query.propertyId ?? ""}
               maxLength={120}
-              placeholder="Location, landmark or UE-LS-000123"
+              placeholder={t("search.keywordHint")}
             />
           </label>
           <SelectField
-            label="Location"
+            label={t("search.location")}
             name="district"
             value={query.district ?? ""}
             options={districts}
@@ -135,28 +138,28 @@ function FilterForm({
             }}
           />
           <SelectField
-            label="Land type"
+            label={t("search.landType")}
             name="category"
             value={query.category?.toLowerCase() ?? ""}
             onChange={(value) => setCategory(value.toUpperCase())}
             options={[
-              { value: "agricultural", label: "Agricultural", count: 0 },
-              { value: "na", label: "NA land", count: 0 },
-              { value: "industrial", label: "Industrial", count: 0 },
+              { value: "agricultural", label: t("nav.agricultural"), count: 0 },
+              { value: "na", label: t("nav.na"), count: 0 },
+              { value: "industrial", label: t("nav.industrial"), count: 0 },
             ]}
           />
           <SelectField
-            label="Transaction"
+            label={t("search.transaction")}
             name="transaction"
             value={query.transaction?.toLowerCase() ?? ""}
             options={[
-              { value: "buy", label: "Buy", count: 0 },
-              { value: "rent", label: "Rent", count: 0 },
-              { value: "lease", label: "Lease", count: 0 },
+              { value: "buy", label: t("nav.buy"), count: 0 },
+              { value: "rent", label: t("nav.rent"), count: 0 },
+              { value: "lease", label: t("nav.lease"), count: 0 },
             ]}
           />
           <label className="search-field">
-            <span>Minimum budget (₹)</span>
+            <span>{t("search.minimumBudget")}</span>
             <input
               name="minPrice"
               type="number"
@@ -166,7 +169,7 @@ function FilterForm({
             />
           </label>
           <label className="search-field">
-            <span>Maximum budget (₹)</span>
+            <span>{t("search.maximumBudget")}</span>
             <input
               name="maxPrice"
               type="number"
@@ -176,7 +179,7 @@ function FilterForm({
             />
           </label>
           <label className="search-field">
-            <span>Minimum area</span>
+            <span>{t("search.minimumArea")}</span>
             <input
               name="minArea"
               type="number"
@@ -186,7 +189,7 @@ function FilterForm({
             />
           </label>
           <label className="search-field">
-            <span>Maximum area</span>
+            <span>{t("search.maximumArea")}</span>
             <input
               name="maxArea"
               type="number"
@@ -196,7 +199,7 @@ function FilterForm({
             />
           </label>
           <SelectField
-            label="Area unit"
+            label={t("search.areaUnit")}
             name="areaUnit"
             value={query.areaUnit}
             options={[
@@ -211,10 +214,10 @@ function FilterForm({
         </div>
       </fieldset>
       <details className="search-more-filters" open={Boolean(category)}>
-        <summary>More filters</summary>
+        <summary>{t("search.moreFilters")}</summary>
         <div className="search-field-grid">
           <SelectField
-            label="Taluka"
+            label={t("search.taluka")}
             name="taluka"
             value={taluka}
             options={talukas}
@@ -224,31 +227,31 @@ function FilterForm({
             }}
           />
           <SelectField
-            label="Place / village"
+            label={t("search.place")}
             name="place"
             value={place}
             options={places}
             onChange={setPlace}
           />
           <SelectField
-            label="Locality"
+            label={t("search.locality")}
             name="locality"
             value={query.locality ?? ""}
             options={localities}
           />
           <SelectField
-            label="Availability"
+            label={t("search.availability")}
             name="availability"
             value={query.availability?.toLowerCase().replaceAll("_", "-") ?? ""}
             options={availability}
           />
           <SelectField
-            label="Pricing"
+            label={t("search.pricing")}
             name="pricing"
             value={query.pricing?.toLowerCase() ?? ""}
             options={[
-              { value: "listed", label: "Listed price", count: 0 },
-              { value: "por", label: "Price on request", count: 0 },
+              { value: "listed", label: t("common.listedPrice"), count: 0 },
+              { value: "por", label: t("common.priceOnRequest"), count: 0 },
             ]}
           />
           {category === "AGRICULTURAL" ? (
@@ -320,10 +323,10 @@ function FilterForm({
       ) : null}
       <div className="search-filter-actions">
         <button className="button button-primary" type="submit">
-          Apply filters
+          {t("search.apply")}
         </button>
         <Link className="button button-outline" href="/properties">
-          Clear all
+          {t("search.clear")}
         </Link>
       </div>
     </form>
@@ -334,6 +337,7 @@ export function SearchFilters({
   query,
   facets,
 }: Readonly<{ query: SearchQuery; facets: SearchFacets }>) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const dialog = useRef<HTMLDivElement>(null);
@@ -370,15 +374,15 @@ export function SearchFilters({
 
   return (
     <>
-      <aside className="search-filter-rail" aria-label="Property filters">
+      <aside className="search-filter-rail" aria-label={t("search.propertyFilters")}>
         <div className="search-filter-heading">
-          <p className="eyebrow">Refine results</p>
-          <h2>Filters</h2>
+          <p className="eyebrow">{t("search.refine")}</p>
+          <h2>{t("search.filters")}</h2>
         </div>
         <FilterForm query={query} facets={facets} onSubmit={() => setPending(true)} />
         {pending ? (
           <p className="search-pending" role="status">
-            Updating results…
+            {t("search.updating")}
           </p>
         ) : null}
       </aside>
@@ -388,7 +392,7 @@ export function SearchFilters({
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"
       >
-        Filters
+        {t("search.filters")}
       </button>
       {open ? (
         <div
@@ -406,10 +410,14 @@ export function SearchFilters({
           >
             <div className="search-sheet-header">
               <div>
-                <p className="eyebrow">Refine results</p>
-                <h2 id={titleId}>Property filters</h2>
+                <p className="eyebrow">{t("search.refine")}</p>
+                <h2 id={titleId}>{t("search.propertyFilters")}</h2>
               </div>
-              <button type="button" aria-label="Close filters" onClick={() => setOpen(false)}>
+              <button
+                type="button"
+                aria-label={t("search.closeFilters")}
+                onClick={() => setOpen(false)}
+              >
                 ×
               </button>
             </div>

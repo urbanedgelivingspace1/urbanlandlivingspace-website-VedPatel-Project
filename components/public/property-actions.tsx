@@ -67,7 +67,7 @@ export function PropertyActions({
       {whatsApp ? (
         <a
           href={`/api/public/intent/whatsapp?property=${encodeURIComponent(property.slug)}`}
-          className="button button-gold"
+          className="button button-whatsapp"
           rel="noreferrer"
           target="_blank"
         >

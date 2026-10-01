@@ -22,7 +22,7 @@ export function PropertyCard({ property }: Readonly<{ property: PublicPropertyCa
           sizes="(max-width: 767px) calc(100vw - 2.5rem), (max-width: 1199px) 50vw, 390px"
           className="object-cover transition-transform duration-500 group-hover:scale-[1.035]"
         />
-        <div className="absolute inset-x-0 top-0 flex flex-wrap items-start justify-between gap-2 p-4">
+        <div className="property-card-badges">
           <span className="property-pill">{categoryLabels[property.category]}</span>
           <AvailabilityBadge status={property.availability} />
         </div>

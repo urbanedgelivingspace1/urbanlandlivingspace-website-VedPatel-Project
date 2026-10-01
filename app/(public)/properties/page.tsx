@@ -17,6 +17,8 @@ import {
 } from "@/features/search/domain/search-query";
 import { loadPublicSearch } from "@/server/queries/public-search";
 import { breadcrumbJsonLd } from "@/lib/seo/breadcrumbs";
+import { getRequestLocale } from "@/lib/i18n/server";
+import { translate } from "@/lib/i18n/dictionaries";
 
 export const dynamic = "force-dynamic";
 type PageProps = Readonly<{ searchParams: Promise<SearchParamsInput> }>;
@@ -55,6 +57,8 @@ const emptyFacets = {
 } as const;
 
 export default async function PropertiesPage({ searchParams }: PageProps) {
+  const locale = await getRequestLocale();
+  const t = (key: Parameters<typeof translate>[1]) => translate(locale, key);
   const parsed = parseSearchParams(await searchParams);
   if (parsed.shouldRedirect)
     permanentRedirect(
@@ -68,21 +72,16 @@ export default async function PropertiesPage({ searchParams }: PageProps) {
   )
     notFound();
   const facets = data.status === "ready" ? data.facets : emptyFacets;
-  const breadcrumbs = [{ label: "Home", href: "/" }, { label: "Properties" }];
+  const breadcrumbs = [{ label: "Home", href: "/" }, { label: t("properties.breadcrumb") }];
   return (
     <main>
       <JsonLd data={breadcrumbJsonLd(breadcrumbs)} />
       <section className="collection-hero search-hero">
         <div className="site-container py-10 sm:py-14">
           <Breadcrumbs items={breadcrumbs} />
-          <p className="eyebrow mt-7 text-[var(--brand-gold)]">Published land search</p>
-          <h1 className="public-page-title mt-3 max-w-4xl text-white">
-            Find land that fits your requirement.
-          </h1>
-          <p className="mt-4 max-w-2xl leading-7 text-slate-200">
-            Start with location, land type, transaction, budget and area. Use more filters when the
-            property-specific details matter to your search.
-          </p>
+          <p className="eyebrow mt-7 text-[var(--brand-gold)]">{t("properties.eyebrow")}</p>
+          <h1 className="public-page-title mt-3 max-w-4xl text-white">{t("properties.title")}</h1>
+          <p className="mt-4 max-w-2xl leading-7 text-slate-200">{t("properties.description")}</p>
         </div>
       </section>
       <section className="search-section">
@@ -102,11 +101,11 @@ export default async function PropertiesPage({ searchParams }: PageProps) {
             <div className="search-results-panel">
               <div className="search-results-heading">
                 <div>
-                  <p className="eyebrow">Current inventory</p>
+                  <p className="eyebrow">{t("properties.inventory")}</p>
                   <h2>
                     {activeFilterCount(parsed.query)
-                      ? "Filtered properties"
-                      : "All available properties"}
+                      ? t("properties.filtered")
+                      : t("properties.all")}
                   </h2>
                 </div>
                 {data.status === "ready" ? <SearchSortControl query={parsed.query} /> : null}

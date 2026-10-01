@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { submitGeneralContactAction } from "@/app/(public)/intake-actions";
 import { Breadcrumbs } from "@/components/public/breadcrumbs";
 import { GeneralContactForm } from "@/components/public/intake-forms";
+import { OfficeMap } from "@/components/public/office-map";
 import { loadPublicBusinessConfig } from "@/server/queries/public-page-data";
 import {
   buildTelephoneUrl,
@@ -14,6 +15,8 @@ import {
 import { buildPublicMetadata } from "@/lib/seo/metadata";
 import { breadcrumbJsonLd } from "@/lib/seo/breadcrumbs";
 import { JsonLd } from "@/components/public/json-ld";
+import { getRequestLocale } from "@/lib/i18n/server";
+import { translate } from "@/lib/i18n/dictionaries";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildPublicMetadata({
@@ -25,31 +28,27 @@ export const metadata: Metadata = buildPublicMetadata({
 });
 
 export default async function ContactPage() {
-  const config = await loadPublicBusinessConfig();
+  const [config, locale] = await Promise.all([loadPublicBusinessConfig(), getRequestLocale()]);
+  const t = (key: Parameters<typeof translate>[1]) => translate(locale, key);
   const telephone = buildTelephoneUrl(config);
   const whatsapp = buildWhatsAppUrl(config);
-  const breadcrumbs = [{ label: "Home", href: "/" }, { label: "Contact" }];
+  const breadcrumbs = [{ label: "Home", href: "/" }, { label: t("contact.breadcrumb") }];
   return (
     <main>
       <JsonLd data={breadcrumbJsonLd(breadcrumbs)} />
       <section className="collection-hero">
         <div className="site-container py-12 sm:py-16">
           <Breadcrumbs items={breadcrumbs} />
-          <p className="eyebrow mt-7 text-[var(--brand-gold)]">Contact UrbanEdge</p>
-          <h1 className="public-page-title mt-3 max-w-4xl text-white">
-            Speak with UrbanEdge about your land requirement.
-          </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-200">
-            Buyer, investor or landowner—we’ll help you find the right next step across Ahmedabad
-            and Gandhinagar.
-          </p>
+          <p className="eyebrow mt-7 text-[var(--brand-gold)]">{t("contact.eyebrow")}</p>
+          <h1 className="public-page-title mt-3 max-w-4xl text-white">{t("contact.title")}</h1>
+          <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-200">{t("contact.intro")}</p>
         </div>
       </section>
       <section className="section">
         <div className="site-container conversion-layout">
           <div>
-            <p className="eyebrow">Direct contact</p>
-            <h2 className="section-title">Call, message or visit our Gandhinagar office.</h2>
+            <p className="eyebrow">{t("contact.direct")}</p>
+            <h2 className="section-title">{t("contact.heading")}</h2>
             <div className="contact-methods mt-7">
               <div>
                 <span>Phone</span>
@@ -70,7 +69,7 @@ export default async function ContactPage() {
               ) : null}
               {whatsapp ? (
                 <a
-                  className="button button-outline"
+                  className="button button-whatsapp"
                   href={whatsapp}
                   target="_blank"
                   rel="noreferrer"
@@ -100,6 +99,17 @@ export default async function ContactPage() {
           />
         </div>
       </section>
+      {config.officeAddress ? (
+        <section className="section section-light contact-map-section">
+          <div className="site-container">
+            <OfficeMap
+              address={config.officeAddress}
+              mapUrl={OFFICIAL_OFFICE_MAP_URL}
+              locale={locale}
+            />
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 }
