@@ -13,7 +13,11 @@ import {
 import { createPublicServerClient } from "@/server/supabase/public";
 
 import { getPublicPropertyDetail, listPublicPropertyCards } from "./public-properties";
-import { getPublicSettings } from "./public-reference-data";
+import {
+  getPublicAreaUnits,
+  getPublicGeographyOptions,
+  getPublicSettings,
+} from "./public-reference-data";
 
 export type PublicInventoryResult =
   | Readonly<{ status: "ready"; properties: readonly PublicPropertyCardDto[] }>
@@ -50,4 +54,13 @@ export async function loadPublicBusinessConfig(): Promise<PublicBusinessConfig> 
   } catch {
     return unavailablePublicBusinessConfig();
   }
+}
+
+export async function loadPublicFormOptions() {
+  const client = createPublicServerClient();
+  const [geography, units] = await Promise.all([
+    getPublicGeographyOptions(client),
+    getPublicAreaUnits(client),
+  ]);
+  return { geography, units } as const;
 }

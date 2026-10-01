@@ -14,6 +14,11 @@ describe("public localization", () => {
     expect(Object.keys(dictionaries.gu)).toEqual(Object.keys(dictionaries.en));
     expect(Object.keys(dictionaries.hi)).toEqual(Object.keys(dictionaries.en));
     expect(translate("gu", "nav.explore")).toBe("જમીન જુઓ");
+    expect(translate("gu", "transaction.buy.title")).toContain("ખરીદી");
+    expect(translate("gu", "home.finalTitle")).toContain("પ્રકાશિત જમીન");
+    expect(translate("hi", "requirements.title")).toContain("ज़मीन");
+    expect(translate("hi", "home.journeyTitle")).toContain("UrbanEdge");
+    expect(translate("hi", "property.overview")).toBe("सारांश");
     expect(localeForFormatting("hi")).toBe("hi-IN");
   });
 });

@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import type { TransactionType } from "@/types/database";
-import { transactionLabels } from "@/lib/formatting/property-values";
 import { loadFixedPublicSearch } from "@/server/queries/public-search";
 
 import { Breadcrumbs } from "./breadcrumbs";
@@ -11,6 +10,37 @@ import { ArrowIcon } from "./icons";
 import { JsonLd } from "./json-ld";
 import { breadcrumbJsonLd } from "@/lib/seo/breadcrumbs";
 import { collectionJsonLd } from "@/lib/seo/structured-data";
+import { getRequestLocale } from "@/lib/i18n/server";
+import { translate, type TranslationKey } from "@/lib/i18n/dictionaries";
+
+const transactionTranslationKeys: Record<
+  TransactionType,
+  Readonly<{
+    label: TranslationKey;
+    title: TranslationKey;
+    intro: TranslationKey;
+    cta: TranslationKey;
+  }>
+> = {
+  BUY: {
+    label: "common.forPurchase",
+    title: "transaction.buy.title",
+    intro: "transaction.buy.intro",
+    cta: "transaction.buy.cta",
+  },
+  RENT: {
+    label: "common.forRent",
+    title: "transaction.rent.title",
+    intro: "transaction.rent.intro",
+    cta: "transaction.rent.cta",
+  },
+  LEASE: {
+    label: "common.forLease",
+    title: "transaction.lease.title",
+    intro: "transaction.lease.intro",
+    cta: "transaction.lease.cta",
+  },
+};
 
 export const transactionLandingContent: Record<
   TransactionType,
@@ -114,10 +144,35 @@ export function transactionLandingEditorialText(transaction: TransactionType): s
 export async function TransactionLanding({
   transaction,
 }: Readonly<{ transaction: TransactionType }>) {
-  const page = transactionLandingContent[transaction];
-  const inventory = await loadFixedPublicSearch({ transaction }, 12);
+  const [inventory, locale] = await Promise.all([
+    loadFixedPublicSearch({ transaction }, 12),
+    getRequestLocale(),
+  ]);
+  const t = (key: TranslationKey) => translate(locale, key);
+  const keys = transactionTranslationKeys[transaction];
+  const page = {
+    ...transactionLandingContent[transaction],
+    title: t(keys.title),
+    intro: t(keys.intro),
+    cta: t(keys.cta),
+    ...(locale === "en"
+      ? {}
+      : {
+          serviceContext: t("landing.genericService"),
+          guidance: [
+            { title: t("landing.guidancePurpose"), body: t("landing.guidancePurposeBody") },
+            { title: t("landing.guidanceFacts"), body: t("landing.guidanceFactsBody") },
+            { title: t("landing.guidanceChecks"), body: t("landing.guidanceChecksBody") },
+            {
+              title: t("landing.guidanceAssumptions"),
+              body: t("landing.guidanceAssumptionsBody"),
+            },
+          ],
+        }),
+  };
+  const transactionLabel = t(keys.label);
   const path = `/${transaction.toLowerCase()}`;
-  const breadcrumbs = [{ label: "Home", href: "/" }, { label: transactionLabels[transaction] }];
+  const breadcrumbs = [{ label: t("common.home"), href: "/" }, { label: transactionLabel }];
   return (
     <main>
       <JsonLd data={breadcrumbJsonLd(breadcrumbs)} />
@@ -132,7 +187,7 @@ export async function TransactionLanding({
       <section className="collection-hero">
         <div className="site-container py-14 sm:py-18 lg:py-22">
           <Breadcrumbs items={breadcrumbs} />
-          <p className="eyebrow mt-8 text-[var(--brand-gold)]">{transactionLabels[transaction]}</p>
+          <p className="eyebrow mt-8 text-[var(--brand-gold)]">{transactionLabel}</p>
           <h1 className="public-page-title mt-3 max-w-4xl text-white">{page.title}</h1>
           <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-200">{page.intro}</p>
           <a href="#current-inventory" className="button button-gold mt-8">
@@ -143,9 +198,9 @@ export async function TransactionLanding({
       <section className="section section-light">
         <div className="site-container">
           <SectionHeading
-            eyebrow="Transaction guidance"
-            title={`Prepare for a ${transactionLabels[transaction].toLowerCase()} conversation`}
-            description="Use the published page for discovery and keep material checks tied to the actual property and offer."
+            eyebrow={t("landing.transactionGuidance")}
+            title={page.title}
+            description={t("landing.transactionDescription")}
           />
           <div className="guide-grid mt-10">
             {page.guidance.map((item) => (
@@ -158,13 +213,13 @@ export async function TransactionLanding({
           <p className="category-note mt-8">{page.serviceContext}</p>
           <div className="mt-8 flex flex-wrap gap-5">
             <Link className="text-link" href="/guides">
-              Read land guides <ArrowIcon className="size-4" />
+              {t("common.readGuides")} <ArrowIcon className="size-4" />
             </Link>
             <Link className="text-link" href="/locations/ahmedabad">
-              Ahmedabad land <ArrowIcon className="size-4" />
+              {t("common.ahmedabad")} <ArrowIcon className="size-4" />
             </Link>
             <Link className="text-link" href="/locations/gandhinagar">
-              Gandhinagar land <ArrowIcon className="size-4" />
+              {t("common.gandhinagar")} <ArrowIcon className="size-4" />
             </Link>
           </div>
         </div>
@@ -172,20 +227,19 @@ export async function TransactionLanding({
       <section id="current-inventory" className="section scroll-mt-24">
         <div className="site-container">
           <SectionHeading
-            eyebrow="Published inventory"
-            title={`${transactionLabels[transaction]} opportunities`}
-            description="Browse current listings, then open a property for its approved land, location and commercial details."
+            eyebrow={t("common.publishedInventory")}
+            title={transactionLabel}
+            description={t("landing.opportunitiesDescription")}
           />
           <div className="mt-10">
-            <PropertyCollection result={inventory} />
+            <PropertyCollection result={inventory} locale={locale} />
           </div>
           <div className="mt-8">
             <Link
               href={`/requirements?transaction=${transaction.toLowerCase()}&source=TRANSACTION_${transaction}`}
               className="button button-outline"
-              prefetch={false}
             >
-              Share a {transactionLabels[transaction].toLowerCase()} requirement
+              {t("common.shareRequirement")}
             </Link>
           </div>
           <div className="mt-10">
@@ -193,7 +247,7 @@ export async function TransactionLanding({
               href={`/properties?transaction=${transaction.toLowerCase()}`}
               className="text-link"
             >
-              Refine this search <ArrowIcon className="size-4" />
+              {t("common.refineSearch")} <ArrowIcon className="size-4" />
             </Link>
           </div>
         </div>

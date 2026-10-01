@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import type { PublicSeoPage } from "@/features/content/domain/contracts";
-import { categoryLabels } from "@/lib/formatting/property-values";
 import { collectionJsonLd } from "@/lib/seo/structured-data";
 import { breadcrumbJsonLd } from "@/lib/seo/breadcrumbs";
 import { loadFixedPublicSearch } from "@/server/queries/public-search";
@@ -12,6 +11,8 @@ import { JsonLd } from "./json-ld";
 import { PropertyCollection } from "./property-collection";
 import { SafeMarkdown } from "./safe-markdown";
 import { SectionHeading } from "./section-heading";
+import { getRequestLocale } from "@/lib/i18n/server";
+import { translate, type TranslationKey } from "@/lib/i18n/dictionaries";
 
 const categoryPaths = {
   AGRICULTURAL: "agricultural-land",
@@ -19,22 +20,34 @@ const categoryPaths = {
   INDUSTRIAL: "industrial-land",
 } as const;
 
+const categoryTranslationKeys = {
+  AGRICULTURAL: "nav.agricultural",
+  NA: "nav.na",
+  INDUSTRIAL: "nav.industrial",
+} as const satisfies Record<keyof typeof categoryPaths, TranslationKey>;
+
 export async function LocationLanding({
   page,
   city,
 }: Readonly<{ page: PublicSeoPage; city: "ahmedabad" | "gandhinagar" }>) {
-  const inventory = await loadFixedPublicSearch(
-    { district: city, category: page.category ?? undefined },
-    12,
-  );
-  const cityName = city === "ahmedabad" ? "Ahmedabad" : "Gandhinagar";
+  const [inventory, locale] = await Promise.all([
+    loadFixedPublicSearch({ district: city, category: page.category ?? undefined }, 12),
+    getRequestLocale(),
+  ]);
+  const t = (key: TranslationKey) => translate(locale, key);
+  const cityName = t(city === "ahmedabad" ? "common.ahmedabad" : "common.gandhinagar");
+  const categoryName = page.category ? t(categoryTranslationKeys[page.category]) : null;
+  const localizedTitle =
+    locale === "en" ? page.title : `${categoryName ?? t("common.land")} — ${cityName}`;
+  const localizedIntro = locale === "en" ? page.intro : t("location.localizedIntro");
+  const localizedBody = locale === "en" ? (page.body ?? "") : t("location.localizedBody");
   const items = inventory.status === "ready" ? inventory.properties : [];
   const breadcrumbs = [
-    { label: "Home", href: "/" },
+    { label: t("common.home"), href: "/" },
     ...(page.category
       ? [{ label: cityName, href: `/locations/${city}` }]
-      : [{ label: "Locations" }]),
-    { label: page.category ? categoryLabels[page.category] : cityName },
+      : [{ label: t("common.locations") }]),
+    { label: categoryName ?? cityName },
   ];
   return (
     <main>
@@ -50,19 +63,18 @@ export async function LocationLanding({
       <section className="collection-hero location-hero">
         <div className="site-container py-14 sm:py-18 lg:py-22">
           <Breadcrumbs items={breadcrumbs} />
-          <p className="eyebrow mt-8 text-[var(--brand-gold)]">Curated location guide</p>
-          <h1 className="public-page-title mt-3 max-w-4xl text-white">{page.title}</h1>
-          <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-200">{page.intro}</p>
+          <p className="eyebrow mt-8 text-[var(--brand-gold)]">{t("location.guide")}</p>
+          <h1 className="public-page-title mt-3 max-w-4xl text-white">{localizedTitle}</h1>
+          <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-200">{localizedIntro}</p>
           <div className="mt-8 flex flex-wrap gap-3">
             <a className="button button-gold" href="#location-inventory">
-              Browse published land <ArrowIcon className="size-4" />
+              {t("location.browse")} <ArrowIcon className="size-4" />
             </a>
             <Link
               className="button button-outline-light"
               href={`/requirements?district=${city}${page.category ? `&category=${page.category.toLowerCase()}` : ""}&source=LOCATION_PAGE`}
-              prefetch={false}
             >
-              Share your requirement
+              {t("common.shareRequirement")}
             </Link>
           </div>
         </div>
@@ -70,21 +82,21 @@ export async function LocationLanding({
       <section className="section section-light">
         <div className="site-container location-copy-grid">
           <article className="editorial-card">
-            <SafeMarkdown value={page.body ?? ""} />
+            <SafeMarkdown value={localizedBody} />
           </article>
           <aside className="location-next-steps" aria-labelledby="location-next-steps">
-            <p className="eyebrow">Explore deliberately</p>
-            <h2 id="location-next-steps">Useful next steps</h2>
+            <p className="eyebrow">{t("location.exploreDeliberately")}</p>
+            <h2 id="location-next-steps">{t("location.nextSteps")}</h2>
             <Link
               href={`/properties?district=${city}${page.category ? `&category=${page.category === "AGRICULTURAL" ? "agricultural" : page.category.toLowerCase()}` : ""}`}
             >
-              Refine this published search <ArrowIcon className="size-4" />
+              {t("location.refine")} <ArrowIcon className="size-4" />
             </Link>
             <Link href="/guides">
-              Read land guides <ArrowIcon className="size-4" />
+              {t("common.readGuides")} <ArrowIcon className="size-4" />
             </Link>
-            <Link href="/sell-your-land" prefetch={false}>
-              Submit land for review <ArrowIcon className="size-4" />
+            <Link href="/sell-your-land">
+              {t("location.submit")} <ArrowIcon className="size-4" />
             </Link>
           </aside>
         </div>
@@ -93,15 +105,17 @@ export async function LocationLanding({
         <section className="section">
           <div className="site-container">
             <SectionHeading
-              eyebrow="Land categories"
+              eyebrow={t("location.categories")}
               title={`Explore ${cityName} by land context`}
-              description="Each category keeps its own public facts and professional-checking limits."
+              description={t("location.categoryDescription")}
             />
             <div className="location-category-links mt-9">
               {Object.entries(categoryPaths).map(([category, path]) => (
                 <Link key={path} href={`/locations/${city}/${path}`}>
-                  <strong>{categoryLabels[category as keyof typeof categoryPaths]}</strong>
-                  <span>View the curated page</span>
+                  <strong>
+                    {t(categoryTranslationKeys[category as keyof typeof categoryPaths])}
+                  </strong>
+                  <span>{t("location.viewPage")}</span>
                 </Link>
               ))}
             </div>
@@ -111,14 +125,15 @@ export async function LocationLanding({
       <section id="location-inventory" className="section scroll-mt-24">
         <div className="site-container">
           <SectionHeading
-            eyebrow="Current published inventory"
-            title={`${page.category ? categoryLabels[page.category] : "Land"} in ${cityName}`}
-            description="Only public, published listings are shown. Closed and private inventory does not count as active supply."
+            eyebrow={t("common.currentInventory")}
+            title={`${categoryName ?? t("common.land")} — ${cityName}`}
+            description={t("location.inventoryDescription")}
           />
           <div className="mt-10">
             <PropertyCollection
               result={inventory}
               emptyTitle={`No matching published land is currently available in ${cityName}.`}
+              locale={locale}
             />
           </div>
         </div>
@@ -126,15 +141,14 @@ export async function LocationLanding({
       <section className="cta-band">
         <div className="site-container cta-band-inner">
           <div>
-            <p className="eyebrow text-[var(--brand-gold)]">Need a different fit?</p>
-            <h2>Share the location, category and scale you need.</h2>
+            <p className="eyebrow text-[var(--brand-gold)]">{t("location.differentFit")}</p>
+            <h2>{t("location.differentFitTitle")}</h2>
           </div>
           <Link
             href={`/requirements?district=${city}&source=LOCATION_PAGE`}
             className="button button-gold"
-            prefetch={false}
           >
-            Tell UrbanEdge your requirement <ArrowIcon className="size-4" />
+            {t("location.tellRequirement")} <ArrowIcon className="size-4" />
           </Link>
         </div>
       </section>

@@ -4,8 +4,10 @@ import { breadcrumbJsonLd } from "@/lib/seo/breadcrumbs";
 import { Breadcrumbs } from "./breadcrumbs";
 import { JsonLd } from "./json-ld";
 import { SafeMarkdown } from "./safe-markdown";
+import { getRequestLocale } from "@/lib/i18n/server";
+import { translate } from "@/lib/i18n/dictionaries";
 
-export function InformationPage({
+export async function InformationPage({
   eyebrow,
   title,
   intro,
@@ -18,7 +20,9 @@ export function InformationPage({
   body: string;
   updated?: string;
 }>) {
-  const breadcrumbs = [{ label: "Home", href: "/" }, { label: title }];
+  const locale = await getRequestLocale();
+  const t = (key: Parameters<typeof translate>[1]) => translate(locale, key);
+  const breadcrumbs = [{ label: t("common.home"), href: "/" }, { label: title }];
   return (
     <main>
       <JsonLd data={breadcrumbJsonLd(breadcrumbs)} />
@@ -34,16 +38,20 @@ export function InformationPage({
         <div className="site-container information-layout">
           <article className="editorial-card">
             <SafeMarkdown value={body} />
-            {updated ? <p className="information-updated">Last reviewed: {updated}</p> : null}
+            {updated ? (
+              <p className="information-updated">
+                {t("information.lastReviewed")}: {updated}
+              </p>
+            ) : null}
           </article>
           <aside className="guide-action-card">
             <p className="eyebrow">UrbanEdge Land Space</p>
-            <h2>Need help with a specific land search?</h2>
+            <h2>{t("information.help")}</h2>
             <Link className="button button-gold" href="/properties">
-              Explore land
+              {t("common.exploreLand")}
             </Link>
-            <Link className="button button-outline" href="/contact" prefetch={false}>
-              Contact UrbanEdge
+            <Link className="button button-outline" href="/contact">
+              {t("nav.contact")}
             </Link>
           </aside>
         </div>

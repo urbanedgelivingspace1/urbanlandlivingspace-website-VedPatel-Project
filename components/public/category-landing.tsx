@@ -10,6 +10,25 @@ import { ArrowIcon, CheckIcon } from "./icons";
 import { JsonLd } from "./json-ld";
 import { breadcrumbJsonLd } from "@/lib/seo/breadcrumbs";
 import { collectionJsonLd } from "@/lib/seo/structured-data";
+import { getRequestLocale } from "@/lib/i18n/server";
+import { translate, type TranslationKey } from "@/lib/i18n/dictionaries";
+
+const categoryTranslationKeys: Record<
+  LandCategory,
+  Readonly<{ eyebrow: TranslationKey; title: TranslationKey; intro: TranslationKey }>
+> = {
+  AGRICULTURAL: {
+    eyebrow: "nav.agricultural",
+    title: "category.agricultural.title",
+    intro: "category.agricultural.intro",
+  },
+  NA: { eyebrow: "nav.na", title: "category.na.title", intro: "category.na.intro" },
+  INDUSTRIAL: {
+    eyebrow: "nav.industrial",
+    title: "category.industrial.title",
+    intro: "category.industrial.intro",
+  },
+};
 
 export const categoryLandingContent: Record<
   LandCategory,
@@ -150,12 +169,44 @@ export function categoryLandingEditorialText(category: LandCategory): string {
 }
 
 export async function CategoryLanding({ category }: Readonly<{ category: LandCategory }>) {
-  const page = categoryLandingContent[category];
-  const inventory = await loadFixedPublicSearch({ category }, 12);
+  const [inventory, locale] = await Promise.all([
+    loadFixedPublicSearch({ category }, 12),
+    getRequestLocale(),
+  ]);
+  const t = (key: TranslationKey) => translate(locale, key);
+  const keys = categoryTranslationKeys[category];
+  const localizedGuidance = [
+    { title: t("landing.guidancePurpose"), body: t("landing.guidancePurposeBody") },
+    { title: t("landing.guidanceFacts"), body: t("landing.guidanceFactsBody") },
+    { title: t("landing.guidanceChecks"), body: t("landing.guidanceChecksBody") },
+    { title: t("landing.guidanceAssumptions"), body: t("landing.guidanceAssumptionsBody") },
+  ];
+  const page = {
+    ...categoryLandingContent[category],
+    eyebrow: t(keys.eyebrow),
+    title: t(keys.title),
+    intro: t(keys.intro),
+    ...(locale === "en"
+      ? {}
+      : {
+          criteria: [
+            t("landing.criteriaLocation"),
+            t("landing.criteriaArea"),
+            t("landing.criteriaUtilities"),
+            t("landing.criteriaUse"),
+            t("landing.criteriaRoad"),
+            t("landing.criteriaChecks"),
+          ],
+          explanation: t("landing.genericExplanation"),
+          note: t("landing.genericNote"),
+          serviceContext: t("landing.genericService"),
+          guidance: localizedGuidance,
+        }),
+  };
   const categoryParameter = category === "AGRICULTURAL" ? "agricultural" : category.toLowerCase();
   const categoryPath =
     category === "AGRICULTURAL" ? "/agricultural-land" : `/${category.toLowerCase()}-land`;
-  const breadcrumbs = [{ label: "Home", href: "/" }, { label: page.eyebrow }];
+  const breadcrumbs = [{ label: t("common.home"), href: "/" }, { label: page.eyebrow }];
   return (
     <main>
       <JsonLd data={breadcrumbJsonLd(breadcrumbs)} />
@@ -169,7 +220,7 @@ export async function CategoryLanding({ category }: Readonly<{ category: LandCat
       />
       <section className={`category-hero category-${category.toLowerCase()}`}>
         <div className="site-container relative z-10 py-14 sm:py-18 lg:py-24">
-          <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: page.eyebrow }]} />
+          <Breadcrumbs items={breadcrumbs} />
           <p className="eyebrow mt-8 text-[var(--brand-gold)]">{page.eyebrow}</p>
           <h1 className="public-page-title mt-3 max-w-4xl text-white">{page.title}</h1>
           <p className="mt-6 max-w-2xl text-base leading-8 text-slate-200 sm:text-lg">
@@ -177,14 +228,13 @@ export async function CategoryLanding({ category }: Readonly<{ category: LandCat
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <a href="#current-inventory" className="button button-gold">
-              Browse current land <ArrowIcon className="size-4" />
+              {t("landing.browseCurrent")} <ArrowIcon className="size-4" />
             </a>
             <Link
               href={`/requirements?category=${categoryParameter}&source=CATEGORY_${category}`}
               className="button button-outline-light"
-              prefetch={false}
             >
-              Share your requirement
+              {t("common.shareRequirement")}
             </Link>
           </div>
         </div>
@@ -193,9 +243,9 @@ export async function CategoryLanding({ category }: Readonly<{ category: LandCat
       <section className="section section-light">
         <div className="site-container">
           <SectionHeading
-            eyebrow="Buyer guidance"
-            title={`Questions for ${page.eyebrow.toLowerCase()}`}
-            description="Use these prompts to make the next conversation more specific; complete due diligence for the actual property."
+            eyebrow={t("landing.buyerGuidance")}
+            title={t("landing.questionsTitle")}
+            description={t("landing.guidanceDescription")}
           />
           <div className="guide-grid mt-10">
             {page.guidance.map((item) => (
@@ -208,13 +258,13 @@ export async function CategoryLanding({ category }: Readonly<{ category: LandCat
           <p className="category-note mt-8">{page.serviceContext}</p>
           <div className="mt-8 flex flex-wrap gap-5">
             <Link className="text-link" href="/guides">
-              Read related land guides <ArrowIcon className="size-4" />
+              {t("common.readGuides")} <ArrowIcon className="size-4" />
             </Link>
             <Link className="text-link" href="/locations/ahmedabad">
-              Explore Ahmedabad <ArrowIcon className="size-4" />
+              {t("common.ahmedabad")} <ArrowIcon className="size-4" />
             </Link>
             <Link className="text-link" href="/locations/gandhinagar">
-              Explore Gandhinagar <ArrowIcon className="size-4" />
+              {t("common.gandhinagar")} <ArrowIcon className="size-4" />
             </Link>
           </div>
         </div>
@@ -222,7 +272,7 @@ export async function CategoryLanding({ category }: Readonly<{ category: LandCat
 
       <section className="section section-light">
         <div className="site-container grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-          <SectionHeading eyebrow="What to consider" title={page.explanation} />
+          <SectionHeading eyebrow={t("landing.whatToConsider")} title={page.explanation} />
           <div className="criteria-grid">
             {page.criteria.map((criterion) => (
               <div key={criterion}>
@@ -240,19 +290,24 @@ export async function CategoryLanding({ category }: Readonly<{ category: LandCat
       <section id="current-inventory" className="section scroll-mt-24">
         <div className="site-container">
           <SectionHeading
-            eyebrow="Current published inventory"
-            title={`${page.eyebrow} selected by UrbanEdge`}
-            description="Every listing below comes from the approved published-property contract. Private owner and internal review information is never shown."
+            eyebrow={t("common.currentInventory")}
+            title={page.eyebrow}
+            description={t("landing.inventoryDescription")}
           />
           <div className="mt-10">
             <PropertyCollection
               result={inventory}
-              emptyTitle={`No ${page.eyebrow.toLowerCase()} is publicly listed right now.`}
+              emptyTitle={
+                locale === "en"
+                  ? `No ${page.eyebrow.toLowerCase()} is publicly listed right now.`
+                  : t("common.emptyInventory")
+              }
+              locale={locale}
             />
           </div>
           <div className="mt-8">
             <Link className="text-link" href={`/properties?category=${categoryParameter}`}>
-              Refine this search <ArrowIcon className="size-4" />
+              {t("common.refineSearch")} <ArrowIcon className="size-4" />
             </Link>
           </div>
         </div>
@@ -261,15 +316,14 @@ export async function CategoryLanding({ category }: Readonly<{ category: LandCat
       <section className="cta-band">
         <div className="site-container cta-band-inner">
           <div>
-            <p className="eyebrow text-[var(--brand-gold)]">A more specific brief?</p>
-            <h2>Tell UrbanEdge the land, location and scale you need.</h2>
+            <p className="eyebrow text-[var(--brand-gold)]">{t("landing.specificBrief")}</p>
+            <h2>{t("landing.specificBriefTitle")}</h2>
           </div>
           <Link
             href={`/requirements?category=${categoryParameter}&source=CATEGORY_${category}`}
             className="button button-gold"
-            prefetch={false}
           >
-            Share your requirement <ArrowIcon className="size-4" />
+            {t("common.shareRequirement")} <ArrowIcon className="size-4" />
           </Link>
         </div>
       </section>

@@ -2,23 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { BrandWordmark } from "@/components/foundation/brand-wordmark";
 import type { PublicBusinessConfig } from "@/lib/config/public-business";
 import { buildTelephoneUrl, buildWhatsAppUrl } from "@/lib/config/public-business";
 import { LanguageSwitcher } from "@/components/public/language-switcher";
 import { useLanguage } from "@/components/public/language-provider";
+import { WhatsAppIcon } from "@/components/shared/whatsapp-icon";
 
-import {
-  ChevronIcon,
-  CloseIcon,
-  CompassIcon,
-  LocationIcon,
-  MenuIcon,
-  MessageIcon,
-  PhoneIcon,
-} from "./icons";
+import { ChevronIcon, CloseIcon, CompassIcon, LocationIcon, MenuIcon, PhoneIcon } from "./icons";
 
 function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
@@ -26,8 +19,11 @@ function isActive(pathname: string, href: string) {
 
 export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }>) {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
+  const [openPathname, setOpenPathname] = useState<string | null>(null);
+  const open = openPathname === pathname;
   const mobilePanel = useRef<HTMLElement>(null);
+  const landTypesMenu = useRef<HTMLDetailsElement>(null);
+  const locationsMenu = useRef<HTMLDetailsElement>(null);
   const whatsAppUrl = buildWhatsAppUrl(config);
   const telephoneUrl = buildTelephoneUrl(config);
   const { t } = useLanguage();
@@ -52,6 +48,12 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
     { href: "/lease", label: t("nav.lease") },
   ] as const;
 
+  const closeNavigation = useCallback(() => {
+    setOpenPathname(null);
+    landTypesMenu.current?.removeAttribute("open");
+    locationsMenu.current?.removeAttribute("open");
+  }, []);
+
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => {
@@ -59,13 +61,29 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
     };
   }, [open]);
   useEffect(() => {
+    const closeDesktopMenusOutsidePointer = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+
+      if (landTypesMenu.current?.open && !landTypesMenu.current.contains(target)) {
+        landTypesMenu.current.removeAttribute("open");
+      }
+      if (locationsMenu.current?.open && !locationsMenu.current.contains(target)) {
+        locationsMenu.current.removeAttribute("open");
+      }
+    };
+
+    document.addEventListener("pointerdown", closeDesktopMenusOutsidePointer);
+    return () => document.removeEventListener("pointerdown", closeDesktopMenusOutsidePointer);
+  }, []);
+  useEffect(() => {
     if (!open) return;
 
     const previousFocus = document.activeElement as HTMLElement | null;
     const panel = mobilePanel.current;
     panel?.querySelector<HTMLElement>("a,button")?.focus();
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") closeNavigation();
       if (event.key !== "Tab" || !panel) return;
       const focusable = [...panel.querySelectorAll<HTMLElement>("a,button")];
       if (!focusable.length) return;
@@ -84,7 +102,7 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
       document.removeEventListener("keydown", closeOnEscape);
       previousFocus?.focus();
     };
-  }, [open]);
+  }, [open, closeNavigation]);
   return (
     <header className="site-header">
       <div
@@ -103,21 +121,41 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
           >
             {t("nav.explore")}
           </Link>
-          <details className="nav-menu">
+          <details
+            className="nav-menu"
+            key={`land-types-${pathname}`}
+            ref={landTypesMenu}
+            onKeyDown={(event) => {
+              if (event.key !== "Escape") return;
+              event.preventDefault();
+              event.currentTarget.removeAttribute("open");
+              event.currentTarget.querySelector<HTMLElement>("summary")?.focus();
+            }}
+          >
             <summary className="nav-link">{t("nav.landTypes")}</summary>
             <div>
               {translatedLandTypeLinks.map((link) => (
-                <Link href={link.href} key={link.href}>
+                <Link href={link.href} key={link.href} onClick={closeNavigation}>
                   {link.label}
                 </Link>
               ))}
             </div>
           </details>
-          <details className="nav-menu">
+          <details
+            className="nav-menu"
+            key={`locations-${pathname}`}
+            ref={locationsMenu}
+            onKeyDown={(event) => {
+              if (event.key !== "Escape") return;
+              event.preventDefault();
+              event.currentTarget.removeAttribute("open");
+              event.currentTarget.querySelector<HTMLElement>("summary")?.focus();
+            }}
+          >
             <summary className="nav-link">{t("nav.locations")}</summary>
             <div>
               {translatedLocationLinks.map((link) => (
-                <Link href={link.href} key={link.href}>
+                <Link href={link.href} key={link.href} onClick={closeNavigation}>
                   {link.label}
                 </Link>
               ))}
@@ -137,11 +175,7 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
 
         <div className="hidden items-center gap-3 xl:flex">
           <LanguageSwitcher compact />
-          <Link
-            className="button button-gold button-compact"
-            href="/sell-your-land"
-            prefetch={false}
-          >
+          <Link className="button button-gold button-compact" href="/sell-your-land">
             {t("nav.sell")}
           </Link>
           {whatsAppUrl ? (
@@ -152,7 +186,7 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
               target="_blank"
               aria-label={t("contact.whatsapp")}
             >
-              <MessageIcon className="size-5" />
+              <WhatsAppIcon className="size-5" />
             </a>
           ) : null}
           {telephoneUrl ? (
@@ -168,14 +202,14 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
           aria-expanded={open}
           aria-controls="mobile-navigation"
           aria-label={open ? t("nav.close") : t("nav.open")}
-          onClick={() => setOpen((value) => !value)}
+          onClick={() => setOpenPathname((value) => (value === pathname ? null : pathname))}
         >
           <MenuIcon className="size-5" />
         </button>
       </div>
 
       {open ? (
-        <div className="mobile-nav-backdrop xl:hidden" onClick={() => setOpen(false)}>
+        <div className="mobile-nav-backdrop xl:hidden" onClick={closeNavigation}>
           <section
             aria-labelledby="mobile-navigation-title"
             aria-modal="true"
@@ -193,7 +227,7 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
                 type="button"
                 className="mobile-nav-close"
                 aria-label={t("nav.close")}
-                onClick={() => setOpen(false)}
+                onClick={closeNavigation}
               >
                 <CloseIcon className="size-5" />
               </button>
@@ -208,7 +242,7 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
                 className="mobile-nav-primary"
                 href="/properties"
                 aria-current={isActive(pathname, "/properties") ? "page" : undefined}
-                onClick={() => setOpen(false)}
+                onClick={closeNavigation}
               >
                 <span className="mobile-nav-primary-icon">
                   <CompassIcon className="size-5" />
@@ -230,7 +264,7 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
                       aria-current={isActive(pathname, link.href) ? "page" : undefined}
                       href={link.href}
                       key={link.href}
-                      onClick={() => setOpen(false)}
+                      onClick={closeNavigation}
                     >
                       {link.label}
                     </Link>
@@ -249,7 +283,7 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
                       className="mobile-nav-link"
                       href={link.href}
                       key={link.href}
-                      onClick={() => setOpen(false)}
+                      onClick={closeNavigation}
                     >
                       <span>{link.label}</span>
                       <ChevronIcon className="size-4" />
@@ -268,7 +302,7 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
                       aria-current={isActive(pathname, link.href) ? "page" : undefined}
                       href={link.href}
                       key={link.href}
-                      onClick={() => setOpen(false)}
+                      onClick={closeNavigation}
                     >
                       <LocationIcon className="size-4" />
                       {link.label}
@@ -287,7 +321,7 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
                       aria-current={isActive(pathname, link.href) ? "page" : undefined}
                       href={link.href}
                       key={link.href}
-                      onClick={() => setOpen(false)}
+                      onClick={closeNavigation}
                     >
                       {link.label}
                     </Link>
@@ -300,8 +334,7 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
                   aria-current={isActive(pathname, "/sell-your-land") ? "page" : undefined}
                   className="mobile-sell-link"
                   href="/sell-your-land"
-                  onClick={() => setOpen(false)}
-                  prefetch={false}
+                  onClick={closeNavigation}
                 >
                   <span>
                     <strong>{t("nav.sellPrompt")}</strong>
@@ -318,15 +351,21 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
 
             <div className="mobile-nav-contact" aria-label="Contact UrbanEdge">
               {whatsAppUrl ? (
-                <a className="whatsapp-contact" href={whatsAppUrl} rel="noreferrer" target="_blank">
-                  <MessageIcon className="size-4" />
+                <a
+                  className="whatsapp-contact"
+                  href={whatsAppUrl}
+                  rel="noreferrer"
+                  target="_blank"
+                  onClick={closeNavigation}
+                >
+                  <WhatsAppIcon className="size-4" />
                   <span>{t("nav.whatsapp")}</span>
                 </a>
               ) : (
                 <span aria-disabled="true">{t("nav.whatsapp")}</span>
               )}
               {telephoneUrl ? (
-                <a href={telephoneUrl}>
+                <a href={telephoneUrl} onClick={closeNavigation}>
                   <PhoneIcon className="size-4" />
                   <span>{t("nav.call")}</span>
                 </a>

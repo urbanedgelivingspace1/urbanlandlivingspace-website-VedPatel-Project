@@ -15,7 +15,7 @@ export default function PublicError({ reset }: Readonly<{ reset: () => void }>) 
         <Link href="/properties" className="button button-outline">
           Explore Land
         </Link>
-        <Link href="/contact" className="button button-outline" prefetch={false}>
+        <Link href="/contact" className="button button-outline">
           Contact UrbanEdge
         </Link>
       </div>

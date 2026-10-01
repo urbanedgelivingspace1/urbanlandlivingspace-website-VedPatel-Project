@@ -10,6 +10,9 @@ import { buildPublicBucketMediaUrl } from "@/lib/media/public-media-url";
 import { buildPublicMetadata } from "@/lib/seo/metadata";
 import { articleJsonLd } from "@/lib/seo/structured-data";
 import { breadcrumbJsonLd } from "@/lib/seo/breadcrumbs";
+import { getRequestLocale } from "@/lib/i18n/server";
+import { localeForFormatting } from "@/lib/i18n/config";
+import { translate } from "@/lib/i18n/dictionaries";
 import {
   getPublicGuide,
   getPublicRedirect,
@@ -49,12 +52,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params }: Props) {
   const slug = (await params)["guide-slug"];
-  const guide = await getPublicGuide(slug);
+  const [guide, locale] = await Promise.all([getPublicGuide(slug), getRequestLocale()]);
   if (!guide) {
     const redirect = await getPublicRedirect(`/guides/${slug}`);
     if (redirect) permanentRedirect(redirect.destinationPath);
     notFound();
   }
+  const t = (key: Parameters<typeof translate>[1]) => translate(locale, key);
+  const dateFormatter = new Intl.DateTimeFormat(localeForFormatting(locale), { dateStyle: "long" });
   const image = guide.hero
     ? buildPublicBucketMediaUrl("guide-media-public", guide.hero.objectPath)
     : null;
@@ -62,8 +67,8 @@ export default async function Page({ params }: Props) {
     .filter(({ id }) => id !== guide.id)
     .slice(0, 3);
   const breadcrumbs = [
-    { label: "Home", href: "/" },
-    { label: "Guides", href: "/guides" },
+    { label: t("common.home"), href: "/" },
+    { label: t("nav.guides"), href: "/guides" },
     ...(guide.categoryName && guide.categorySlug
       ? [{ label: guide.categoryName, href: `/guides/category/${guide.categorySlug}` }]
       : []),
@@ -87,17 +92,14 @@ export default async function Page({ params }: Props) {
           <div className="site-container">
             <Breadcrumbs items={breadcrumbs} />
             <p className="eyebrow mt-8 text-[var(--brand-gold)]">
-              {guide.categoryName ?? "Land guide"}
+              {guide.categoryName ?? t("guide.landGuide")}
             </p>
             <h1>{guide.title}</h1>
             <p className="guide-excerpt">{guide.excerpt}</p>
             <p className="guide-date">
-              Published{" "}
-              {new Intl.DateTimeFormat("en-IN", { dateStyle: "long" }).format(
-                new Date(guide.publishedAt),
-              )}
+              {t("guide.published")} {dateFormatter.format(new Date(guide.publishedAt))}
               {guide.updatedAt !== guide.publishedAt
-                ? ` · Updated ${new Intl.DateTimeFormat("en-IN", { dateStyle: "long" }).format(new Date(guide.updatedAt))}`
+                ? ` · ${t("guide.updated")} ${dateFormatter.format(new Date(guide.updatedAt))}`
                 : ""}
             </p>
           </div>
@@ -118,22 +120,18 @@ export default async function Page({ params }: Props) {
           <div className="guide-article-body">
             <SafeMarkdown value={guide.body} />
             <aside className="property-disclaimer">
-              <strong>Educational scope</strong>
-              <p>
-                This guide supports preliminary understanding. Complete property-specific legal,
-                revenue, planning, measurement, tax and transaction checks with appropriate
-                professionals before proceeding.
-              </p>
+              <strong>{t("guide.educationalScope")}</strong>
+              <p>{t("guide.educationalBody")}</p>
             </aside>
           </div>
           <aside className="guide-action-card">
-            <p className="eyebrow">Your next step</p>
-            <h2>Apply the guide to current land.</h2>
+            <p className="eyebrow">{t("guide.nextStep")}</p>
+            <h2>{t("guide.apply")}</h2>
             <Link className="button button-gold" href="/properties">
-              Explore published land
+              {t("location.browse")}
             </Link>
-            <Link className="button button-outline" href="/requirements" prefetch={false}>
-              Share a requirement
+            <Link className="button button-outline" href="/requirements">
+              {t("common.shareRequirement")}
             </Link>
           </aside>
         </div>
@@ -141,7 +139,7 @@ export default async function Page({ params }: Props) {
       {related.length ? (
         <section className="section section-light">
           <div className="site-container">
-            <h2 className="section-title">Related guides</h2>
+            <h2 className="section-title">{t("guide.related")}</h2>
             <div className="mt-6 grid gap-4">
               {related.map((item) => (
                 <Link className="text-link" href={`/guides/${item.slug}`} key={item.id}>

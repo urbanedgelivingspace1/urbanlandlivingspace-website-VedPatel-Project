@@ -24,13 +24,12 @@ import {
   loadPublicProperty,
 } from "@/server/queries/public-page-data";
 import {
-  availabilityLabels,
   categoryLabels,
   formatPublicArea,
   formatPublicPrice,
   isClosedPublicAvailability,
-  transactionLabels,
 } from "@/lib/formatting/property-values";
+import type { availabilityLabels, transactionLabels } from "@/lib/formatting/property-values";
 import { buildPublicMediaUrl } from "@/lib/media/public-media-url";
 import { buildPublicMetadata } from "@/lib/seo/metadata";
 import { propertyJsonLd } from "@/lib/seo/structured-data";
@@ -38,6 +37,29 @@ import { safeSeoText } from "@/lib/seo/privacy-safe-seo";
 import { JsonLd } from "@/components/public/json-ld";
 import { NearbyConnectivity } from "@/components/public/nearby-connectivity";
 import { getPublicRedirect } from "@/server/queries/public-content";
+import { getRequestLocale } from "@/lib/i18n/server";
+import { translate, type TranslationKey } from "@/lib/i18n/dictionaries";
+
+const categoryTranslationKeys = {
+  AGRICULTURAL: "nav.agricultural",
+  NA: "nav.na",
+  INDUSTRIAL: "nav.industrial",
+} as const satisfies Record<keyof typeof categoryLabels, TranslationKey>;
+
+const transactionTranslationKeys = {
+  BUY: "common.forPurchase",
+  RENT: "common.forRent",
+  LEASE: "common.forLease",
+} as const satisfies Record<keyof typeof transactionLabels, TranslationKey>;
+
+const availabilityTranslationKeys = {
+  AVAILABLE: "common.available",
+  UNDER_NEGOTIATION: "common.underNegotiation",
+  SOLD: "common.sold",
+  RENTED: "common.rented",
+  LEASED: "common.leased",
+  OFF_MARKET: "common.temporarilyUnavailable",
+} as const satisfies Record<keyof typeof availabilityLabels, TranslationKey>;
 
 type Props = Readonly<{ params: Promise<{ "property-slug": string }> }>;
 
@@ -85,10 +107,15 @@ export default async function PropertyDetailPage({ params }: Props) {
     notFound();
   }
 
-  const [config, relatedResult] = await Promise.all([
+  const [config, relatedResult, locale] = await Promise.all([
     loadPublicBusinessConfig(),
     loadPublicInventory({ category: property.category, limit: 4 }),
+    getRequestLocale(),
   ]);
+  const t = (key: TranslationKey) => translate(locale, key);
+  const categoryLabel = t(categoryTranslationKeys[property.category]);
+  const transactionLabel = t(transactionTranslationKeys[property.transactionType]);
+  const availabilityLabel = t(availabilityTranslationKeys[property.availability]);
   const related: PublicInventoryResult =
     relatedResult.status === "ready"
       ? {
@@ -117,9 +144,9 @@ export default async function PropertyDetailPage({ params }: Props) {
         ? "/na-land"
         : "/industrial-land";
   const breadcrumbItems = [
-    { label: "Home", href: "/" },
-    { label: categoryLabels[property.category], href: categoryPath },
-    { label: property.location.label || "Land" },
+    { label: t("common.home"), href: "/" },
+    { label: categoryLabel, href: categoryPath },
+    { label: property.location.label || t("common.land") },
     { label: property.title },
   ];
 
@@ -133,9 +160,7 @@ export default async function PropertyDetailPage({ params }: Props) {
       <div className="site-container">
         {closed ? (
           <div className="closed-property-banner" role="status">
-            <strong>
-              This property is {availabilityLabels[property.availability].toLowerCase()}.
-            </strong>
+            <strong>{availabilityLabel}</strong>
             <span>
               Its page remains available for reference, but it is not presented as active inventory.
             </span>
@@ -146,17 +171,15 @@ export default async function PropertyDetailPage({ params }: Props) {
         <div className="property-title-block">
           <div>
             <div className="flex flex-wrap items-center gap-3">
-              <span className="property-pill dark">{categoryLabels[property.category]}</span>
-              <span className="transaction-label">
-                {transactionLabels[property.transactionType]}
-              </span>
-              <AvailabilityBadge status={property.availability} />
+              <span className="property-pill dark">{categoryLabel}</span>
+              <span className="transaction-label">{transactionLabel}</span>
+              <AvailabilityBadge status={property.availability} locale={locale} />
             </div>
             <p className="property-code mt-6">{property.propertyCode}</p>
             <h1>{property.title}</h1>
             <p className="property-detail-location">
               <LocationIcon className="size-5" />{" "}
-              {property.location.label || "Location details available through UrbanEdge"}
+              {property.location.label || t("common.locationUnavailable")}
             </p>
           </div>
           <ShareButton title={property.title} propertyCode={property.propertyCode} />
@@ -167,29 +190,26 @@ export default async function PropertyDetailPage({ params }: Props) {
         <div className="property-detail-layout">
           <div className="property-detail-main">
             <section className="detail-section" aria-labelledby="property-overview">
-              <p className="eyebrow">Overview</p>
-              <h2 id="property-overview">Property at a glance</h2>
+              <p className="eyebrow">{t("property.overview")}</p>
+              <h2 id="property-overview">{t("property.glance")}</h2>
               <p className="detail-description">
-                {property.description ||
-                  property.summary ||
-                  "Speak with UrbanEdge for the current overview of this land opportunity."}
+                {property.description || property.summary || t("property.overviewFallback")}
               </p>
             </section>
 
             <PropertyFacts property={property} />
 
             <section className="detail-section" aria-labelledby="location-heading">
-              <p className="eyebrow">Location</p>
+              <p className="eyebrow">{t("property.location")}</p>
               <h2 id="location-heading">
                 {property.location.visibility === "EXACT"
-                  ? "Exact public location"
+                  ? t("property.exactLocation")
                   : property.location.visibility === "APPROXIMATE"
-                    ? "Approximate location"
-                    : "Location details through UrbanEdge"}
+                    ? t("property.approximateLocation")
+                    : t("property.locationThrough")}
               </h2>
               <p className="section-copy">
-                {property.location.label ||
-                  "The public listing intentionally withholds detailed location information."}
+                {property.location.label || t("property.locationHidden")}
               </p>
               <div className="mt-6">
                 <PublicMap
@@ -251,12 +271,12 @@ export default async function PropertyDetailPage({ params }: Props) {
               className="detail-section property-contact-section"
               aria-labelledby="contact-heading"
             >
-              <p className="eyebrow">Speak with UrbanEdge</p>
+              <p className="eyebrow">{t("property.contactEyebrow")}</p>
               <h2 id="contact-heading">Use {property.propertyCode} when you contact us.</h2>
               <p>
                 {closed
                   ? "This listing is closed. UrbanEdge can help you explore current alternatives."
-                  : "Ask a question, discuss suitability or request help coordinating a site visit."}
+                  : t("property.contactBody")}
               </p>
               <PropertyActions property={property} config={config} />
               {!closed ? (
@@ -273,7 +293,7 @@ export default async function PropertyDetailPage({ params }: Props) {
             </section>
 
             <section className="property-disclaimer" aria-label="Property information disclaimer">
-              <strong>Important information</strong>
+              <strong>{t("property.important")}</strong>
               <p>
                 Property information is provided for initial discovery from records and material
                 available to UrbanEdge. Buyers should complete property-specific legal, revenue,
@@ -284,24 +304,28 @@ export default async function PropertyDetailPage({ params }: Props) {
           </div>
 
           <aside className="property-sidebar" aria-label="Property commercial summary">
-            <p className="eyebrow">Commercial summary</p>
+            <p className="eyebrow">{t("property.commercial")}</p>
             <strong className="property-price">
-              {property.price ? formatPublicPrice(property.price) : "Price on request"}
+              {property.price
+                ? property.price.mode === "PRICE_ON_REQUEST"
+                  ? t("common.priceOnRequest")
+                  : formatPublicPrice(property.price)
+                : t("common.priceOnRequest")}
             </strong>
             {property.price?.negotiable ? (
-              <span className="negotiable-note">Negotiable</span>
+              <span className="negotiable-note">{t("common.negotiable")}</span>
             ) : null}
             <dl>
               <div>
-                <dt>Area</dt>
+                <dt>{t("property.area")}</dt>
                 <dd>{formatPublicArea(property.area)}</dd>
               </div>
               <div>
-                <dt>Availability</dt>
-                <dd>{availabilityLabels[property.availability]}</dd>
+                <dt>{t("property.availability")}</dt>
+                <dd>{availabilityLabel}</dd>
               </div>
               <div>
-                <dt>Property ID</dt>
+                <dt>{t("property.id")}</dt>
                 <dd>{property.propertyCode}</dd>
               </div>
             </dl>
@@ -312,10 +336,8 @@ export default async function PropertyDetailPage({ params }: Props) {
         <section className="section related-section">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="eyebrow">Related land</p>
-              <h2 className="section-title mt-2">
-                Other {categoryLabels[property.category].toLowerCase()}
-              </h2>
+              <p className="eyebrow">{t("property.related")}</p>
+              <h2 className="section-title mt-2">{categoryLabel}</h2>
             </div>
             <Link
               href={
@@ -327,13 +349,14 @@ export default async function PropertyDetailPage({ params }: Props) {
               }
               className="text-link"
             >
-              See category <ArrowIcon className="size-4" />
+              {t("property.seeCategory")} <ArrowIcon className="size-4" />
             </Link>
           </div>
           <div className="mt-9">
             <PropertyCollection
               result={related}
               emptyTitle="No related published land is available right now."
+              locale={locale}
             />
           </div>
         </section>

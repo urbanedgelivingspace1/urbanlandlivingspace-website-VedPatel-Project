@@ -10,6 +10,7 @@ import {
   type Locale,
 } from "@/lib/i18n/config";
 import { dictionaries, type TranslationKey } from "@/lib/i18n/dictionaries";
+import { persistLanguagePreference } from "@/app/(public)/language-actions";
 
 type LanguageContextValue = Readonly<{
   locale: Locale;
@@ -39,7 +40,7 @@ export function LanguageProvider({
         document.cookie = `${languageCookieName}=${nextLocale};path=/;max-age=31536000;samesite=lax`;
         document.documentElement.lang = nextLocale;
         document.documentElement.dataset.language = nextLocale;
-        router.refresh();
+        void persistLanguagePreference(nextLocale).then(() => router.refresh());
       },
       t: (key) => dictionaries[locale]?.[key] ?? dictionaries[defaultLocale][key],
     }),

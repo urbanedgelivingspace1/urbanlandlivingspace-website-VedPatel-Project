@@ -13,10 +13,10 @@ export default function PublicNotFound() {
         <Link href="/properties" className="button button-primary">
           Explore Land
         </Link>
-        <Link href="/requirements" className="button button-outline" prefetch={false}>
+        <Link href="/requirements" className="button button-outline">
           Share Requirement
         </Link>
-        <Link href="/contact" className="button button-outline" prefetch={false}>
+        <Link href="/contact" className="button button-outline">
           Contact UrbanEdge
         </Link>
         <Link href="/" className="button button-outline">

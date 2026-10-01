@@ -15,7 +15,7 @@ export default async function PublicLayout({ children }: PublicLayoutProps) {
   const [config, locale] = await Promise.all([loadPublicBusinessConfig(), getRequestLocale()]);
   return (
     <LanguageProvider initialLocale={locale}>
-      <div className="min-h-screen bg-[var(--surface-muted)]">
+      <div className="public-site min-h-screen bg-[var(--surface-muted)]">
         <SiteHeader config={config} />
         {children}
         <SiteFooter config={config} locale={locale} />

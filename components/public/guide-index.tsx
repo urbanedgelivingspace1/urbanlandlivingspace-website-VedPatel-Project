@@ -7,8 +7,10 @@ import { collectionJsonLd } from "@/lib/seo/structured-data";
 import { Breadcrumbs } from "./breadcrumbs";
 import { GuideCard } from "./guide-card";
 import { JsonLd } from "./json-ld";
+import { getRequestLocale } from "@/lib/i18n/server";
+import { translate, type TranslationKey } from "@/lib/i18n/dictionaries";
 
-export function GuideIndex({
+export async function GuideIndex({
   guides,
   categories,
   title = "Land guides for clearer next steps",
@@ -21,19 +23,25 @@ export function GuideIndex({
   description?: string;
   category?: PublicGuideCategory;
 }>) {
+  const locale = await getRequestLocale();
+  const t = (key: TranslationKey) => translate(locale, key);
+  const localizedTitle = title === "Land guides for clearer next steps" ? t("guides.title") : title;
+  const localizedDescription = description.startsWith("Practical education for discovering")
+    ? t("guides.description")
+    : description;
   const path = category ? `/guides/category/${category.slug}` : "/guides";
   const breadcrumbs = [
-    { label: "Home", href: "/" },
-    ...(category ? [{ label: "Guides", href: "/guides" }] : []),
-    { label: category?.name ?? "Guides" },
+    { label: t("common.home"), href: "/" },
+    ...(category ? [{ label: t("nav.guides"), href: "/guides" }] : []),
+    { label: category?.name ?? t("nav.guides") },
   ];
   return (
     <main>
       <JsonLd data={breadcrumbJsonLd(breadcrumbs)} />
       <JsonLd
         data={collectionJsonLd({
-          name: title,
-          description,
+          name: localizedTitle,
+          description: localizedDescription,
           path,
           items: guides.map((guide) => ({
             title: guide.title,
@@ -44,15 +52,15 @@ export function GuideIndex({
       <section className="collection-hero guides-hero">
         <div className="site-container py-14 sm:py-18 lg:py-22">
           <Breadcrumbs items={breadcrumbs} />
-          <p className="eyebrow mt-8 text-[var(--brand-gold)]">UrbanEdge editorial</p>
-          <h1 className="public-page-title mt-3 max-w-4xl text-white">{title}</h1>
-          <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-200">{description}</p>
+          <p className="eyebrow mt-8 text-[var(--brand-gold)]">{t("guides.editorial")}</p>
+          <h1 className="public-page-title mt-3 max-w-4xl text-white">{localizedTitle}</h1>
+          <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-200">{localizedDescription}</p>
         </div>
       </section>
       <section className="section section-light">
         <div className="site-container">
-          <nav className="guide-category-nav" aria-label="Guide categories">
-            <Link href="/guides">All guides</Link>
+          <nav className="guide-category-nav" aria-label={t("guides.categories")}>
+            <Link href="/guides">{t("guides.all")}</Link>
             {categories.map((category) => (
               <Link href={`/guides/category/${category.slug}`} key={category.id}>
                 {category.name}
@@ -64,10 +72,10 @@ export function GuideIndex({
               guides.map((guide) => <GuideCard guide={guide} key={guide.id} />)
             ) : (
               <div className="public-empty-state">
-                <h2>No published guides in this category yet.</h2>
-                <p>Explore current land or contact UrbanEdge while editorial review continues.</p>
+                <h2>{t("guides.empty")}</h2>
+                <p>{t("guides.emptyBody")}</p>
                 <Link className="button button-outline" href="/properties">
-                  Explore land
+                  {t("common.exploreLand")}
                 </Link>
               </div>
             )}
@@ -77,11 +85,11 @@ export function GuideIndex({
       <section className="cta-band">
         <div className="site-container cta-band-inner">
           <div>
-            <p className="eyebrow text-[var(--brand-gold)]">Put the context to work</p>
-            <h2>Explore published land or share a structured requirement.</h2>
+            <p className="eyebrow text-[var(--brand-gold)]">{t("guides.context")}</p>
+            <h2>{t("guides.cta")}</h2>
           </div>
           <Link className="button button-gold" href="/properties">
-            Explore land
+            {t("common.exploreLand")}
           </Link>
         </div>
       </section>

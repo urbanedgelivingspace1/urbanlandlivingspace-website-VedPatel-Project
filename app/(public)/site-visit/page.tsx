@@ -7,6 +7,8 @@ import { Breadcrumbs } from "@/components/public/breadcrumbs";
 import { SiteVisitRequestForm } from "@/components/public/intake-forms";
 import { isClosedPublicAvailability } from "@/lib/formatting/property-values";
 import { loadPublicProperty } from "@/server/queries/public-page-data";
+import { getRequestLocale } from "@/lib/i18n/server";
+import { translate } from "@/lib/i18n/dictionaries";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -28,8 +30,9 @@ export default async function SiteVisitPage({
   const value = (await searchParams).property;
   const slug = typeof value === "string" ? value : value?.[0];
   if (!slug) notFound();
-  const property = await loadPublicProperty(slug);
+  const [property, locale] = await Promise.all([loadPublicProperty(slug), getRequestLocale()]);
   if (!property || isClosedPublicAvailability(property.availability)) notFound();
+  const t = (key: Parameters<typeof translate>[1]) => translate(locale, key);
   const formAction = submitSiteVisitRequestAction.bind(null, { propertySlug: property.slug });
   const minimumDate = minimumVisitDate();
   return (
@@ -38,28 +41,25 @@ export default async function SiteVisitPage({
         <div className="site-container py-12 sm:py-16">
           <Breadcrumbs
             items={[
-              { label: "Home", href: "/" },
+              { label: t("common.home"), href: "/" },
               { label: property.title, href: `/properties/${property.slug}` },
-              { label: "Request site visit" },
+              { label: t("visit.breadcrumb") },
             ]}
           />
-          <p className="eyebrow mt-7 text-[var(--brand-gold)]">Request site visit</p>
+          <p className="eyebrow mt-7 text-[var(--brand-gold)]">{t("visit.breadcrumb")}</p>
           <h1 className="public-page-title mt-3 max-w-4xl text-white">
-            Ask to visit {property.propertyCode}.
+            {t("visit.title")} {property.propertyCode}
           </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-200">
-            Choose a preferred window. This records a request only; UrbanEdge must confirm access
-            and availability manually.
-          </p>
+          <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-200">{t("visit.intro")}</p>
         </div>
       </section>
       <section className="section">
         <div className="site-container conversion-layout">
           <div>
-            <p className="eyebrow">Property context</p>
+            <p className="eyebrow">{t("visit.context")}</p>
             <h2 className="section-title">{property.title}</h2>
             <p className="section-copy">
-              {property.location.label || "Location details available through UrbanEdge"}
+              {property.location.label || t("common.locationUnavailable")}
             </p>
           </div>
           <SiteVisitRequestForm

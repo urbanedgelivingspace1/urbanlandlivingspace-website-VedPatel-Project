@@ -57,6 +57,16 @@ html[lang="hi"] body {
   line-height: 1.68;
 }
 
+.public-site {
+  font-size: 1.0625rem;
+  line-height: 1.62;
+}
+
+html[lang="gu"] .public-site,
+html[lang="hi"] .public-site {
+  font-size: 1.125rem;
+}
+
 html[lang="gu"] :is(.font-display, .hero-title, .section-title, h1, h2, h3),
 html[lang="hi"] :is(.font-display, .hero-title, .section-title, h1, h2, h3) {
   font-family: inherit;
@@ -3616,4 +3626,46 @@ select option {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+}
+
+/* Public readability: keep body copy and interactive text comfortably legible. */
+.public-site main :where(p, li, label, input, select, textarea, dt, dd) {
+  font-size: max(1rem, 1em);
+  line-height: 1.65;
+}
+
+.public-site :where(.button, .nav-link, .nav-menu > div a, .text-link) {
+  font-size: 1rem;
+}
+
+.public-site :where(.property-pill, .availability-badge, .transaction-label) {
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.public-site .language-switcher button {
+  min-width: 3.25rem;
+  min-height: 2.55rem;
+  font-size: 1rem;
+}
+
+.public-site :where(.mobile-nav-primary strong, .mobile-nav-link) {
+  font-size: 1rem;
+}
+
+.public-site :where(.mobile-nav-primary small, .mobile-nav-label, .mobile-nav-kicker) {
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+html[lang="gu"] .public-site main :where(p, li, label, input, select, textarea, dt, dd),
+html[lang="hi"] .public-site main :where(p, li, label, input, select, textarea, dt, dd) {
+  font-size: max(1.0625rem, 1em);
+  line-height: 1.72;
+}
+
+html[lang="gu"] .public-site :where(.eyebrow, .mobile-nav-label, .mobile-nav-kicker),
+html[lang="hi"] .public-site :where(.eyebrow, .mobile-nav-label, .mobile-nav-kicker) {
+  letter-spacing: 0.04em;
+  text-transform: none;
 }

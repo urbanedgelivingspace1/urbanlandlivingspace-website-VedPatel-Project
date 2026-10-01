@@ -6,11 +6,9 @@ import { Breadcrumbs } from "@/components/public/breadcrumbs";
 import { BuyerRequirementForm } from "@/components/public/intake-forms";
 import { parseRequirementPrefill } from "@/features/intake/domain/prefill";
 import type { SearchParamsInput } from "@/features/search/domain/search-query";
-import { createPublicServerClient } from "@/server/supabase/public";
-import {
-  getPublicAreaUnits,
-  getPublicGeographyOptions,
-} from "@/server/queries/public-reference-data";
+import { loadPublicFormOptions } from "@/server/queries/public-page-data";
+import { getRequestLocale } from "@/lib/i18n/server";
+import { translate } from "@/lib/i18n/dictionaries";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -23,11 +21,11 @@ export const metadata: Metadata = {
 export default async function RequirementsPage({
   searchParams,
 }: Readonly<{ searchParams: Promise<SearchParamsInput> }>) {
-  const client = createPublicServerClient();
-  const [geography, units] = await Promise.all([
-    getPublicGeographyOptions(client),
-    getPublicAreaUnits(client),
+  const [{ geography, units }, locale] = await Promise.all([
+    loadPublicFormOptions(),
+    getRequestLocale(),
   ]);
+  const t = (key: Parameters<typeof translate>[1]) => translate(locale, key);
   const prefill = parseRequirementPrefill(await searchParams, geography, units);
   const districts = [
     ...new Map(
@@ -70,22 +68,24 @@ export default async function RequirementsPage({
     <main>
       <section className="collection-hero">
         <div className="site-container py-12 sm:py-16">
-          <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Your requirement" }]} />
-          <p className="eyebrow mt-7 text-[var(--brand-gold)]">Buyer requirement</p>
-          <h1 className="public-page-title mt-3 max-w-4xl text-white">
-            Tell us the land you are looking for.
-          </h1>
+          <Breadcrumbs
+            items={[
+              { label: t("common.home"), href: "/" },
+              { label: t("requirements.breadcrumb") },
+            ]}
+          />
+          <p className="eyebrow mt-7 text-[var(--brand-gold)]">{t("requirements.eyebrow")}</p>
+          <h1 className="public-page-title mt-3 max-w-4xl text-white">{t("requirements.title")}</h1>
           <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-200">
-            Share the useful essentials. No account is required, and your contact and requirement
-            remain private.
+            {t("requirements.intro")}
           </p>
         </div>
       </section>
       <section className="section">
         <div className="site-container conversion-layout">
           <div>
-            <p className="eyebrow">A focused brief</p>
-            <h2 className="section-title">Enough context for a useful conversation.</h2>
+            <p className="eyebrow">{t("requirements.focused")}</p>
+            <h2 className="section-title">{t("requirements.focusedTitle")}</h2>
             <p className="section-copy">
               UrbanEdge will review the requirement before treating it as qualified or matching
               properties. Submitting this form does not reserve land or create an account.
