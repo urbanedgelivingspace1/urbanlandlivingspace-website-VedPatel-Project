@@ -45,17 +45,19 @@ test.beforeAll(async () => {
   propertyId = result.data.id;
 });
 
-test("CRM is one sidebar module with four routed workspace tabs", async ({ page }) => {
+test("CRM workspaces are directly available in the sidebar and shared tabs", async ({ page }) => {
   await signIn(page);
   await page.goto("/admin/leads");
 
   const sidebar = page.getByRole("navigation", { name: "Admin" });
-  await expect(sidebar.getByRole("link", { name: "CRM" })).toHaveCount(1);
-  await expect(sidebar.getByRole("link", { name: "CRM" })).toHaveAttribute("aria-current", "page");
-  await expect(sidebar.getByRole("link", { name: "Leads" })).toHaveCount(0);
-  await expect(sidebar.getByRole("link", { name: "Pipeline" })).toHaveCount(0);
-  await expect(sidebar.getByRole("link", { name: "Follow-ups" })).toHaveCount(0);
-  await expect(sidebar.getByRole("link", { name: "Site visits" })).toHaveCount(0);
+  await expect(sidebar.getByRole("link", { name: "CRM" })).toHaveCount(0);
+  await expect(sidebar.getByRole("link", { name: "Leads" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await expect(sidebar.getByRole("link", { name: "Pipeline" })).toBeVisible();
+  await expect(sidebar.getByRole("link", { name: "Follow-ups" })).toBeVisible();
+  await expect(sidebar.getByRole("link", { name: "Site visits" })).toBeVisible();
 
   const crmTabs = page.getByRole("navigation", { name: "CRM workspaces" });
   await crmTabs.getByRole("link", { name: "Pipeline" }).click();
