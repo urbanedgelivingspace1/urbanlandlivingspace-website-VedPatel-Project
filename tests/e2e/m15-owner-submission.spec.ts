@@ -154,9 +154,9 @@ test("seller lead creates multiple drafts, stores private documents, and explici
   await expect(page.getByLabel("Public landmark")).toHaveValue("Sanand GIDC");
   await expect(page.getByLabel("Source type")).toHaveValue("SELLER_LEAD");
   await expect(page.getByLabel("Source reference")).toHaveValue(sellerLeadId);
-  await expect(page.getByLabel("Listing title (optional for draft)")).toHaveValue("");
+  await expect(page.getByLabel("Property title (optional)")).toHaveValue("");
 
-  await page.getByLabel("Listing title (optional for draft)").fill(firstTitle);
+  await page.getByLabel("Property title (optional)").fill(firstTitle);
   await page.getByLabel("Public slug (optional; generated from title when blank)").fill(firstSlug);
   await page
     .getByLabel("Short description")
@@ -260,7 +260,7 @@ test("seller lead creates multiple drafts, stores private documents, and explici
   await page.goto(`/admin/leads/${sellerLeadId}`);
   await expect(page.getByRole("link", { name: new RegExp(firstTitle) })).toBeVisible();
   await page.getByRole("link", { name: /Create Property from Lead/ }).click();
-  await page.getByLabel("Listing title (optional for draft)").fill(`M20 second parcel ${unique}`);
+  await page.getByLabel("Property title (optional)").fill(`M20 second parcel ${unique}`);
   await page.getByLabel("Display area").fill("1.5");
   await page.locator('select[name="displayAreaUnitId"]').selectOption({ label: "Acre (ac)" });
   await page.getByRole("button", { name: "Create draft" }).click();

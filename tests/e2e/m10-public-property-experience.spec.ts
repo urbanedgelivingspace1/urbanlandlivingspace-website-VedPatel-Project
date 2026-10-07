@@ -309,7 +309,7 @@ test("visitor receives the homepage in initial HTML and browses each category", 
   const response = await request.get("/");
   expect(response.ok()).toBe(true);
   const html = await response.text();
-  expect(html).toContain("Land opportunities,");
+  expect(html).toContain("Find the right land in");
   expect(html).toContain(agricultural.title);
 
   for (const [path, title] of [
