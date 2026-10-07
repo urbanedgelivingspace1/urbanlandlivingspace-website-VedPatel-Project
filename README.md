@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🌍 UrbanEdge Land Space
+# 🌍 The UrbanEdge Land Space
 
 ### A full-stack land discovery, brokerage operations, verification, and CRM platform for Ahmedabad & Gandhinagar.
 
