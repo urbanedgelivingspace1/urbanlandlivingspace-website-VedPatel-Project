@@ -158,7 +158,7 @@ test("M9 publishes and unpublishes only a complete public-safe property", async 
   await page.goto("/admin/properties/new");
   const unique = Date.now();
   const title = `Synthetic M9 public property ${unique}`;
-  await page.getByLabel("Listing title (optional for draft)").fill(title);
+  await page.getByLabel("Property title (optional)").fill(title);
   await page
     .getByLabel("Public slug (optional; generated from title when blank)")
     .fill(`synthetic-m9-public-${unique}`);

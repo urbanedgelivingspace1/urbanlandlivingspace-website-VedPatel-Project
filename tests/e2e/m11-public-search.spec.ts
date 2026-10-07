@@ -122,14 +122,16 @@ async function seedSearchFixtures() {
 test.describe.configure({ mode: "serial" });
 test.beforeAll(seedSearchFixtures);
 
-test("home search, keyword results and exact Property ID share the canonical route", async ({
-  page,
-}) => {
+test("home filters and exact Property ID search share the canonical route", async ({ page }) => {
   await page.goto("/");
   const form = page.locator(".discovery-panel .search-entry-form");
-  await form.getByPlaceholder("Location, landmark or Property ID").fill(searchMarker);
-  await form.getByRole("button", { name: "Search land" }).click();
-  await expect(page).toHaveURL(/\/properties\?q=M11\+Bounded/);
+  await form.getByLabel("Location").selectOption("ahmedabad");
+  await form.getByLabel("Land type").selectOption("agricultural");
+  await form.getByLabel("Transaction").selectOption("buy");
+  await form.getByRole("button", { name: "Search Land" }).click();
+  await expect(page).toHaveURL(/district=ahmedabad/);
+  await expect(page).toHaveURL(/category=agricultural/);
+  await expect(page).toHaveURL(/transaction=buy/);
   await expect(page.getByText(firstTitle, { exact: true })).toBeVisible();
   const desktopFilters = page.locator(".search-workspace > .search-filter-rail");
   await desktopFilters.getByLabel("Keyword or Property ID").fill(exactPropertyCode);

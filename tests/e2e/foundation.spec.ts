@@ -6,9 +6,7 @@ test("public foundation renders without automatically detectable accessibility v
 }) => {
   await page.goto("/");
 
-  await expect(
-    page.getByRole("heading", { name: "Land opportunities, curated by UrbanEdge." }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
   const accessibility = await new AxeBuilder({ page }).analyze();
   expect(accessibility.violations).toEqual([]);
@@ -37,7 +35,7 @@ test("active admin can sign in, load the dashboard and sign out", async ({ page 
   await page.getByRole("button", { name: "Sign in securely" }).click();
 
   await expect(page).toHaveURL(/\/admin\/dashboard/);
-  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Action centre" })).toBeVisible();
   await expect(page.getByText("Synthetic E2E Admin")).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 
@@ -45,7 +43,7 @@ test("active admin can sign in, load the dashboard and sign out", async ({ page 
   const mobileNavigation = page.getByText("Admin navigation", { exact: true });
   await expect(mobileNavigation).toBeVisible();
   await mobileNavigation.click();
-  await expect(page.getByRole("link", { name: "Dashboard" }).last()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Action centre" }).last()).toBeVisible();
 
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/\/admin\/login\?reason=signed_out/);

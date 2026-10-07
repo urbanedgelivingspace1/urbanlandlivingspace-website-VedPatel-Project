@@ -13,7 +13,7 @@ async function signIn(page: Page) {
 
 async function fillDraftCore(page: Page, category: "AGRICULTURAL" | "NA" | "INDUSTRIAL") {
   await page.getByLabel("Land category").selectOption(category);
-  await page.getByLabel("Listing title (optional for draft)").fill(`Synthetic E2E ${category}`);
+  await page.getByLabel("Property title (optional)").fill(`Synthetic E2E ${category}`);
   await page.getByLabel("District").selectOption({ label: "Ahmedabad" });
   await page.getByLabel("Display area").fill(category === "AGRICULTURAL" ? "2.5" : "500");
   await page.locator('select[name="displayAreaUnitId"]').selectOption({ label: "Acre (ac)" });
@@ -58,13 +58,13 @@ test("admin edits price, area, and public-safe location without publishing", asy
 test("validation errors retain valid draft input", async ({ page }) => {
   await signIn(page);
   await page.goto("/admin/properties/new");
-  await page.getByLabel("Listing title (optional for draft)").fill("Retained synthetic title");
+  await page.getByLabel("Property title (optional)").fill("Retained synthetic title");
   await page.getByLabel("District").selectOption({ label: "Ahmedabad" });
   await page.getByLabel("Display area").fill("-1");
   await page.locator('select[name="displayAreaUnitId"]').selectOption({ label: "Acre (ac)" });
   await page.getByRole("button", { name: "Create draft" }).click();
   await expect(page.getByRole("status")).toContainText("retained");
-  await expect(page.getByLabel("Listing title (optional for draft)")).toHaveValue(
+  await expect(page.getByLabel("Property title (optional)")).toHaveValue(
     "Retained synthetic title",
   );
   await expect(page).toHaveURL(/\/admin\/properties\/new/);
