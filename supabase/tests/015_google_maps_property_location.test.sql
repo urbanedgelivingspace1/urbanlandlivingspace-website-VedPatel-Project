@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(12);
+select plan(14);
 
 select has_column(
   'public',
@@ -14,6 +14,22 @@ select has_view(
   'public',
   'public_property_google_maps',
   'a dedicated public-safe map projection exists'
+);
+select is(
+  (
+    select pg_get_userbyid(class.relowner)
+    from pg_class class
+    join pg_namespace namespace on namespace.oid = class.relnamespace
+    where namespace.nspname = 'public'
+      and class.relname = 'public_property_google_maps'
+      and class.relkind = 'v'
+  ),
+  'urbanedge_public_projection',
+  'the public map projection is owned by the constrained projection role'
+);
+select ok(
+  not has_schema_privilege('urbanedge_public_projection', 'public', 'CREATE'),
+  'the projection role does not retain schema creation privileges after migration'
 );
 
 insert into auth.users (
