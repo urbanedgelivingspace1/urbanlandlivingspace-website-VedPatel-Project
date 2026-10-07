@@ -219,7 +219,7 @@ export async function CategoryLanding({ category }: Readonly<{ category: LandCat
         })}
       />
       <section className={`category-hero category-${category.toLowerCase()}`}>
-        <div className="site-container relative z-10 py-14 sm:py-18 lg:py-24">
+        <div className="site-container relative z-10 py-12 sm:py-16 lg:py-20">
           <Breadcrumbs items={breadcrumbs} />
           <p className="eyebrow mt-8 text-[var(--brand-gold)]">{page.eyebrow}</p>
           <h1 className="public-page-title mt-3 max-w-4xl text-white">{page.title}</h1>
@@ -288,7 +288,7 @@ export async function CategoryLanding({ category }: Readonly<{ category: LandCat
       </section>
 
       <section id="current-inventory" className="section scroll-mt-24">
-        <div className="site-container">
+        <div className="site-container site-container-wide">
           <SectionHeading
             eyebrow={t("common.currentInventory")}
             title={page.eyebrow}

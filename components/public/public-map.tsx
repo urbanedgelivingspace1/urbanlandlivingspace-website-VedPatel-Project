@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 
 import type { PublicLocationDto } from "@/features/properties/domain/contracts";
+import { buildGoogleMapsPublicPointEmbedUrl } from "@/lib/validation/google-maps-embed";
+
+import { GoogleMapsEmbed } from "./google-maps-embed";
 
 type MapState = "idle" | "loading" | "ready" | "failed";
 
@@ -27,6 +30,29 @@ export function PublicMap({
         <strong>Exact location is shared by UrbanEdge where appropriate.</strong>
         <p>No pin or coordinate is published for this property.</p>
         <p>Contact our team for property-specific location details.</p>
+      </div>
+    );
+  }
+
+  const googleMapsUrl = buildGoogleMapsPublicPointEmbedUrl(
+    location.point,
+    location.visibility === "APPROXIMATE",
+  );
+
+  if (!styleUrl && googleMapsUrl) {
+    return (
+      <div className="public-google-map-fallback">
+        <GoogleMapsEmbed url={googleMapsUrl} title={location.label || "Property location"} />
+        <div className="public-map-caption" role="note">
+          <strong>
+            {location.visibility === "EXACT" ? "Exact public location" : "Approximate location"}
+          </strong>
+          <p>
+            {location.visibility === "EXACT"
+              ? "This listing includes a public map point for discovery."
+              : "This map shows only the broader area. Contact UrbanEdge for property-specific details."}
+          </p>
+        </div>
       </div>
     );
   }

@@ -174,7 +174,7 @@ describe("PropertyMediaManager", () => {
       within(brochure!).getByRole("link", { name: "Test / Download Brochure" }),
     ).toHaveAttribute(
       "href",
-      "https://drive.google.com/uc?export=download&id=1AbCdEfGhIjKlMnOpQrStUvWxYz_12345",
+      "https://drive.usercontent.google.com/download?export=download&confirm=t&id=1AbCdEfGhIjKlMnOpQrStUvWxYz_12345",
     );
     expect(within(brochure!).getByRole("button", { name: "Replace Brochure" })).toBeVisible();
     expect(within(brochure!).getByRole("button", { name: "Remove Brochure" })).toBeVisible();

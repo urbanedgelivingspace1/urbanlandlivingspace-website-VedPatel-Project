@@ -66,7 +66,7 @@ export default async function HomePage() {
       <JsonLd data={websiteJsonLd()} />
       <section className="home-hero">
         <div className="survey-lines" aria-hidden="true" />
-        <div className="site-container relative z-10 grid gap-10 py-16 sm:py-20 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:py-28">
+        <div className="site-container relative z-10 grid gap-10 py-14 sm:py-16 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:py-20">
           <div>
             <p className="eyebrow text-[var(--brand-gold)]">{t("home.area")}</p>
             <h1 className="hero-title mt-4">

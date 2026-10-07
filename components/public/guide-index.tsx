@@ -50,7 +50,7 @@ export async function GuideIndex({
         })}
       />
       <section className="collection-hero guides-hero">
-        <div className="site-container py-14 sm:py-18 lg:py-22">
+        <div className="site-container py-12 sm:py-16 lg:py-20">
           <Breadcrumbs items={breadcrumbs} />
           <p className="eyebrow mt-8 text-[var(--brand-gold)]">{t("guides.editorial")}</p>
           <h1 className="public-page-title mt-3 max-w-4xl text-white">{localizedTitle}</h1>

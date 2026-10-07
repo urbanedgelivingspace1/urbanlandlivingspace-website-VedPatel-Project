@@ -69,7 +69,7 @@ test("active admin uploads a photo batch and connects a Drive brochure without p
   await expect(page.getByText("✓ Brochure connected")).toBeVisible();
   await expect(page.getByRole("link", { name: "Test / Download Brochure" })).toHaveAttribute(
     "href",
-    "https://drive.google.com/uc?export=download&id=1AbCdEfGhIjKlMnOpQrStUvWxYz_12345",
+    "https://drive.usercontent.google.com/download?export=download&confirm=t&id=1AbCdEfGhIjKlMnOpQrStUvWxYz_12345",
   );
   await expect(page.getByText(/Private evidence|External media|Approve \/ promote/)).toHaveCount(0);
 

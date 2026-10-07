@@ -28,7 +28,7 @@ export function buildContentSecurityPolicy({
     `img-src 'self' data: blob:${externalConnections ? ` ${externalConnections}` : ""}`,
     "font-src 'self' data:",
     `connect-src 'self'${externalConnections ? ` ${externalConnections}` : ""} https://challenges.cloudflare.com`,
-    "frame-src 'self' https://challenges.cloudflare.com https://www.google.com https://www.youtube-nocookie.com https://player.vimeo.com https://my.matterport.com",
+    "frame-src 'self' https://challenges.cloudflare.com https://www.google.com https://drive.google.com https://drive.usercontent.google.com https://www.youtube-nocookie.com https://player.vimeo.com https://my.matterport.com",
     "media-src 'self' blob:",
     "worker-src 'self' blob:",
     "manifest-src 'self'",

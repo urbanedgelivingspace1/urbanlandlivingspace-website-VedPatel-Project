@@ -1,4 +1,5 @@
 const GOOGLE_DRIVE_HOST = "drive.google.com";
+const GOOGLE_DRIVE_DOWNLOAD_HOST = "drive.usercontent.google.com";
 const GOOGLE_DRIVE_FILE_ID = /^[A-Za-z0-9_-]{10,160}$/;
 
 function parseGoogleDriveUrl(value: string): URL | null {
@@ -50,8 +51,9 @@ export function normalizeGoogleDriveShareUrl(value: string): string | null {
 
 export function buildGoogleDriveDownloadUrl(fileId: string | null | undefined): string | null {
   if (!validFileId(fileId)) return null;
-  const url = new URL(`https://${GOOGLE_DRIVE_HOST}/uc`);
+  const url = new URL(`https://${GOOGLE_DRIVE_DOWNLOAD_HOST}/download`);
   url.searchParams.set("export", "download");
+  url.searchParams.set("confirm", "t");
   url.searchParams.set("id", fileId);
   return url.toString();
 }

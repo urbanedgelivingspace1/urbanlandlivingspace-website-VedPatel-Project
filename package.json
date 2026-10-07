@@ -28,6 +28,7 @@
     "test:integration": "vitest run --config vitest.integration.config.ts --passWithNoTests",
     "test:integration:local": "node scripts/run-local-integration.mjs",
     "test:e2e": "playwright test",
+    "test:e2e:responsive": "playwright test --config playwright.responsive.config.ts",
     "test:e2e:local": "node scripts/run-local-e2e.mjs",
     "test:safety": "vitest run tests/unit/environment-safety.test.ts",
     "check:server-boundaries": "node scripts/check-server-boundaries.mjs",

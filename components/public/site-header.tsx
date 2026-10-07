@@ -106,14 +106,14 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
   return (
     <header className="site-header">
       <div
-        className="site-container flex min-h-16 items-center justify-between gap-5 xl:min-h-20"
+        className="site-container site-container-wide site-header-inner flex items-center justify-between gap-4"
         inert={open ? true : undefined}
       >
         <Link href="/" className="shrink-0" aria-label={t("nav.home")}>
           <BrandWordmark compact />
         </Link>
 
-        <nav aria-label="Primary navigation" className="hidden items-center gap-1 xl:flex">
+        <nav aria-label="Primary navigation" className="site-primary-nav items-center gap-1">
           <Link
             aria-current={isActive(pathname, "/properties") ? "page" : undefined}
             className="nav-link"
@@ -173,7 +173,7 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
           ))}
         </nav>
 
-        <div className="hidden items-center gap-3 xl:flex">
+        <div className="site-header-actions items-center gap-2">
           <LanguageSwitcher compact />
           <Link className="button button-gold button-compact" href="/sell-your-land">
             {t("nav.sell")}
@@ -198,7 +198,7 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
 
         <button
           type="button"
-          className="menu-trigger xl:hidden"
+          className="menu-trigger"
           aria-expanded={open}
           aria-controls="mobile-navigation"
           aria-label={open ? t("nav.close") : t("nav.open")}
@@ -209,7 +209,7 @@ export function SiteHeader({ config }: Readonly<{ config: PublicBusinessConfig }
       </div>
 
       {open ? (
-        <div className="mobile-nav-backdrop xl:hidden" onClick={closeNavigation}>
+        <div className="mobile-nav-backdrop" onClick={closeNavigation}>
           <section
             aria-labelledby="mobile-navigation-title"
             aria-modal="true"

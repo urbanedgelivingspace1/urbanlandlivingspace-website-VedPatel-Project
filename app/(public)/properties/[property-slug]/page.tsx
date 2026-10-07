@@ -155,7 +155,7 @@ export default async function PropertyDetailPage({ params }: Props) {
         <Breadcrumbs items={breadcrumbItems} />
       </div>
 
-      <div className="site-container">
+      <div className="site-container site-container-wide">
         {closed ? (
           <div className="closed-property-banner" role="status">
             <strong>{availabilityLabel}</strong>
@@ -180,28 +180,13 @@ export default async function PropertyDetailPage({ params }: Props) {
               {property.location.label || t("common.locationUnavailable")}
             </p>
           </div>
-          <ShareButton title={property.title} propertyCode={property.propertyCode} />
+          <div className="property-title-actions">
+            <ShareButton title={property.title} propertyCode={property.propertyCode} />
+            {brochures[0] ? <PropertyBrochureLink brochure={brochures[0]} /> : null}
+          </div>
         </div>
 
         <CoreFactStrip property={property} />
-
-        {brochures[0] ? (
-          <section
-            className="mt-6 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between"
-            aria-labelledby="property-brochure-heading"
-          >
-            <div>
-              <p className="eyebrow">Property brochure</p>
-              <h2
-                id="property-brochure-heading"
-                className="mt-1 font-display text-2xl font-semibold"
-              >
-                Property details to take with you
-              </h2>
-            </div>
-            <PropertyBrochureLink brochure={brochures[0]} />
-          </section>
-        ) : null}
 
         <div className="property-detail-layout">
           <div className="property-detail-main">

@@ -16,7 +16,7 @@ function decodeHtmlAttribute(value: string): string {
 export function isSafeGoogleMapsEmbedUrl(value: string): boolean {
   try {
     const url = new URL(value);
-    return (
+    const officialEmbed =
       url.protocol === "https:" &&
       url.username === "" &&
       url.password === "" &&
@@ -24,11 +24,56 @@ export function isSafeGoogleMapsEmbedUrl(value: string): boolean {
       url.hostname === "www.google.com" &&
       (url.pathname === "/maps/embed" || url.pathname.startsWith("/maps/embed/")) &&
       url.search.length > 1 &&
-      url.hash === ""
-    );
+      url.hash === "";
+    if (officialEmbed) return true;
+
+    if (
+      url.protocol !== "https:" ||
+      url.username ||
+      url.password ||
+      url.port ||
+      url.hostname !== "www.google.com" ||
+      url.pathname !== "/maps" ||
+      url.hash ||
+      url.searchParams.get("output") !== "embed"
+    ) {
+      return false;
+    }
+
+    const allowedParameters = new Set(["q", "z", "output"]);
+    if ([...url.searchParams.keys()].some((key) => !allowedParameters.has(key))) return false;
+    const coordinate = url.searchParams.get("q") ?? "";
+    const zoom = Number(url.searchParams.get("z"));
+    const match = coordinate.match(/^(-?\d{1,2}(?:\.\d{1,6})),(-?\d{1,3}(?:\.\d{1,6}))$/);
+    if (!match || !Number.isFinite(zoom) || zoom < 1 || zoom > 18) return false;
+    const latitude = Number(match[1]);
+    const longitude = Number(match[2]);
+    return latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
   } catch {
     return false;
   }
+}
+
+export function buildGoogleMapsPublicPointEmbedUrl(
+  point: Readonly<{ latitude: number; longitude: number }>,
+  approximate: boolean,
+): string | null {
+  if (
+    !Number.isFinite(point.latitude) ||
+    !Number.isFinite(point.longitude) ||
+    point.latitude < -90 ||
+    point.latitude > 90 ||
+    point.longitude < -180 ||
+    point.longitude > 180
+  ) {
+    return null;
+  }
+
+  const url = new URL("https://www.google.com/maps");
+  url.searchParams.set("q", `${point.latitude.toFixed(6)},${point.longitude.toFixed(6)}`);
+  url.searchParams.set("z", approximate ? "11" : "15");
+  url.searchParams.set("output", "embed");
+  return url.toString();
 }
 
 export function parseGoogleMapsEmbedInput(input: string): GoogleMapsEmbedParseResult {

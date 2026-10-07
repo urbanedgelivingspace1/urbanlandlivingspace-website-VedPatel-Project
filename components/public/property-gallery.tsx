@@ -29,6 +29,10 @@ export function PropertyGallery({
   }
 
   const current = images[Math.min(selected, images.length - 1)]!;
+  const selectPrevious = () =>
+    setSelected((currentIndex) => (currentIndex - 1 + images.length) % images.length);
+  const selectNext = () => setSelected((currentIndex) => (currentIndex + 1) % images.length);
+
   return (
     <section className="property-gallery" aria-label="Property image gallery">
       <div className="property-gallery-main">
@@ -36,10 +40,30 @@ export function PropertyGallery({
           src={current.url}
           alt={current.altText || `${title} image ${selected + 1}`}
           fill
-          sizes="(max-width: 1023px) 100vw, 820px"
-          preload={selected === 0}
-          className="object-cover"
+          sizes="(max-width: 1151px) calc(100vw - 2rem), 1280px"
+          loading={selected === 0 ? "eager" : "lazy"}
+          className="object-contain"
         />
+        {images.length > 1 ? (
+          <>
+            <button
+              type="button"
+              className="gallery-nav gallery-nav-previous"
+              aria-label="Show previous property image"
+              onClick={selectPrevious}
+            >
+              <span aria-hidden="true">←</span>
+            </button>
+            <button
+              type="button"
+              className="gallery-nav gallery-nav-next"
+              aria-label="Show next property image"
+              onClick={selectNext}
+            >
+              <span aria-hidden="true">→</span>
+            </button>
+          </>
+        ) : null}
         <span className="gallery-count" aria-live="polite">
           {selected + 1} / {images.length}
         </span>
@@ -55,7 +79,14 @@ export function PropertyGallery({
               aria-pressed={index === selected}
               onClick={() => setSelected(index)}
             >
-              <Image src={image.url} alt="" fill sizes="96px" className="object-cover" />
+              <Image
+                src={image.url}
+                alt=""
+                fill
+                sizes="96px"
+                loading={index === 0 ? "eager" : "lazy"}
+                className="object-contain"
+              />
             </button>
           ))}
         </div>

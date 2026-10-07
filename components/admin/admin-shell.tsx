@@ -64,15 +64,15 @@ export function AdminShell({ admin, signOutAction, children }: AdminShellProps) 
           </form>
         </div>
       </header>
-      <div className="mx-auto grid max-w-[1800px] md:grid-cols-[15rem_1fr]">
+      <div className="mx-auto grid max-w-[1800px] lg:grid-cols-[15rem_1fr]">
         <aside className="admin-sidebar">
-          <details className="group md:hidden">
+          <details className="group lg:hidden">
             <summary className="cursor-pointer px-5 py-4 font-semibold">Menu</summary>
             <AdminNavigation
               canManageSecurity={admin.role === "SUPER_ADMIN" || admin.role === "ADMIN"}
             />
           </details>
-          <div className="hidden md:block">
+          <div className="hidden lg:block">
             <AdminNavigation
               canManageSecurity={admin.role === "SUPER_ADMIN" || admin.role === "ADMIN"}
             />

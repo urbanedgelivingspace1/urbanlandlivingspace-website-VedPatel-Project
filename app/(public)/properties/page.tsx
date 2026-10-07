@@ -82,7 +82,7 @@ export default async function PropertiesPage({ searchParams }: PageProps) {
         </div>
       </section>
       <section className="search-section">
-        <div className="site-container">
+        <div className="site-container site-container-wide">
           {data.status === "ready" ? <SearchActiveFilters query={parsed.query} /> : null}
           <div className="search-mobile-toolbar">
             <SearchFilters query={parsed.query} facets={facets} />

@@ -299,7 +299,7 @@ function LeadList({
 function LeadTable({ leads }: Readonly<{ leads: readonly LeadListItem[] }>) {
   return (
     <div className="mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white">
-      <div className="hidden overflow-x-auto md:block">
+      <div className="hidden overflow-x-auto lg:block">
         <table className="admin-table min-w-[1120px]">
           <thead>
             <tr>
@@ -323,7 +323,7 @@ function LeadTable({ leads }: Readonly<{ leads: readonly LeadListItem[] }>) {
           </tbody>
         </table>
       </div>
-      <div className="divide-y divide-slate-100 md:hidden">
+      <div className="divide-y divide-slate-100 lg:hidden">
         {leads.map((lead) => (
           <LeadMobileCard key={lead.id} lead={lead} />
         ))}

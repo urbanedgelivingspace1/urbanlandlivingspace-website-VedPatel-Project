@@ -3,6 +3,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildGoogleMapsPublicPointEmbedUrl,
   isSafeGoogleMapsEmbedUrl,
   parseGoogleMapsEmbedInput,
 } from "@/lib/validation/google-maps-embed";
@@ -38,5 +39,18 @@ describe("Google Maps embed validation", () => {
 
   it("does not accept ordinary Google Maps links as embeddable sources", () => {
     expect(isSafeGoogleMapsEmbedUrl("https://www.google.com/maps/place/Gandhinagar")).toBe(false);
+  });
+
+  it("builds a constrained Google Maps fallback from a public point", () => {
+    const url = buildGoogleMapsPublicPointEmbedUrl(
+      { latitude: 23.2112345, longitude: 72.6367895 },
+      true,
+    );
+
+    expect(url).toBe("https://www.google.com/maps?q=23.211234%2C72.636790&z=11&output=embed");
+    expect(isSafeGoogleMapsEmbedUrl(url!)).toBe(true);
+    expect(
+      buildGoogleMapsPublicPointEmbedUrl({ latitude: 100, longitude: 72.63 }, true),
+    ).toBeNull();
   });
 });

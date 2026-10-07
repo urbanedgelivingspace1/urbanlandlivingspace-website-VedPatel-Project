@@ -185,7 +185,7 @@ export async function TransactionLanding({
         })}
       />
       <section className="collection-hero">
-        <div className="site-container py-14 sm:py-18 lg:py-22">
+        <div className="site-container py-12 sm:py-16 lg:py-20">
           <Breadcrumbs items={breadcrumbs} />
           <p className="eyebrow mt-8 text-[var(--brand-gold)]">{transactionLabel}</p>
           <h1 className="public-page-title mt-3 max-w-4xl text-white">{page.title}</h1>
@@ -225,7 +225,7 @@ export async function TransactionLanding({
         </div>
       </section>
       <section id="current-inventory" className="section scroll-mt-24">
-        <div className="site-container">
+        <div className="site-container site-container-wide">
           <SectionHeading
             eyebrow={t("common.publishedInventory")}
             title={transactionLabel}

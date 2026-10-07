@@ -82,7 +82,25 @@ describe("M10 public property experience", () => {
       />,
     );
 
+    expect(screen.getByAltText("First approved image")).toHaveClass("object-contain");
+    expect(screen.getByAltText("First approved image")).toHaveAttribute("loading", "eager");
+    expect(
+      screen.getByRole("button", { name: "Show property image 1" }).querySelector("img"),
+    ).toHaveAttribute("loading", "eager");
     const second = screen.getByRole("button", { name: "Show property image 2" });
+    const next = screen.getByRole("button", { name: "Show next property image" });
+    next.focus();
+    await user.keyboard("{Enter}");
+    expect(second).toHaveAttribute("aria-pressed", "true");
+
+    const previous = screen.getByRole("button", { name: "Show previous property image" });
+    previous.focus();
+    await user.keyboard("{Enter}");
+    expect(screen.getByRole("button", { name: "Show property image 1" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+
     second.focus();
     await user.keyboard("{Enter}");
     expect(second).toHaveAttribute("aria-pressed", "true");
@@ -159,7 +177,15 @@ describe("M10 public property experience", () => {
       />,
     );
     expect(screen.getByText("Approximate location")).toBeVisible();
-    expect(screen.getByText("Interactive map provider is not configured.")).toBeVisible();
+    expect(screen.getByTitle("Ahmedabad map")).toHaveAttribute(
+      "src",
+      "https://www.google.com/maps?q=22.990000%2C72.380000&z=11&output=embed",
+    );
+    expect(
+      screen.getByText(
+        "This map shows only the broader area. Contact UrbanEdge for property-specific details.",
+      ),
+    ).toBeVisible();
   });
 
   it("constructs a safe Google Maps iframe and rejects an invalid stored source", () => {
@@ -197,7 +223,15 @@ describe("M10 public property experience", () => {
     );
     expect(screen.getByRole("link", { name: /Download Brochure/ })).toHaveAttribute(
       "href",
-      "https://drive.google.com/uc?export=download&id=1AbCdEfGhIjKlMnOpQrStUvWxYz_12345",
+      "https://drive.usercontent.google.com/download?export=download&confirm=t&id=1AbCdEfGhIjKlMnOpQrStUvWxYz_12345",
+    );
+    expect(screen.getByTitle("Brochure download")).toHaveAttribute(
+      "name",
+      expect.stringMatching(/^brochure-download-/),
+    );
+    expect(screen.getByRole("link", { name: /Download Brochure/ })).toHaveAttribute(
+      "target",
+      expect.stringMatching(/^brochure-download-/),
     );
 
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://synthetic.supabase.co");

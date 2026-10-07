@@ -366,13 +366,13 @@ test("published detail renders media, correct price/area, and approximate public
   await expect(gallery.getByAltText("Synthetic agricultural cover view")).toBeVisible();
   await expect(page.getByText("2.5 ac", { exact: true }).first()).toBeVisible();
   await expect(page.getByText(/1,25,00,000/).first()).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Approximate location" })).toBeVisible();
-  await expect(page.getByText("Interactive map provider is not configured.")).toBeVisible();
+  await expect(page.getByText("Approximate location", { exact: true })).toBeVisible();
+  await expect(page.getByTitle(/map$/)).toBeVisible();
   await gallery.getByRole("button", { name: "Show property image 2" }).click();
   await expect(gallery.getByAltText("Synthetic agricultural second view")).toBeVisible();
   await expect(page.getByRole("link", { name: /Download Brochure/ })).toHaveAttribute(
     "href",
-    "https://drive.google.com/uc?export=download&id=1AbCdEfGhIjKlMnOpQrStUvWxYz_12345",
+    "https://drive.usercontent.google.com/download?export=download&confirm=t&id=1AbCdEfGhIjKlMnOpQrStUvWxYz_12345",
   );
 
   const browserVisible = `${await page.content()} ${visibleResponses.join(" ")}`;

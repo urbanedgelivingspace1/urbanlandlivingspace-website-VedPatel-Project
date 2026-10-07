@@ -212,7 +212,7 @@ export default async function AdminPropertiesPage({
 
       {result.items.length ? (
         <>
-          <div className="hidden overflow-visible rounded-xl border border-slate-200 bg-white md:block">
+          <div className="hidden overflow-x-auto rounded-xl border border-slate-200 bg-white lg:block">
             <table className="w-full text-left text-sm">
               <thead className="bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                 <tr>
@@ -296,7 +296,7 @@ export default async function AdminPropertiesPage({
               </tbody>
             </table>
           </div>
-          <div className="grid gap-3 md:hidden">
+          <div className="grid gap-3 lg:hidden">
             {result.items.map((property) => (
               <article
                 key={property.id}

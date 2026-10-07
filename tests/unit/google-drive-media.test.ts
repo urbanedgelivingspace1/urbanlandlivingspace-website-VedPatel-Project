@@ -25,7 +25,7 @@ describe("Google Drive brochure URLs", () => {
       `https://drive.google.com/file/d/${FILE_ID}/view`,
     );
     expect(buildGoogleDriveDownloadUrl(FILE_ID)).toBe(
-      `https://drive.google.com/uc?export=download&id=${FILE_ID}`,
+      `https://drive.usercontent.google.com/download?export=download&confirm=t&id=${FILE_ID}`,
     );
   });
 
@@ -49,7 +49,7 @@ describe("Google Drive brochure URLs", () => {
         externalProvider: "GOOGLE_DRIVE",
         externalMediaId: FILE_ID,
       }),
-    ).toBe(`https://drive.google.com/uc?export=download&id=${FILE_ID}`);
+    ).toBe(`https://drive.usercontent.google.com/download?export=download&confirm=t&id=${FILE_ID}`);
 
     process.env.NEXT_PUBLIC_SUPABASE_URL = "https://synthetic.supabase.co";
     expect(
