@@ -137,6 +137,11 @@ export type PublicPropertyDetailRow = PublicPropertyListingRow &
     tp_plot_number: string | null;
   }>;
 
+export type PublicPropertyGoogleMapRow = Readonly<{
+  property_id: string;
+  google_maps_embed_url: string;
+}>;
+
 export type PublicParcelIdentifierRow = Readonly<{
   property_id: string;
   identifier_type: string;
@@ -313,6 +318,7 @@ export type Database = {
     Views: {
       public_property_listings: View<PublicPropertyListingRow>;
       public_property_details: View<PublicPropertyDetailRow>;
+      public_property_google_maps: View<PublicPropertyGoogleMapRow>;
       public_property_media: View<PublicMediaRow>;
       public_property_verification_summaries: View<PublicVerificationSummaryRow>;
       public_property_indexability: View<PublicPropertyIndexabilityRow>;

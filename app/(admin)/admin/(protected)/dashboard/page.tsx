@@ -312,13 +312,6 @@ export default async function AdminDashboardPage() {
           </div>
           <div className="border-t border-slate-100 p-3">
             <Link
-              href="/admin/verification/queue"
-              className="flex items-center justify-between rounded-lg px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50"
-            >
-              <span>Review verification queue</span>
-              <span>→</span>
-            </Link>
-            <Link
               href="/admin/media"
               className="flex items-center justify-between rounded-lg px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50"
             >

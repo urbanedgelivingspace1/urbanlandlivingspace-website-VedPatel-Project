@@ -60,6 +60,13 @@ export function issuesForGroup(readiness: PublicationReadiness, group: Publicati
   };
 }
 
+export function humanizePublicationIssue(message: string) {
+  return message
+    .replace(/public[- ]safe/gi, "listing")
+    .replace(/publication/gi, "publishing")
+    .replace(/authoritative/gi, "saved");
+}
+
 export function isPriceStructureValid(
   input: Readonly<{
     mode: PriceMode;

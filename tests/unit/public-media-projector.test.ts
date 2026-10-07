@@ -59,6 +59,28 @@ describe("M7 public media DTO", () => {
     });
   });
 
+  it("projects a Google Drive brochure without exposing storage internals", () => {
+    expect(
+      projectPublicMedia({
+        ...base,
+        media_type: "BROCHURE",
+        object_path: null,
+        mime_type: null,
+        width_px: null,
+        height_px: null,
+        is_cover: false,
+        external_url: "https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz_12345/view",
+        external_provider: "GOOGLE_DRIVE",
+        external_media_id: "1AbCdEfGhIjKlMnOpQrStUvWxYz_12345",
+      }),
+    ).toMatchObject({
+      mediaType: "BROCHURE",
+      objectPath: null,
+      externalProvider: "GOOGLE_DRIVE",
+      externalMediaId: "1AbCdEfGhIjKlMnOpQrStUvWxYz_12345",
+    });
+  });
+
   it("rejects a row with neither public locator", () => {
     expect(() =>
       projectPublicMedia({

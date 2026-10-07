@@ -14,6 +14,8 @@ import { submitPropertyInquiryAction } from "@/app/(public)/intake-actions";
 import { CoreFactStrip, PropertyFacts } from "@/components/public/property-facts";
 import { PropertyGallery } from "@/components/public/property-gallery";
 import { PropertyCollection } from "@/components/public/property-collection";
+import { PropertyBrochureLink } from "@/components/public/property-brochure-link";
+import { GoogleMapsEmbed } from "@/components/public/google-maps-embed";
 import { PublicMap } from "@/components/public/public-map";
 import { ShareButton } from "@/components/public/share-button";
 import { VerificationExplainer } from "@/components/public/verification-explainer";
@@ -135,7 +137,10 @@ export default async function PropertyDetailPage({ params }: Props) {
         item.externalProvider === "MATTERPORT"),
   );
   const brochures = property.media.filter(
-    (item) => item.mediaType === "BROCHURE" && item.objectPath,
+    (item) =>
+      item.mediaType === "BROCHURE" &&
+      (item.objectPath ||
+        (item.externalProvider === "GOOGLE_DRIVE" && Boolean(item.externalMediaId))),
   );
   const categoryPath =
     property.category === "AGRICULTURAL"
@@ -201,21 +206,22 @@ export default async function PropertyDetailPage({ params }: Props) {
 
             <section className="detail-section" aria-labelledby="location-heading">
               <p className="eyebrow">{t("property.location")}</p>
-              <h2 id="location-heading">
-                {property.location.visibility === "EXACT"
-                  ? t("property.exactLocation")
-                  : property.location.visibility === "APPROXIMATE"
-                    ? t("property.approximateLocation")
-                    : t("property.locationThrough")}
-              </h2>
-              <p className="section-copy">
+              <h2 id="location-heading">{t("property.location")}</h2>
+              <p className="section-copy location-title">
                 {property.location.label || t("property.locationHidden")}
               </p>
               <div className="mt-6">
-                <PublicMap
-                  location={property.location}
-                  styleUrl={process.env.NEXT_PUBLIC_MAP_STYLE_URL || null}
-                />
+                {property.googleMapsEmbedUrl ? (
+                  <GoogleMapsEmbed
+                    url={property.googleMapsEmbedUrl}
+                    title={property.location.label || property.title}
+                  />
+                ) : (
+                  <PublicMap
+                    location={property.location}
+                    styleUrl={process.env.NEXT_PUBLIC_MAP_STYLE_URL || null}
+                  />
+                )}
               </div>
             </section>
 
@@ -227,12 +233,16 @@ export default async function PropertyDetailPage({ params }: Props) {
               }
             />
 
-            <VerificationExplainer verifications={property.verifications} />
+            {property.verifications.length > 0 ? (
+              <VerificationExplainer verifications={property.verifications} />
+            ) : null}
 
             {externalMedia.length > 0 || brochures.length > 0 ? (
               <section className="detail-section" aria-labelledby="property-media">
                 <p className="eyebrow">More property media</p>
-                <h2 id="property-media">Video, drone, brochure and 360°</h2>
+                <h2 id="property-media">
+                  {externalMedia.length > 0 ? "Video, brochure and 360°" : "Property brochure"}
+                </h2>
                 <div className="external-media-grid">
                   {externalMedia.map((item) => (
                     <SafeExternalMedia
@@ -249,20 +259,9 @@ export default async function PropertyDetailPage({ params }: Props) {
                     />
                   ))}
                 </div>
-                {brochures.map((item) => {
-                  const url = buildPublicMediaUrl(item.objectPath);
-                  return url ? (
-                    <a
-                      className="button button-outline mt-5"
-                      href={url}
-                      key={item.id}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Open approved brochure
-                    </a>
-                  ) : null;
-                })}
+                {brochures.map((item) => (
+                  <PropertyBrochureLink key={item.id} brochure={item} />
+                ))}
               </section>
             ) : null}
 

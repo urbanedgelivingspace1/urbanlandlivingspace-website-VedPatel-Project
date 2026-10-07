@@ -51,7 +51,16 @@ function refreshPublicProperty(propertyId: string, slug?: string) {
   if (slug) revalidatePath(`/properties/${slug}`);
   revalidatePath("/admin/properties");
   revalidatePath(`/admin/properties/${propertyId}`);
+  revalidatePath(`/admin/properties/${propertyId}/edit`);
+  revalidatePath(`/admin/properties/${propertyId}/media`);
   revalidatePath(`/admin/properties/${propertyId}/preview`);
+  revalidatePath(`/admin/properties/${propertyId}/publish`);
+}
+
+function draftDestination(propertyId: string, formData: FormData) {
+  return text(formData, "submitIntent") === "save-next"
+    ? `/admin/properties/${propertyId}/media`
+    : `/admin/properties/${propertyId}?saved=1`;
 }
 
 function retainedValues(formData: FormData): Record<string, string> {
@@ -245,7 +254,7 @@ export async function createPropertyDraftAction(
     return failureState(error, formData);
   }
   revalidatePath("/admin/properties");
-  redirect(`/admin/properties/${propertyId}`);
+  redirect(draftDestination(propertyId, formData));
 }
 
 export async function updatePropertyDraftAction(
@@ -262,7 +271,8 @@ export async function updatePropertyDraftAction(
   }
   revalidatePath("/admin/properties");
   revalidatePath(`/admin/properties/${propertyId}`);
-  redirect(`/admin/properties/${propertyId}?saved=1`);
+  revalidatePath(`/admin/properties/${propertyId}/edit`);
+  redirect(draftDestination(propertyId, formData));
 }
 
 export async function changeAvailabilityAction(formData: FormData) {

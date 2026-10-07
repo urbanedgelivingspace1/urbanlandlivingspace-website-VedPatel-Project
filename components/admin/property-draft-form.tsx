@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 
 import { DeleteDraftButton } from "@/components/admin/delete-draft-button";
@@ -10,6 +10,7 @@ import {
   initialPropertyFormState,
   type PropertyFormState,
 } from "@/features/properties/domain/property-form-state";
+import { parseGoogleMapsEmbedInput } from "@/lib/validation/google-maps-embed";
 
 type FormAction = (state: PropertyFormState, formData: FormData) => Promise<PropertyFormState>;
 
@@ -68,6 +69,8 @@ function buildSampleData(
         "High-visibility non-agricultural plot with recorded commercial-use context, dual-road corner access, and available utility information. Confirm permissions for the intended project independently.",
       districtId,
       publicAddress: "Koba Circle, Gandhinagar Highway, Gandhinagar, Gujarat",
+      googleMapsEmbedUrl:
+        "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1000!2d72.63!3d23.16",
       landmarkText: "Opposite Tech City Gate 1",
       displayAreaValue: "1200",
       displayAreaUnitId: sqYdUnitId,
@@ -140,6 +143,8 @@ function buildSampleData(
         "Ready-to-occupy industrial land parcel situated in GIDC Sanand II. Complete with industrial tenure approval, boundary wall, high-tension power connection, and proximity to national freight corridor.",
       districtId,
       publicAddress: "Engineering Zone, GIDC Phase II, Sanand, Ahmedabad, Gujarat",
+      googleMapsEmbedUrl:
+        "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1000!2d72.37!3d22.99",
       landmarkText: "Near GIDC Water Treatment Facility",
       displayAreaValue: "5000",
       displayAreaUnitId: sqMUnitId,
@@ -211,6 +216,8 @@ function buildSampleData(
       "Agricultural parcel offered for farming or long-term land use, with recorded cultivation, water, and road information in Ahmedabad district. Buyers should confirm suitability and permissions for their intended use.",
     districtId,
     publicAddress: "Sanand-Bavla Road, Sanand, Ahmedabad, Gujarat",
+    googleMapsEmbedUrl:
+      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1000!2d72.38!3d22.98",
     landmarkText: "Near GIDC Gate 2",
     displayAreaValue: "2.5",
     displayAreaUnitId: acreUnitId,
@@ -283,14 +290,20 @@ export function PropertyDraftForm({
 }: Props) {
   const [state, formAction, pending] = useActionState(action, initialPropertyFormState);
   const formRef = useRef<HTMLFormElement>(null);
+  const submissionStarted = useRef(false);
   const [sampleNotice, setSampleNotice] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState(
     String(initialValues.landCategory ?? "AGRICULTURAL"),
   );
+  const [mapInput, setMapInput] = useState(String(initialValues.googleMapsEmbedUrl ?? ""));
 
   const value = (name: string) => state.values[name] ?? initialValues[name] ?? "";
   const checked = (name: string) => state.values[name] === "on" || initialValues[name] === true;
   const fieldError = (name: string) => state.errors[name]?.join(" ");
+
+  useEffect(() => {
+    if (!pending) submissionStarted.current = false;
+  }, [pending, state]);
 
   const applyValuesToForm = (values: Record<string, string | boolean>) => {
     const form = formRef.current;
@@ -317,7 +330,10 @@ export function PropertyDraftForm({
 
   const handleFillSample = (category: "AGRICULTURAL" | "NA" | "INDUSTRIAL" = "AGRICULTURAL") => {
     const data = buildSampleData(category, references);
-    flushSync(() => setSelectedCategory(category));
+    flushSync(() => {
+      setSelectedCategory(category);
+      setMapInput(String(data.googleMapsEmbedUrl ?? ""));
+    });
     applyValuesToForm(data);
     const categoryLabels = {
       AGRICULTURAL: "Agricultural Farmland",
@@ -333,6 +349,10 @@ export function PropertyDraftForm({
     const form = formRef.current;
     if (!form) return;
     form.reset();
+    flushSync(() => {
+      setSelectedCategory(String(initialValues.landCategory ?? "AGRICULTURAL"));
+      setMapInput(String(initialValues.googleMapsEmbedUrl ?? ""));
+    });
     setSampleNotice("Form cleared.");
   };
 
@@ -359,7 +379,19 @@ export function PropertyDraftForm({
   );
 
   return (
-    <form ref={formRef} action={formAction} className="space-y-6" noValidate>
+    <form
+      ref={formRef}
+      action={formAction}
+      className="space-y-6"
+      noValidate
+      onSubmit={(event) => {
+        if (submissionStarted.current) {
+          event.preventDefault();
+          return;
+        }
+        submissionStarted.current = true;
+      }}
+    >
       {/* Testing helper toolbar (rendered strictly in non-production environments) */}
       {allowTestPresets ? (
         <div
@@ -516,7 +548,6 @@ export function PropertyDraftForm({
             <span className="mt-1 block text-xs text-red-700">{fieldError("districtId")}</span>
           ) : null}
         </label>
-        {input("publicAddress", "Address or locality shown on the listing")}
         {input("landmarkText", "Nearby landmark")}
         {input("displayAreaValue", "Area", { type: "number", step: "0.0001" })}
         <label className={labelClass}>
@@ -587,6 +618,95 @@ export function PropertyDraftForm({
             defaultValue={String(value("commercialTerms"))}
           />
         </label>
+      </FormSection>
+
+      <FormSection
+        title="Property Location"
+        description="Tell customers what to call this location, then paste the map from Google Maps."
+      >
+        <label className={`${labelClass} md:col-span-2`}>
+          Location Title
+          <input
+            className={inputClass}
+            name="publicAddress"
+            placeholder="Near IIT Gandhinagar, Palaj"
+            defaultValue={String(value("publicAddress"))}
+            aria-invalid={Boolean(fieldError("publicAddress"))}
+          />
+          <span className="mt-1 block text-xs font-normal text-slate-600">
+            This title will be shown above the map on the public property page.
+          </span>
+          {fieldError("publicAddress") ? (
+            <span className="mt-1 block text-xs text-red-700">{fieldError("publicAddress")}</span>
+          ) : null}
+        </label>
+        <label className={`${labelClass} md:col-span-2`}>
+          Google Maps Embed
+          <textarea
+            className={inputClass}
+            name="googleMapsEmbedUrl"
+            rows={4}
+            placeholder="Paste the Google Maps iframe or https://www.google.com/maps/embed?..."
+            value={mapInput}
+            aria-invalid={Boolean(fieldError("googleMapsEmbedUrl"))}
+            onChange={(event) => setMapInput(event.target.value)}
+          />
+          {fieldError("googleMapsEmbedUrl") ? (
+            <span className="mt-1 block text-xs text-red-700">
+              {fieldError("googleMapsEmbedUrl")}
+            </span>
+          ) : null}
+        </label>
+        <details className="rounded-lg border border-slate-200 bg-slate-50 md:col-span-2">
+          <summary className="cursor-pointer px-4 py-3 text-sm font-bold text-slate-800">
+            How do I get this link?
+          </summary>
+          <div className="space-y-3 border-t border-slate-200 px-4 py-4 text-sm text-slate-700">
+            <ol className="list-decimal space-y-1 pl-5">
+              <li>Open Google Maps.</li>
+              <li>Search for the property or location.</li>
+              <li>Click Share.</li>
+              <li>Select Embed a map.</li>
+              <li>Choose the desired map view.</li>
+              <li>Click Copy HTML.</li>
+              <li>Paste the copied iframe into the field above.</li>
+            </ol>
+            <code className="block overflow-x-auto rounded-md bg-slate-900 px-3 py-2 text-xs text-slate-100">
+              {'<iframe src="https://www.google.com/maps/embed?pb=...">'}
+            </code>
+            <p>
+              You can paste the complete iframe. UrbanEdge will automatically extract the Google
+              Maps link.
+            </p>
+          </div>
+        </details>
+        {mapInput.trim()
+          ? (() => {
+              const result = parseGoogleMapsEmbedInput(mapInput);
+              return result.ok ? (
+                <div className="md:col-span-2">
+                  <p className="text-sm font-bold text-slate-900">Map Preview</p>
+                  <p className="mt-1 text-xs font-semibold text-emerald-700">
+                    Google Maps location added successfully.
+                  </p>
+                  <div className="mt-3 h-[280px] overflow-hidden rounded-xl border border-slate-200 bg-slate-100 sm:h-[400px]">
+                    <iframe
+                      className="h-full w-full border-0"
+                      src={result.url}
+                      title="Google Maps location preview"
+                      loading="lazy"
+                      allowFullScreen
+                      referrerPolicy="strict-origin-when-cross-origin"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-red-700 md:col-span-2" role="alert">
+                  {result.error}
+                </p>
+              );
+            })()
+          : null}
       </FormSection>
 
       <FormSection
@@ -860,10 +980,10 @@ export function PropertyDraftForm({
         </label>
       </FormSection>
 
-      <div className="sticky bottom-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-300 bg-white/95 p-4 shadow-xl backdrop-blur">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <p className="text-sm text-slate-600">
-          Saving keeps this property private. Add photos and documents from the property record,
-          then publish when it is ready.
+          Saving keeps this property private. Continue when you are ready to add photos and secure
+          documents.
         </p>
         <div className="flex flex-wrap items-center gap-3">
           {allowTestPresets ? (
@@ -890,11 +1010,22 @@ export function PropertyDraftForm({
             Cancel
           </Link>
           <button
-            className="rounded-lg bg-[var(--brand-navy)] px-5 py-2 text-sm font-bold text-white disabled:opacity-60"
+            className="button button-secondary disabled:opacity-60"
             disabled={pending}
+            name="submitIntent"
             type="submit"
+            value="save-draft"
           >
             {pending ? "Saving…" : submitLabel}
+          </button>
+          <button
+            className="button button-primary disabled:opacity-60"
+            disabled={pending}
+            name="submitIntent"
+            type="submit"
+            value="save-next"
+          >
+            {pending ? "Saving…" : "Save & Next →"}
           </button>
         </div>
       </div>

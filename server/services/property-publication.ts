@@ -174,6 +174,7 @@ export type PublicationPreview = Readonly<{
   area: string;
   priceMode: string | null;
   publicAddress: string | null;
+  googleMapsEmbedUrl: string | null;
   location: ReturnType<typeof projectPublicLocation>;
   cover: Readonly<{ objectPath: string; altText: string | null }> | null;
 }>;
@@ -186,7 +187,7 @@ export async function getPublicationPreview(
   const { data: property, error } = await client
     .from("properties")
     .select(
-      "id,property_code,public_slug,listing_title,short_description,description,land_category,primary_transaction_type,availability_status,display_area_value,display_area_unit_id,district_id,subdistrict_id,place_id,locality_id,public_address,location_visibility",
+      "id,property_code,public_slug,listing_title,short_description,description,land_category,primary_transaction_type,availability_status,display_area_value,display_area_unit_id,district_id,subdistrict_id,place_id,locality_id,public_address,google_maps_embed_url,location_visibility",
     )
     .eq("id", propertyId)
     .is("deleted_at", null)
@@ -246,6 +247,7 @@ export async function getPublicationPreview(
     area: `${property.display_area_value} ${unit.data?.symbol ?? unit.data?.display_name ?? ""}`.trim(),
     priceMode: offer.data?.price_mode ?? null,
     publicAddress: property.public_address,
+    googleMapsEmbedUrl: visibility === "HIDDEN" ? null : property.google_maps_embed_url,
     location: projectPublicLocation({
       visibility,
       publicLatitude: location.data?.public_latitude ?? null,

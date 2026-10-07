@@ -147,6 +147,77 @@ describe.sequential("M7 media and private storage integration", () => {
     expect((await fetch(publicUrl)).status).toBe(200);
   });
 
+  it("processes photo batches independently and selects the first approved cover", async () => {
+    const firstSource = await sharp({
+      create: { width: 1200, height: 800, channels: 3, background: "#789267" },
+    })
+      .jpeg()
+      .toBuffer();
+    const secondSource = await sharp({
+      create: { width: 1200, height: 800, channels: 3, background: "#675a92" },
+    })
+      .png()
+      .toBuffer();
+    const { uploadPropertyImagesBatchWithClient } =
+      await import("@/server/services/property-media");
+    const result = await uploadPropertyImagesBatchWithClient(database, actorId, propertyId, [
+      new File([firstSource], "front-view.jpg", { type: "image/jpeg" }),
+      new File(["not an image"], "invalid-file.png", { type: "image/png" }),
+      new File([secondSource], "road-view.png", { type: "image/png" }),
+    ]);
+
+    expect(result.uploaded).toBe(2);
+    expect(result.results).toEqual([
+      expect.objectContaining({ fileName: "front-view.jpg", ok: true }),
+      expect.objectContaining({ fileName: "invalid-file.png", ok: false }),
+      expect.objectContaining({ fileName: "road-view.png", ok: true }),
+    ]);
+    const rows = await database
+      .from("media_assets")
+      .select("mime_type,storage_bucket,visibility,processing_status,is_cover,alt_text")
+      .eq("property_id", propertyId)
+      .eq("media_type", "IMAGE")
+      .is("archived_at", null)
+      .order("sort_order");
+    expect(rows.error).toBeNull();
+    expect(rows.data?.filter((row) => row.processing_status === "APPROVED")).toHaveLength(3);
+    expect(rows.data?.filter((row) => row.is_cover)).toHaveLength(1);
+    const coverId = rows.data?.find((row) => row.is_cover)?.alt_text;
+    expect(rows.data?.slice(1)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          mime_type: "image/webp",
+          storage_bucket: "property-media-public",
+          visibility: "PUBLIC",
+          alt_text: "Synthetic M7 integration property - property photo 2",
+        }),
+        expect.objectContaining({
+          mime_type: "image/webp",
+          storage_bucket: "property-media-public",
+          visibility: "PUBLIC",
+          alt_text: "Synthetic M7 integration property - property photo 3",
+        }),
+      ]),
+    );
+
+    const laterSource = await sharp({
+      create: { width: 1200, height: 800, channels: 3, background: "#92675a" },
+    })
+      .webp()
+      .toBuffer();
+    await uploadPropertyImagesBatchWithClient(database, actorId, propertyId, [
+      new File([laterSource], "later-view.webp", { type: "image/webp" }),
+    ]);
+    const coverAfterLaterUpload = await database
+      .from("media_assets")
+      .select("alt_text")
+      .eq("property_id", propertyId)
+      .eq("is_cover", true)
+      .is("archived_at", null)
+      .single();
+    expect(coverAfterLaterUpload.data?.alt_text).toBe(coverId);
+  });
+
   it("normalizes external video identity without storing a video binary", async () => {
     const { addExternalPropertyMediaWithClient } = await import("@/server/services/property-media");
     const first = await addExternalPropertyMediaWithClient(
@@ -179,6 +250,67 @@ describe.sequential("M7 media and private storage integration", () => {
       object_path: null,
       media_subtype: "DRONE_VIDEO",
     });
+  });
+
+  it("connects, replaces, and archives a canonical Google Drive brochure", async () => {
+    const { saveGoogleDriveBrochureWithClient } = await import("@/server/services/property-media");
+    const first = await saveGoogleDriveBrochureWithClient(
+      database,
+      actorId,
+      propertyId,
+      "https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz_12345/view?usp=sharing",
+    );
+    expect(first).toMatchObject({ duplicate: false, replaced: false });
+    const firstRow = await database
+      .from("media_assets")
+      .select(
+        "external_url,external_provider,external_media_id,storage_bucket,object_path,visibility,processing_status,scan_status",
+      )
+      .eq("id", first.id)
+      .single();
+    expect(firstRow.data).toMatchObject({
+      external_url: "https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz_12345/view",
+      external_provider: "GOOGLE_DRIVE",
+      external_media_id: "1AbCdEfGhIjKlMnOpQrStUvWxYz_12345",
+      storage_bucket: null,
+      object_path: null,
+      visibility: "PUBLIC",
+      processing_status: "APPROVED",
+      scan_status: null,
+    });
+
+    const replacement = await saveGoogleDriveBrochureWithClient(
+      database,
+      actorId,
+      propertyId,
+      "https://drive.google.com/open?id=2BcDeFgHiJkLmNoPqRsTuVwXyZ_67890",
+    );
+    expect(replacement).toMatchObject({ duplicate: false, replaced: true });
+    const oldRow = await database
+      .from("media_assets")
+      .select("archived_at")
+      .eq("id", first.id)
+      .single();
+    expect(oldRow.data?.archived_at).not.toBeNull();
+
+    await expect(
+      saveGoogleDriveBrochureWithClient(database, actorId, propertyId, "javascript:alert(1)"),
+    ).rejects.toThrow(/valid Google Drive file link/);
+
+    // The public wrapper uses the same archive RPC; archive directly with the service-role
+    // client here so the integration test remains independent of request authentication.
+    const removed = await database.rpc("archive_property_media", {
+      requested_actor_id: actorId,
+      requested_media_id: replacement.id,
+    });
+    expect(removed.error).toBeNull();
+    const active = await database
+      .from("media_assets")
+      .select("id")
+      .eq("property_id", propertyId)
+      .eq("media_type", "BROCHURE")
+      .is("archived_at", null);
+    expect(active.data).toEqual([]);
   });
 
   it("keeps unpublished media out of anonymous public application projections", async () => {

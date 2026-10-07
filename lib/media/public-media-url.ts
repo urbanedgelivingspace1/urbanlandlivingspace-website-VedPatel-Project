@@ -1,3 +1,5 @@
+import { buildGoogleDriveDownloadUrl } from "@/lib/media/google-drive";
+
 const publicBucket = "property-media-public";
 
 function encodeObjectPath(objectPath: string): string {
@@ -23,4 +25,17 @@ export function buildPublicBucketMediaUrl(
   } catch {
     return null;
   }
+}
+
+export function buildPublicBrochureUrl(
+  brochure: Readonly<{
+    objectPath: string | null;
+    externalProvider?: string | null;
+    externalMediaId?: string | null;
+  }>,
+): string | null {
+  if (brochure.externalProvider === "GOOGLE_DRIVE") {
+    return buildGoogleDriveDownloadUrl(brochure.externalMediaId);
+  }
+  return buildPublicMediaUrl(brochure.objectPath);
 }

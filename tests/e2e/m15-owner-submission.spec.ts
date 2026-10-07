@@ -168,9 +168,9 @@ test("seller lead creates multiple drafts, stores private documents, and explici
   await page.getByLabel("Display area").fill("2");
   await page.locator('select[name="displayAreaUnitId"]').selectOption({ label: "Acre (ac)" });
   await page.locator('select[name="locationVisibility"]').selectOption("HIDDEN");
-  await page.getByRole("button", { name: "Create draft" }).click();
-  await expect(page).toHaveURL(/\/admin\/properties\/[0-9a-f-]+$/);
-  const firstPropertyId = page.url().split("/").at(-1) as string;
+  await page.getByRole("button", { name: "Save Draft" }).click();
+  await expect(page).toHaveURL(/\/admin\/properties\/[0-9a-f-]+\?saved=1$/);
+  const firstPropertyId = new URL(page.url()).pathname.split("/").at(-1) as string;
   expect(
     (
       await service()
@@ -218,8 +218,7 @@ test("seller lead creates multiple drafts, stores private documents, and explici
   ).toBe(0);
   await assertPrivateDocumentBoundary(browser, firstPropertyId, documents.data![0]!.id);
 
-  await page.getByRole("link", { name: /Media/ }).click();
-  await page.getByRole("link", { name: "Upload & manage media" }).click();
+  await page.goto(`/admin/properties/${firstPropertyId}/media`);
   const image = await sharp({
     create: { width: 1200, height: 800, channels: 3, background: "#8f7958" },
   })
@@ -236,9 +235,8 @@ test("seller lead creates multiple drafts, stores private documents, and explici
   await expect(imageForm.getByRole("status")).toContainText("private staging");
   await page.getByRole("button", { name: "Approve / promote" }).click();
   await page.getByRole("button", { name: "Set cover" }).click();
-  await page.getByRole("link", { name: "Back to property" }).click();
-  await page.getByRole("link", { name: "Review", exact: true }).click();
-  await expect(page.getByText("NO BLOCKERS")).toBeVisible();
+  await page.getByRole("link", { name: /Save & Next/ }).click();
+  await expect(page.getByRole("heading", { name: "Ready to publish" })).toBeVisible();
   expect(
     (
       await service()
@@ -247,13 +245,12 @@ test("seller lead creates multiple drafts, stores private documents, and explici
         .eq("property_id", firstPropertyId)
     ).count,
   ).toBe(0);
-  await page
-    .getByLabel(
-      /I reviewed every readiness group and understand publication is not a legal guarantee/,
-    )
-    .check();
-  await page.getByRole("button", { name: "Publish property" }).click();
-  await expect(page.getByText("PUBLISHED").first()).toBeVisible();
+  await page.getByRole("link", { name: /Continue to Publish/ }).click();
+  await page.getByLabel(/I’ve reviewed this listing/).check();
+  await page.getByRole("button", { name: "Publish Property" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Property published successfully" }),
+  ).toBeVisible();
   await page.goto(`/properties/${firstSlug}`);
   await expect(page.getByRole("heading", { name: firstTitle })).toBeVisible();
 
@@ -263,8 +260,8 @@ test("seller lead creates multiple drafts, stores private documents, and explici
   await page.getByLabel("Property title (optional)").fill(`M20 second parcel ${unique}`);
   await page.getByLabel("Display area").fill("1.5");
   await page.locator('select[name="displayAreaUnitId"]').selectOption({ label: "Acre (ac)" });
-  await page.getByRole("button", { name: "Create draft" }).click();
-  await expect(page).toHaveURL(/\/admin\/properties\/[0-9a-f-]+$/);
+  await page.getByRole("button", { name: "Save Draft" }).click();
+  await expect(page).toHaveURL(/\/admin\/properties\/[0-9a-f-]+\?saved=1$/);
   const sellerLinks = await service()
     .from("property_source_links")
     .select("property_id")

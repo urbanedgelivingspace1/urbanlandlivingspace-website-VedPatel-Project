@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 
-import { AdminPageHeader, WorkspaceTabs } from "@/components/admin/admin-ui";
+import { AdminPageHeader } from "@/components/admin/admin-ui";
+import { CrmWorkspaceTabs } from "@/components/admin/crm-workspace-tabs";
 import { measureAdminPerf } from "@/server/admin-perf";
 import { SiteVisitQueue } from "@/components/admin/site-visit-queue";
 import { getSiteVisitReferenceData, listSiteVisits } from "@/server/services/site-visits";
@@ -46,16 +47,7 @@ export default async function SiteVisitsPage({
           </Link>
         }
       />
-      <WorkspaceTabs
-        label="CRM workspaces"
-        active="site-visits"
-        tabs={[
-          { key: "leads", label: "Leads", href: "/admin/leads" },
-          { key: "pipeline", label: "Pipeline", href: "/admin/leads/pipeline" },
-          { key: "follow-ups", label: "Follow-ups", href: "/admin/follow-ups" },
-          { key: "site-visits", label: "Site visits", href: "/admin/site-visits" },
-        ]}
-      />
+      <CrmWorkspaceTabs active="site-visits" />
       <SiteVisitQueue visits={visits} admins={refs.admins} filters={filters} />
     </section>
   );

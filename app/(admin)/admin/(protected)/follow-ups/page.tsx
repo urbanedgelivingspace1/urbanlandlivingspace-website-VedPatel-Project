@@ -1,11 +1,7 @@
 import Link from "next/link";
 
-import {
-  AdminPageHeader,
-  EmptyState,
-  StatusBadge,
-  WorkspaceTabs,
-} from "@/components/admin/admin-ui";
+import { AdminPageHeader, EmptyState, StatusBadge } from "@/components/admin/admin-ui";
+import { CrmWorkspaceTabs } from "@/components/admin/crm-workspace-tabs";
 import { DeleteFollowUpButton } from "@/components/admin/delete-follow-up-button";
 import { WhatsAppIcon } from "@/components/shared/whatsapp-icon";
 import type { FollowUpBucket } from "@/features/crm/domain/contracts";
@@ -52,16 +48,7 @@ export default async function FollowUpsPage({
           )
         }
       />
-      <WorkspaceTabs
-        label="CRM workspaces"
-        active="follow-ups"
-        tabs={[
-          { key: "leads", label: "Leads", href: "/admin/leads" },
-          { key: "pipeline", label: "Pipeline", href: "/admin/leads/pipeline" },
-          { key: "follow-ups", label: "Follow-ups", href: "/admin/follow-ups" },
-          { key: "site-visits", label: "Site visits", href: "/admin/site-visits" },
-        ]}
-      />
+      <CrmWorkspaceTabs active="follow-ups" />
 
       {params.deleted === "1" ? (
         <p

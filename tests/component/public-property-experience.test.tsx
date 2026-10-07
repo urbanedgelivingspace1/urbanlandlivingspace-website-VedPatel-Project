@@ -5,8 +5,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { PropertyActions } from "@/components/public/property-actions";
 import { PropertyCard } from "@/components/public/property-card";
 import { PropertyCollection } from "@/components/public/property-collection";
+import { PropertyBrochureLink } from "@/components/public/property-brochure-link";
 import { PropertyFacts } from "@/components/public/property-facts";
 import { PropertyGallery } from "@/components/public/property-gallery";
+import { GoogleMapsEmbed } from "@/components/public/google-maps-embed";
 import { PublicMap } from "@/components/public/public-map";
 import {
   buildPublicPropertyCard,
@@ -127,5 +129,62 @@ describe("M10 public property experience", () => {
     );
     expect(screen.getByText("Approximate location")).toBeVisible();
     expect(screen.getByText("Interactive map provider is not configured.")).toBeVisible();
+  });
+
+  it("constructs a safe Google Maps iframe and rejects an invalid stored source", () => {
+    const { rerender } = render(
+      <GoogleMapsEmbed
+        url="https://www.google.com/maps/embed?pb=test-map"
+        title="Near IIT Gandhinagar, Palaj"
+      />,
+    );
+
+    const map = screen.getByTitle("Near IIT Gandhinagar, Palaj map");
+    expect(map).toHaveAttribute("src", "https://www.google.com/maps/embed?pb=test-map");
+    expect(map).toHaveAttribute("loading", "lazy");
+    expect(map).toHaveAttribute("referrerpolicy", "strict-origin-when-cross-origin");
+
+    rerender(<GoogleMapsEmbed url="https://evil.example.com/embed" title="Unsafe" />);
+    expect(screen.queryByTitle("Unsafe map")).not.toBeInTheDocument();
+  });
+
+  it("renders one Download Brochure CTA for Drive and legacy hosted brochures", () => {
+    const { rerender } = render(
+      <PropertyBrochureLink
+        brochure={{
+          id: "drive-brochure",
+          mediaType: "BROCHURE",
+          objectPath: null,
+          externalUrl: "https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz_12345/view",
+          externalProvider: "GOOGLE_DRIVE",
+          externalMediaId: "1AbCdEfGhIjKlMnOpQrStUvWxYz_12345",
+          altText: null,
+          width: null,
+          height: null,
+        }}
+      />,
+    );
+    expect(screen.getByRole("link", { name: /Download Brochure/ })).toHaveAttribute(
+      "href",
+      "https://drive.google.com/uc?export=download&id=1AbCdEfGhIjKlMnOpQrStUvWxYz_12345",
+    );
+
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://synthetic.supabase.co");
+    rerender(
+      <PropertyBrochureLink
+        brochure={{
+          id: "hosted-brochure",
+          mediaType: "BROCHURE",
+          objectPath: "properties/synthetic/media/brochure.pdf",
+          altText: null,
+          width: null,
+          height: null,
+        }}
+      />,
+    );
+    expect(screen.getByRole("link", { name: /Download Brochure/ })).toHaveAttribute(
+      "href",
+      "https://synthetic.supabase.co/storage/v1/object/public/property-media-public/properties/synthetic/media/brochure.pdf",
+    );
   });
 });

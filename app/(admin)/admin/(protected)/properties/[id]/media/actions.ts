@@ -3,28 +3,35 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
-import { MediaValidationError, type MediaFormState } from "@/features/media/domain/contracts";
+import {
+  MediaValidationError,
+  type BatchPhotoUploadResult,
+  type MediaFormState,
+} from "@/features/media/domain/contracts";
 import { requireActiveAdmin } from "@/server/auth/authorization";
 import {
   addExternalPropertyMedia,
-  approvePropertyMedia,
+  approvePropertyImageAndMaybeSetCover,
   archivePrivateDocument,
   archivePropertyMedia,
   reorderPropertyMedia,
   restorePropertyMedia,
+  saveGoogleDriveBrochure,
   setPropertyCover,
   updatePropertyMediaMetadata,
   uploadPrivatePropertyDocument,
   uploadPropertyBrochure,
   uploadPropertyImage,
+  uploadPropertyImagesBatch,
 } from "@/server/services/property-media";
 
-const initialFailure = (error: unknown): MediaFormState => ({
+const initialFailure = (error: unknown, fileName?: string): MediaFormState => ({
   ok: false,
-  message:
+  message: `${fileName ? `${fileName}: ` : ""}${
     error instanceof MediaValidationError || error instanceof z.ZodError
       ? error.message
-      : "The media operation could not be completed. Refresh and try again.",
+      : "The media operation could not be completed. Refresh and try again."
+  }`,
 });
 
 const success = (message: string, duplicate = false): MediaFormState => ({
@@ -45,6 +52,8 @@ function refresh(propertyId: string) {
   revalidateTag("public-properties", "max");
   revalidatePath(`/admin/properties/${propertyId}`);
   revalidatePath(`/admin/properties/${propertyId}/media`);
+  revalidatePath(`/admin/properties/${propertyId}/preview`);
+  revalidatePath(`/admin/properties/${propertyId}/publish`);
   revalidatePath("/admin/media");
   revalidatePath("/");
   revalidatePath("/properties");
@@ -71,7 +80,34 @@ export async function uploadImageAction(
       result.duplicate,
     );
   } catch (error) {
-    return initialFailure(error);
+    const file = formData.get("file");
+    return initialFailure(error, file instanceof File ? file.name : undefined);
+  }
+}
+
+export async function uploadImagesAction(
+  propertyId: string,
+  _previous: BatchPhotoUploadResult,
+  formData: FormData,
+): Promise<BatchPhotoUploadResult> {
+  await requireActiveAdmin();
+  const files = formData
+    .getAll("files")
+    .filter((value): value is File => value instanceof File && value.size > 0);
+  try {
+    const result = await uploadPropertyImagesBatch(propertyId, files);
+    refresh(propertyId);
+    return result;
+  } catch (error) {
+    return {
+      ok: false,
+      uploaded: 0,
+      results: [],
+      message:
+        error instanceof MediaValidationError || error instanceof z.ZodError
+          ? error.message
+          : "The selected photos could not be processed. Refresh and try again.",
+    };
   }
 }
 
@@ -88,6 +124,32 @@ export async function uploadBrochureAction(
       result.duplicate
         ? "That brochure is already registered."
         : "Brochure uploaded to private staging.",
+      result.duplicate,
+    );
+  } catch (error) {
+    const file = formData.get("file");
+    return initialFailure(error, file instanceof File ? file.name : undefined);
+  }
+}
+
+export async function saveGoogleDriveBrochureAction(
+  propertyId: string,
+  _previous: MediaFormState,
+  formData: FormData,
+): Promise<MediaFormState> {
+  await requireActiveAdmin();
+  try {
+    const result = await saveGoogleDriveBrochure(
+      propertyId,
+      String(formData.get("brochureUrl") ?? ""),
+    );
+    refresh(propertyId);
+    return success(
+      result.duplicate
+        ? "This brochure is already connected."
+        : result.replaced
+          ? "Brochure link replaced."
+          : "Brochure connected.",
       result.duplicate,
     );
   } catch (error) {
@@ -116,7 +178,8 @@ export async function uploadPrivateDocumentAction(
       result.duplicate,
     );
   } catch (error) {
-    return initialFailure(error);
+    const file = formData.get("file");
+    return initialFailure(error, file instanceof File ? file.name : undefined);
   }
 }
 
@@ -179,7 +242,10 @@ export async function setCoverAction(formData: FormData) {
 export async function approveMediaAction(formData: FormData) {
   await requireActiveAdmin();
   const propertyId = z.uuid().parse(String(formData.get("propertyId") ?? ""));
-  await approvePropertyMedia(z.uuid().parse(String(formData.get("mediaId") ?? "")));
+  await approvePropertyImageAndMaybeSetCover(
+    propertyId,
+    z.uuid().parse(String(formData.get("mediaId") ?? "")),
+  );
   refresh(propertyId);
 }
 

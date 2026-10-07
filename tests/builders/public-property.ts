@@ -45,6 +45,7 @@ export function buildPublicPropertyDetail(
   return {
     ...buildPublicPropertyCard(),
     description: "Synthetic public description",
+    googleMapsEmbedUrl: null,
     seo: { title: null, description: null, canonicalPath: null },
     media: [],
     verifications: [],

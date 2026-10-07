@@ -28,10 +28,7 @@ export function projectPublicLocation(source: PublicLocationSource): PublicLocat
   const hasPublicPoint = source.publicLatitude !== null && source.publicLongitude !== null;
   return {
     visibility: source.visibility,
-    label:
-      source.visibility === "EXACT" && source.publicAddress
-        ? source.publicAddress
-        : broadLabel(source),
+    label: source.publicAddress || broadLabel(source),
     point: hasPublicPoint
       ? {
           latitude: source.publicLatitude as number,

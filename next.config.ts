@@ -81,7 +81,9 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: "22mb",
+      // Five maximum-size property photos plus multipart overhead. The service also
+      // enforces a stricter 50 MB aggregate batch limit after authentication.
+      bodySizeLimit: "55mb",
     },
     staleTimes: {
       dynamic: 30,

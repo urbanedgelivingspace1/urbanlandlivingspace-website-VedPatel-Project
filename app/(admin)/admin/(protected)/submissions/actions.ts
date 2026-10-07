@@ -104,6 +104,6 @@ export async function convertOwnerSubmissionAction(id: string, data: FormData) {
   revalidatePath("/admin/submissions");
   revalidatePath("/admin/properties");
   redirect(
-    `/admin/properties/${propertyId}?saved=${encodeURIComponent("Draft created from private owner submission. Verification remains pending and the property is not published.")}`,
+    `/admin/properties/${propertyId}?saved=${encodeURIComponent("Draft created from private owner submission. Add media, preview the listing, and complete the publication checks when it is ready.")}`,
   );
 }

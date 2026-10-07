@@ -2547,6 +2547,7 @@ export type Database = {
           display_area_value: number;
           district_id: string;
           featured: boolean;
+          google_maps_embed_url: string | null;
           id: string;
           land_category: Database["public"]["Enums"]["land_category"];
           landmark_text: string | null;
@@ -2587,6 +2588,7 @@ export type Database = {
           display_area_value: number;
           district_id: string;
           featured?: boolean;
+          google_maps_embed_url?: string | null;
           id?: string;
           land_category: Database["public"]["Enums"]["land_category"];
           landmark_text?: string | null;
@@ -2627,6 +2629,7 @@ export type Database = {
           display_area_value?: number;
           district_id?: string;
           featured?: boolean;
+          google_maps_embed_url?: string | null;
           id?: string;
           land_category?: Database["public"]["Enums"]["land_category"];
           landmark_text?: string | null;
@@ -5893,6 +5896,13 @@ export type Database = {
         };
         Relationships: [];
       };
+      public_property_google_maps: {
+        Row: {
+          google_maps_embed_url: string | null;
+          property_id: string | null;
+        };
+        Relationships: [];
+      };
       public_property_listings: {
         Row: {
           availability_status: Database["public"]["Enums"]["property_availability_status"] | null;
@@ -6736,6 +6746,15 @@ export type Database = {
         Returns: string;
       };
       save_property_draft: {
+        Args: {
+          requested_actor_id?: string;
+          requested_expected_updated_at?: string;
+          requested_payload?: Json;
+          requested_property_id?: string;
+        };
+        Returns: string;
+      };
+      save_property_draft_core: {
         Args: {
           requested_actor_id?: string;
           requested_expected_updated_at?: string;

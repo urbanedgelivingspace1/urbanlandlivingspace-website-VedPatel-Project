@@ -22,6 +22,7 @@ describe("AdminShell", () => {
     expect(screen.getByText("UrbanEdge")).toBeVisible();
     expect(screen.getByText("Real-estate operations")).toBeVisible();
     expect(screen.getAllByRole("navigation", { name: "Admin" })).toHaveLength(2);
+    expect(screen.queryByRole("link", { name: "Verification" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Sign out" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "Protected content" })).toBeVisible();
   });

@@ -25,13 +25,14 @@ for (const category of ["AGRICULTURAL", "NA", "INDUSTRIAL"] as const) {
     await signIn(page);
     await page.goto("/admin/properties/new");
     await fillDraftCore(page, category);
-    await page.getByRole("button", { name: "Create draft" }).click();
-    await expect(page).toHaveURL(/\/admin\/properties\/[0-9a-f-]+$/);
+    await page.getByRole("button", { name: "Save & Next →" }).click();
+    await expect(page).toHaveURL(/\/admin\/properties\/[0-9a-f-]+\/media$/);
     await expect(page.getByText(/^UE-LS-\d{6}$/).first()).toBeVisible();
+    await expect(
+      page.getByRole("navigation", { name: "Property publishing workflow" }),
+    ).toContainText("Photos & Documents");
+    await page.getByRole("link", { name: "Keep as Draft" }).click();
     await expect(page.getByText("DRAFT").first()).toBeVisible();
-    await page.getByRole("link", { name: "Review", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Publication readiness" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Publish property" })).toBeDisabled();
   });
 }
 
@@ -39,7 +40,7 @@ test("admin edits price, area, and public-safe location without publishing", asy
   await signIn(page);
   await page.goto("/admin/properties/new");
   await fillDraftCore(page, "AGRICULTURAL");
-  await page.getByRole("button", { name: "Create draft" }).click();
+  await page.getByRole("button", { name: "Save Draft" }).click();
   await page.getByRole("link", { name: "Edit draft" }).click();
   await page.getByLabel("Display area").fill("4.75");
   await page.getByLabel("Price mode").selectOption("EXACT_TOTAL");
@@ -48,7 +49,7 @@ test("admin edits price, area, and public-safe location without publishing", asy
   await page.getByLabel("Public-safe latitude").fill("23.050000");
   await page.getByLabel("Public-safe longitude").fill("72.550000");
   await page.getByLabel("Public accuracy (metres)").fill("500");
-  await page.getByRole("button", { name: "Save draft" }).click();
+  await page.getByRole("button", { name: "Save Draft" }).click();
   await expect(page).toHaveURL(/saved=1/);
   await expect(page.getByRole("status")).toContainText("Draft changes saved successfully");
   await expect(page.getByText("4.75 Acre (ac)", { exact: true })).toBeVisible();
@@ -62,7 +63,7 @@ test("validation errors retain valid draft input", async ({ page }) => {
   await page.getByLabel("District").selectOption({ label: "Ahmedabad" });
   await page.getByLabel("Display area").fill("-1");
   await page.locator('select[name="displayAreaUnitId"]').selectOption({ label: "Acre (ac)" });
-  await page.getByRole("button", { name: "Create draft" }).click();
+  await page.getByRole("button", { name: "Save & Next →" }).click();
   await expect(page.getByRole("status")).toContainText("retained");
   await expect(page.getByLabel("Property title (optional)")).toHaveValue(
     "Retained synthetic title",
@@ -73,5 +74,5 @@ test("validation errors retain valid draft input", async ({ page }) => {
 test("anonymous users cannot reach property mutation forms", async ({ page }) => {
   await page.goto("/admin/properties/new");
   await expect(page).toHaveURL(/\/admin\/login/);
-  await expect(page.getByRole("button", { name: "Create draft" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Save Draft" })).toHaveCount(0);
 });

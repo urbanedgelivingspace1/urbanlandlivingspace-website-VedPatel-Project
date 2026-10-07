@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import SiteVisitDetailPage from "@/app/(admin)/admin/(protected)/site-visits/[id]/page";
@@ -106,6 +106,20 @@ describe("M14 site-visit operations components", () => {
     });
     render(await SiteVisitsPage({ searchParams: Promise.resolve({ status: "REQUESTED" }) }));
     expect(screen.getByRole("heading", { name: "Site visits" })).toBeVisible();
+    const crmTabs = within(screen.getByRole("navigation", { name: "CRM workspaces" }));
+    expect(crmTabs.getByRole("link", { name: "Leads" })).toHaveAttribute("href", "/admin/leads");
+    expect(crmTabs.getByRole("link", { name: "Pipeline" })).toHaveAttribute(
+      "href",
+      "/admin/leads/pipeline",
+    );
+    expect(crmTabs.getByRole("link", { name: "Follow-ups" })).toHaveAttribute(
+      "href",
+      "/admin/follow-ups",
+    );
+    expect(crmTabs.getByRole("link", { name: "Site visits" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
     expect(screen.getByLabelText("Search site visits")).toBeVisible();
     expect(screen.getByLabelText("Visit status")).toHaveValue("REQUESTED");
     expect(screen.getByLabelText("Schedule window")).toBeVisible();

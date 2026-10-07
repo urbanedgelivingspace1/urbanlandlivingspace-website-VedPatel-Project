@@ -61,10 +61,16 @@ export async function getPublicPropertyDetail(
   if (!property) return null;
 
   const [
+    { data: googleMap, error: googleMapError },
     { data: media, error: mediaError },
     { data: verifications, error: verificationError },
     { data: identifiers, error: identifierError },
   ] = await Promise.all([
+    client
+      .from("public_property_google_maps")
+      .select("google_maps_embed_url")
+      .eq("property_id", property.id)
+      .maybeSingle(),
     client
       .from("public_property_media")
       .select(publicMediaFields)
@@ -81,9 +87,16 @@ export async function getPublicPropertyDetail(
       .order("sequence_no")
       .order("is_primary", { ascending: false }),
   ]);
+  if (googleMapError) throw googleMapError;
   if (mediaError) throw mediaError;
   if (verificationError) throw verificationError;
   if (identifierError) throw identifierError;
 
-  return projectPublicPropertyDetail(property, media, verifications, identifiers);
+  return projectPublicPropertyDetail(
+    property,
+    media,
+    verifications,
+    identifiers,
+    googleMap?.google_maps_embed_url ?? null,
+  );
 }

@@ -45,6 +45,56 @@ test.beforeAll(async () => {
   propertyId = result.data.id;
 });
 
+test("CRM is one sidebar module with four routed workspace tabs", async ({ page }) => {
+  await signIn(page);
+  await page.goto("/admin/leads");
+
+  const sidebar = page.getByRole("navigation", { name: "Admin" });
+  await expect(sidebar.getByRole("link", { name: "CRM" })).toHaveCount(1);
+  await expect(sidebar.getByRole("link", { name: "CRM" })).toHaveAttribute("aria-current", "page");
+  await expect(sidebar.getByRole("link", { name: "Leads" })).toHaveCount(0);
+  await expect(sidebar.getByRole("link", { name: "Pipeline" })).toHaveCount(0);
+  await expect(sidebar.getByRole("link", { name: "Follow-ups" })).toHaveCount(0);
+  await expect(sidebar.getByRole("link", { name: "Site visits" })).toHaveCount(0);
+
+  const crmTabs = page.getByRole("navigation", { name: "CRM workspaces" });
+  await crmTabs.getByRole("link", { name: "Pipeline" }).click();
+  await expect(page).toHaveURL(/\/admin\/leads\/pipeline$/);
+  await expect(crmTabs.getByRole("link", { name: "Pipeline" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+
+  await crmTabs.getByRole("link", { name: "Follow-ups" }).click();
+  await expect(page).toHaveURL(/\/admin\/follow-ups$/);
+  await expect(crmTabs.getByRole("link", { name: "Follow-ups" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+
+  await crmTabs.getByRole("link", { name: "Site visits" }).click();
+  await expect(page).toHaveURL(/\/admin\/site-visits$/);
+  await expect(crmTabs.getByRole("link", { name: "Site visits" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+
+  await crmTabs.getByRole("link", { name: "Leads" }).click();
+  await expect(page).toHaveURL(/\/admin\/leads$/);
+  await expect(crmTabs.getByRole("link", { name: "Leads" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.getByRole("link", { name: "+ New lead" })).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+    ),
+  ).toBe(true);
+});
+
 test("admin operates the complete lead, demand, matching, follow-up and closure workflow", async ({
   page,
 }) => {

@@ -1,5 +1,6 @@
 import { isNonProductionEnvironment } from "@/config/environment-schema";
 import { PropertyDraftForm } from "@/components/admin/property-draft-form";
+import { PropertyWorkflow } from "@/components/admin/property-workflow";
 import { requireActiveAdminPage } from "@/server/auth/require-admin-page";
 import { getAdminReferenceData } from "@/server/services/property-drafts";
 
@@ -34,21 +35,24 @@ export default async function NewPropertyPage({
   if (getParam("sourceReference")) initialValues.sourceReference = getParam("sourceReference");
 
   return (
-    <div className="mx-auto max-w-5xl space-y-5">
-      <header>
-        <p className="text-sm font-semibold text-emerald-800">Properties</p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950">Add Property</h1>
-        <p className="mt-2 text-base text-slate-600">
-          Start with what you know. You can add photos, documents, and more details after saving.
-        </p>
-      </header>
-      <PropertyDraftForm
-        action={createPropertyDraftAction}
-        references={references}
-        initialValues={initialValues}
-        submitLabel="Save Draft"
-        allowTestPresets={allowTestPresets}
-      />
+    <div className="mx-auto max-w-5xl">
+      <PropertyWorkflow currentStep="details">
+        <header>
+          <p className="text-sm font-semibold text-emerald-800">Properties</p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950">Add Property</h1>
+          <p className="mt-2 text-base text-slate-600">
+            Complete the essentials and open More Details only when needed. Save the draft to keep
+            it private, or save and continue directly to photos and documents.
+          </p>
+        </header>
+        <PropertyDraftForm
+          action={createPropertyDraftAction}
+          references={references}
+          initialValues={initialValues}
+          submitLabel="Save Draft"
+          allowTestPresets={allowTestPresets}
+        />
+      </PropertyWorkflow>
     </div>
   );
 }

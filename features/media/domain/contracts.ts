@@ -5,6 +5,18 @@ export type MediaFormState = Readonly<{
   errors?: Readonly<Record<string, readonly string[]>>;
 }>;
 
+export type BatchPhotoUploadResult = Readonly<{
+  ok: boolean;
+  uploaded: number;
+  results: readonly Readonly<{
+    fileName: string;
+    ok: boolean;
+    duplicate?: boolean;
+    message: string;
+  }>[];
+  message: string;
+}>;
+
 export type ExternalMediaKind = "VIDEO" | "DRONE_VIDEO" | "PANORAMA_360";
 
 export type AdminMediaAssetDto = Readonly<{

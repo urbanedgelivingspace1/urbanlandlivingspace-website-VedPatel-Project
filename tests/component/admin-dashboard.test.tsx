@@ -55,6 +55,7 @@ describe("AdminDashboardPage", () => {
     expect(screen.getByRole("heading", { name: "Action centre" })).toBeVisible();
     expect(screen.getByText("Draft")).toBeVisible();
     expect(screen.getByText("New leads")).toBeVisible();
+    expect(screen.queryByText("Review verification queue")).not.toBeInTheDocument();
     expect(screen.queryByRole("alert")).toBeNull();
   });
 

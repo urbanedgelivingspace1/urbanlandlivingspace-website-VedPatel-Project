@@ -20,7 +20,7 @@ describe("projectPublicLocation", () => {
   it("returns only the approved public point for approximate locations", () => {
     expect(projectPublicLocation(source)).toEqual({
       visibility: "APPROXIMATE",
-      label: "Example locality, Ahmedabad, Daskroi, Ahmedabad",
+      label: "Approved public address",
       point: { latitude: 23.02, longitude: 72.57, accuracyMetres: 2_000 },
     });
   });
@@ -29,7 +29,7 @@ describe("projectPublicLocation", () => {
     expect(projectPublicLocation({ ...source, visibility: "HIDDEN" }).point).toBeNull();
   });
 
-  it("may use an approved public address for exact visibility", () => {
+  it("uses the approved public location title for a visible location", () => {
     expect(projectPublicLocation({ ...source, visibility: "EXACT" }).label).toBe(
       "Approved public address",
     );

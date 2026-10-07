@@ -1,23 +1,19 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { PropertyMediaManager } from "@/components/admin/property-media-manager";
+import { PropertyWorkflow } from "@/components/admin/property-workflow";
 import { requireActiveAdminPage } from "@/server/auth/require-admin-page";
 import { getAdminProperty } from "@/server/services/property-drafts";
-import { getAdminPropertyMedia } from "@/server/services/property-media";
+import { getAdminPropertyVisualMedia } from "@/server/services/property-media";
 
 import {
-  addExternalMediaAction,
   approveMediaAction,
-  archiveDocumentAction,
   archiveMediaAction,
   reorderMediaAction,
-  restoreMediaAction,
+  saveGoogleDriveBrochureAction,
   setCoverAction,
   updateMediaMetadataAction,
-  uploadBrochureAction,
-  uploadImageAction,
-  uploadPrivateDocumentAction,
+  uploadImagesAction,
 } from "./actions";
 
 export const runtime = "nodejs";
@@ -28,46 +24,47 @@ export default async function PropertyMediaPage({
 }: Readonly<{ params: Promise<{ id: string }> }>) {
   const { id } = await params;
   await requireActiveAdminPage();
-  const [property, data] = await Promise.all([getAdminProperty(id), getAdminPropertyMedia(id)]);
+  const [property, media] = await Promise.all([
+    getAdminProperty(id),
+    getAdminPropertyVisualMedia(id),
+  ]);
   if (!property) notFound();
+  const activeMedia = media.filter((asset) => !asset.archivedAt);
+  const stepMedia = activeMedia.filter(
+    (asset) => asset.mediaType === "IMAGE" || asset.mediaType === "BROCHURE",
+  );
   return (
-    <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
+    <div className="mx-auto max-w-6xl">
+      <PropertyWorkflow
+        currentStep="media"
+        propertyId={id}
+        isPublished={property.property.publication_status === "PUBLISHED"}
+      >
+        <header>
           <p className="text-xs font-bold tracking-widest text-[var(--brand-gold-deep)] uppercase">
             {property.property.property_code}
           </p>
-          <h1 className="font-display text-3xl font-semibold">
-            Property media and private storage
-          </h1>
+          <h1 className="font-display text-3xl font-semibold">Photos &amp; Brochure</h1>
           <p className="mt-1 text-sm text-slate-600">
-            Manage staged/public assets separately from private owner, legal and verification
-            material.
+            Upload property photos and optionally connect a brochure from Google Drive. Each
+            completed action is saved immediately.
           </p>
-        </div>
-        <Link
-          href={`/admin/properties/${id}`}
-          className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold"
-        >
-          Back to property
-        </Link>
-      </header>
-      <PropertyMediaManager
-        propertyId={id}
-        media={data.media}
-        documents={data.documents}
-        uploadImageAction={uploadImageAction.bind(null, id)}
-        uploadBrochureAction={uploadBrochureAction.bind(null, id)}
-        uploadPrivateDocumentAction={uploadPrivateDocumentAction.bind(null, id)}
-        addExternalMediaAction={addExternalMediaAction.bind(null, id)}
-        updateMetadataAction={updateMediaMetadataAction}
-        reorderAction={reorderMediaAction}
-        setCoverAction={setCoverAction}
-        approveAction={approveMediaAction}
-        archiveMediaAction={archiveMediaAction}
-        restoreMediaAction={restoreMediaAction}
-        archiveDocumentAction={archiveDocumentAction}
-      />
+        </header>
+        <PropertyMediaManager
+          propertyId={id}
+          media={stepMedia}
+          activeMediaIds={activeMedia
+            .sort((left, right) => left.sortOrder - right.sortOrder)
+            .map((asset) => asset.id)}
+          uploadImagesAction={uploadImagesAction.bind(null, id)}
+          saveBrochureAction={saveGoogleDriveBrochureAction.bind(null, id)}
+          updateMetadataAction={updateMediaMetadataAction}
+          reorderAction={reorderMediaAction}
+          setCoverAction={setCoverAction}
+          approveAction={approveMediaAction}
+          archiveMediaAction={archiveMediaAction}
+        />
+      </PropertyWorkflow>
     </div>
   );
 }

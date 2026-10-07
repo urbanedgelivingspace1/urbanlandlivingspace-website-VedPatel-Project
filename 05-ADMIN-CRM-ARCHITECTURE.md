@@ -209,6 +209,8 @@ The route contract follows the existing UX architecture and expands it into oper
 /admin/leads/pipeline
 /admin/leads/[id]
 
+/admin/follow-ups
+
 /admin/requirements
 /admin/requirements/unmatched
 /admin/requirements/[id]
@@ -268,12 +270,11 @@ The pipeline board is a visual management view, not the source of state truth.
 ┌────────────────────────────────────────────────────────────────────────────┐
 │ UrbanEdge Land Space Admin              Search      Alerts      Admin      │
 ├───────────────┬────────────────────────────────────────────────────────────┤
-│ Dashboard     │                                                            │
-│ Leads         │                      PAGE CONTENT                          │
+│ Action centre │                                                            │
+│ CRM           │                      PAGE CONTENT                          │
 │ Properties    │                                                            │
 │ Submissions   │                                                            │
 │ Requirements  │                                                            │
-│ Site Visits   │                                                            │
 │ Verification  │                                                            │
 │ Media         │                                                            │
 │ Guides        │                                                            │
@@ -287,17 +288,29 @@ The pipeline board is a visual management view, not the source of state truth.
 
 ## 4.2 Sidebar priority
 
-The first visual group should be operational:
+The first visual group should keep CRM as one operational module:
 
 ```text
-Dashboard
-Leads
+Action centre
+CRM
 Properties
 Submissions
 Requirements
-Site Visits
 Verification
 ```
+
+Leads, Pipeline, Follow-ups and Site visits are views within CRM, not separate sidebar modules.
+Each main CRM page exposes the same top-level workspace navigation:
+
+```text
+Leads        → /admin/leads
+Pipeline     → /admin/leads/pipeline
+Follow-ups   → /admin/follow-ups
+Site visits  → /admin/site-visits
+```
+
+The CRM sidebar item remains active for these routes and their child routes. Detail pages retain
+their entity-specific navigation beneath this global CRM context.
 
 Then:
 

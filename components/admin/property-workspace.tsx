@@ -1,18 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useRef, useState, useTransition } from "react";
 
 import { DeleteDraftButton } from "@/components/admin/delete-draft-button";
 import { PropertyPublicationPanel } from "@/components/admin/property-publication-panel";
 import type { PropertyInterestedBuyers } from "@/features/crm/domain/contracts";
 import { leadStatusLabel } from "@/features/crm/domain/pipeline";
-import type {
-  AdminMediaAssetDto,
-  AdminPrivateDocumentDto,
-  BatchDocumentUploadResult,
-} from "@/features/media/domain/contracts";
+import type { AdminMediaAssetDto } from "@/features/media/domain/contracts";
 import type { AdminPropertyDraftRecord } from "@/features/properties/domain/contracts";
 import type { PropertyActivityItem } from "@/features/properties/domain/contracts";
 import type {
@@ -37,7 +31,6 @@ type Props = Readonly<{
   readiness?: PublicationReadiness;
   initialTab?: PropertyWorkspaceTabKey;
   mediaList?: readonly AdminMediaAssetDto[];
-  documentList?: readonly AdminPrivateDocumentDto[];
   interestedBuyers?: PropertyInterestedBuyers;
   activity?: readonly PropertyActivityItem[];
   savedNotice?: boolean;
@@ -54,13 +47,6 @@ type Props = Readonly<{
   archivePropertyAction: (data: FormData) => Promise<void>;
   restorePropertyAction: (data: FormData) => Promise<void>;
   deletePropertyDraftAction?: (data: FormData) => Promise<void>;
-  uploadBatchPropertyDocumentsAction?: (
-    propertyId: string,
-    data: FormData,
-  ) => Promise<BatchDocumentUploadResult>;
-  createDocumentSignedUrlAction?: (
-    documentId: string,
-  ) => Promise<{ ok: boolean; signedUrl?: string; error?: string }>;
 }>;
 
 export function PropertyWorkspace({
@@ -68,7 +54,6 @@ export function PropertyWorkspace({
   readiness,
   initialTab = "overview",
   mediaList = [],
-  documentList = [],
   interestedBuyers = { matches: [], siteVisits: [] },
   activity = [],
   savedNotice = false,
@@ -79,17 +64,8 @@ export function PropertyWorkspace({
   archivePropertyAction,
   restorePropertyAction,
   deletePropertyDraftAction,
-  uploadBatchPropertyDocumentsAction,
-  createDocumentSignedUrlAction,
 }: Props) {
   const activeTab = initialTab;
-  const [isUploading, startUploadTransition] = useTransition();
-  const [uploadStatus, setUploadStatus] = useState<BatchDocumentUploadResult | null>(null);
-  const [loadingDocId, setLoadingDocId] = useState<string | null>(null);
-  const [docError, setDocError] = useState<string | null>(null);
-  const [queuedFileNames, setQueuedFileNames] = useState<string[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const selectedFiles = useRef(new Map<string, File>());
 
   const row = property.property;
   const id = row.id;
@@ -104,85 +80,6 @@ export function PropertyWorkspace({
           currency: "INR",
           maximumFractionDigits: 0,
         }).format(property.offer.price_amount);
-
-  const handleDocumentUpload = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!uploadBatchPropertyDocumentsAction) return;
-    const form = e.currentTarget;
-    const formData = new FormData(form);
-    const queuedFiles = [...selectedFiles.current.values()];
-    const files = queuedFiles.length ? queuedFiles : (formData.getAll("documents") as File[]);
-    if (!files.length || (files.length === 1 && files[0]?.size === 0)) {
-      setUploadStatus({
-        ok: false,
-        uploaded: 0,
-        results: [],
-        message: "Please select at least one file to upload.",
-      });
-      return;
-    }
-    selectedFiles.current = new Map(files.map((file) => [file.name, file]));
-    formData.delete("documents");
-    for (const file of files) formData.append("documents", file);
-
-    startUploadTransition(async () => {
-      try {
-        const result = await uploadBatchPropertyDocumentsAction(id, formData);
-        setUploadStatus(result);
-        if (result.ok && fileInputRef.current) {
-          fileInputRef.current.value = "";
-          selectedFiles.current.clear();
-          setQueuedFileNames([]);
-        }
-      } catch (err) {
-        setUploadStatus({
-          ok: false,
-          uploaded: 0,
-          results: [],
-          message: err instanceof Error ? err.message : "Upload failed. Please try again.",
-        });
-      }
-    });
-  };
-
-  const queueDocuments = (files: FileList | readonly File[]) => {
-    const next = [...files];
-    selectedFiles.current = new Map(next.map((file) => [file.name, file]));
-    setQueuedFileNames(next.map((file) => file.name));
-  };
-
-  const retryDocumentUpload = (fileName: string) => {
-    if (!uploadBatchPropertyDocumentsAction) return;
-    const file = selectedFiles.current.get(fileName);
-    const form = fileInputRef.current?.form;
-    const category = form?.elements.namedItem("documentType");
-    if (!file) return;
-    const retryData = new FormData();
-    retryData.append("documents", file);
-    retryData.set("documentType", category instanceof HTMLSelectElement ? category.value : "OTHER");
-    startUploadTransition(async () => {
-      const result = await uploadBatchPropertyDocumentsAction(id, retryData);
-      setUploadStatus(result);
-    });
-  };
-
-  const handleViewDocument = async (docId: string) => {
-    if (!createDocumentSignedUrlAction) return;
-    setLoadingDocId(docId);
-    setDocError(null);
-    try {
-      const res = await createDocumentSignedUrlAction(docId);
-      if (res.ok && res.signedUrl) {
-        window.open(res.signedUrl, "_blank", "noopener,noreferrer");
-      } else {
-        setDocError(res.error || "Failed to generate access link.");
-      }
-    } catch (err) {
-      setDocError(err instanceof Error ? err.message : "Network error opening document.");
-    } finally {
-      setLoadingDocId(null);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -217,7 +114,7 @@ export function PropertyWorkspace({
               prefetch={false}
               className="button button-secondary"
             >
-              Add Photos / Documents
+              Add Photos / Brochure
             </Link>
             {row.publication_status === "DRAFT" ? (
               <Link
@@ -303,10 +200,7 @@ export function PropertyWorkspace({
             aria-current={activeTab === "media" ? "page" : undefined}
             className="admin-tab"
           >
-            Media & documents ({property.mediaCount + property.documentCount})
-          </Link>
-          <Link href={`/admin/verification/${id}`} prefetch={false} className="admin-tab">
-            Verification
+            Photos &amp; brochure ({property.mediaCount})
           </Link>
           <Link
             href={`/admin/properties/${id}?tab=buyers`}
@@ -446,7 +340,7 @@ export function PropertyWorkspace({
           <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5">
             <div>
               <h2 id="media-heading" className="font-display text-xl font-bold text-slate-900">
-                Photos & Listing Media ({mediaList.length})
+                Photos &amp; Listing Media ({mediaList.length})
               </h2>
               <p className="mt-1 text-sm text-slate-600">
                 Photos, aerial drone footage, brochures, and site layout plans.
@@ -454,7 +348,7 @@ export function PropertyWorkspace({
             </div>
             <Link
               href={`/admin/properties/${id}/media`}
-              className="rounded-lg bg-[var(--brand-navy)] px-4 py-2 text-xs font-bold text-white shadow-xs hover:opacity-90 transition-opacity"
+              className="inline-flex items-center justify-center rounded-lg bg-[#02066f] px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#01043d] transition-colors"
             >
               Add or Manage Photos
             </Link>
@@ -470,7 +364,7 @@ export function PropertyWorkspace({
               </p>
               <Link
                 href={`/admin/properties/${id}/media`}
-                className="mt-4 inline-block rounded-lg bg-[var(--brand-navy)] px-4 py-2 text-xs font-bold text-white"
+                className="mt-4 inline-flex items-center justify-center rounded-lg bg-[#02066f] px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#01043d] transition-colors"
               >
                 Upload photos now
               </Link>
@@ -483,16 +377,24 @@ export function PropertyWorkspace({
                   className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs"
                 >
                   <div className="relative aspect-4/3 w-full bg-slate-100">
-                    {asset.previewUrl ? (
-                      <Image
+                    {asset.previewUrl &&
+                    (asset.mediaType === "IMAGE" || asset.mediaType === "MAP_IMAGE") ? (
+                      // Admin previews may be short-lived signed URLs from the private media
+                      // bucket, so they cannot be represented by a static Next image allowlist.
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
                         src={asset.previewUrl}
                         alt={asset.altText || "Property asset"}
-                        fill
-                        className="object-cover"
+                        className="h-full w-full object-cover"
                       />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-xs font-bold text-slate-400">
-                        {asset.mediaType}
+                      <div className="flex h-full flex-col items-center justify-center gap-2 px-3 text-center text-slate-500">
+                        <span className="text-2xl" aria-hidden="true">
+                          {asset.mediaType === "BROCHURE" ? "↓" : "▶"}
+                        </span>
+                        <span className="text-xs font-bold">
+                          {asset.mediaType === "BROCHURE" ? "Property brochure" : "Listing media"}
+                        </span>
                       </div>
                     )}
                     {asset.isCover && (
@@ -522,206 +424,6 @@ export function PropertyWorkspace({
               ))}
             </div>
           )}
-        </section>
-      )}
-
-      {activeTab === "media" && (
-        <section aria-labelledby="documents-heading" className="space-y-6">
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <h2
-                  id="documents-heading"
-                  className="font-display text-xl font-bold text-slate-900"
-                >
-                  Private Documents ({documentList.length})
-                </h2>
-                <p className="mt-1 text-sm text-slate-600">
-                  Deeds, 7/12 extracts, title search reports, and legal records.
-                </p>
-              </div>
-              <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 border border-emerald-200">
-                Private · Staff access only
-              </span>
-            </div>
-
-            {/* Batch Document Uploader Form */}
-            <form onSubmit={handleDocumentUpload} className="mt-6 border-t border-slate-100 pt-6">
-              <h3 className="text-sm font-bold text-slate-900">Add Documents</h3>
-              <p className="mt-0.5 text-xs text-slate-500">
-                Add deeds, land records, plans, and other documents. These files are not shown
-                publicly.
-              </p>
-
-              <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                <div>
-                  <label
-                    htmlFor="documentType"
-                    className="block text-xs font-bold text-slate-700 uppercase"
-                  >
-                    Document Category
-                  </label>
-                  <select
-                    id="documentType"
-                    name="documentType"
-                    className="mt-1.5 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800"
-                    defaultValue="OTHER"
-                  >
-                    <option value="OTHER">No tag / Other</option>
-                    <option value="LAND_RECORDS">7/12 &amp; 8A Land Records</option>
-                    <option value="TITLE_DEED">Title Deed / Index II / Sale Deed</option>
-                    <option value="NA_ORDER_LAYOUT">NA Order &amp; Layout</option>
-                    <option value="TP_ZONE_CERTIFICATE">TP Scheme / Zone Certificate</option>
-                    <option value="VILLAGE_MAP_DEMARCATION">Village Map / Demarcation</option>
-                    <option value="SOIL_WATER_ELECTRICITY">Soil / Water / Electricity</option>
-                  </select>
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label
-                    htmlFor="documents"
-                    className="block text-xs font-bold text-slate-700 uppercase"
-                  >
-                    Select Files (PDF, JPEG, PNG · Max 20MB each)
-                  </label>
-                  <div className="mt-1.5 flex items-stretch gap-2">
-                    <label
-                      htmlFor="documents"
-                      className="flex min-h-20 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-3 py-3 text-center text-xs text-slate-600 hover:border-slate-400"
-                      onDragOver={(event) => event.preventDefault()}
-                      onDrop={(event) => {
-                        event.preventDefault();
-                        queueDocuments(event.dataTransfer.files);
-                      }}
-                    >
-                      <strong className="text-slate-800">
-                        Drop documents here or choose files
-                      </strong>
-                      <span className="mt-1">PDF, JPEG or PNG · up to 20 MB each</span>
-                      {queuedFileNames.length ? (
-                        <span className="mt-2 font-semibold text-[var(--brand-navy)]">
-                          {queuedFileNames.length} file{queuedFileNames.length === 1 ? "" : "s"}{" "}
-                          ready
-                        </span>
-                      ) : null}
-                    </label>
-                    <input
-                      ref={fileInputRef}
-                      id="documents"
-                      name="documents"
-                      type="file"
-                      multiple
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      className="sr-only"
-                      onChange={(event) => {
-                        if (event.currentTarget.files) queueDocuments(event.currentTarget.files);
-                      }}
-                    />
-                    <button
-                      type="submit"
-                      disabled={isUploading}
-                      className="shrink-0 rounded-lg bg-[var(--brand-navy)] px-4 py-2 text-xs font-bold text-white shadow-xs hover:opacity-90 disabled:opacity-50"
-                    >
-                      {isUploading
-                        ? `Uploading ${queuedFileNames.length || "selected"}…`
-                        : "Upload files"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {uploadStatus ? (
-                <div
-                  role="status"
-                  className={`mt-3 rounded-lg p-3 text-xs font-medium ${
-                    uploadStatus.ok
-                      ? "bg-emerald-50 text-emerald-900 border border-emerald-200"
-                      : "bg-amber-50 text-amber-950 border border-amber-200"
-                  }`}
-                >
-                  <p>{uploadStatus.message}</p>
-                  {uploadStatus.results.length ? (
-                    <ul className="mt-2 space-y-1">
-                      {uploadStatus.results.map((result) => (
-                        <li
-                          key={result.fileName}
-                          className="flex items-center justify-between gap-3"
-                        >
-                          <span>
-                            {result.ok ? "✓" : "!"} {result.fileName}: {result.message}
-                          </span>
-                          {!result.ok ? (
-                            <button
-                              type="button"
-                              className="rounded border border-amber-400 bg-white px-2 py-1 font-bold"
-                              onClick={() => retryDocumentUpload(result.fileName)}
-                              disabled={isUploading}
-                            >
-                              Retry
-                            </button>
-                          ) : null}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </div>
-              ) : null}
-            </form>
-          </div>
-
-          {/* Document List */}
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
-            <h3 className="font-display text-lg font-bold text-slate-900">Stored Documents</h3>
-            {docError ? (
-              <p className="mt-2 text-xs font-semibold text-red-600">{docError}</p>
-            ) : null}
-
-            {documentList.length === 0 ? (
-              <div className="mt-4 rounded-lg border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500">
-                No private documents uploaded yet. Use the uploader above to attach title deeds,
-                revenue extracts, or search reports.
-              </div>
-            ) : (
-              <div className="mt-4 divide-y divide-slate-100">
-                {documentList.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"
-                  >
-                    <div className="space-y-0.5">
-                      <p className="font-semibold text-slate-800">
-                        {doc.originalFileName || doc.documentType}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                        <span className="rounded bg-slate-100 px-1.5 py-0.5 font-medium text-slate-700">
-                          {doc.documentType.replaceAll("_", " ")}
-                        </span>
-                        <span>·</span>
-                        <span>{new Date(doc.createdAt).toLocaleDateString("en-IN")}</span>
-                        <span>·</span>
-                        <span
-                          className={`font-semibold ${
-                            doc.scanStatus === "CLEAN" ? "text-emerald-700" : "text-amber-700"
-                          }`}
-                        >
-                          Scan: {doc.scanStatus}
-                        </span>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => handleViewDocument(doc.id)}
-                      disabled={loadingDocId === doc.id}
-                      className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50"
-                    >
-                      {loadingDocId === doc.id ? "Generating link…" : "View document ↗"}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
         </section>
       )}
 

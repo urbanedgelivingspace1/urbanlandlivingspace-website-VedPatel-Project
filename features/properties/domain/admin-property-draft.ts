@@ -6,6 +6,7 @@ import {
   propertyOfferSchema,
   transactionTypeSchema,
 } from "@/lib/validation/domain-schemas";
+import { parseGoogleMapsEmbedInput } from "@/lib/validation/google-maps-embed";
 
 const uuid = z.uuid();
 const blankToUndefined = (maximum: number) =>
@@ -14,6 +15,20 @@ const blankToUndefined = (maximum: number) =>
     z.string().trim().max(maximum).optional(),
   );
 const optionalNonNegative = z.number().finite().nonnegative().optional();
+const googleMapsEmbedUrlSchema = z
+  .preprocess(
+    (value) => (typeof value === "string" && value.trim() === "" ? null : value),
+    z.string().trim().max(12_000).nullable().optional(),
+  )
+  .transform((value, context) => {
+    if (value === null || value === undefined) return value;
+    const result = parseGoogleMapsEmbedInput(value);
+    if (!result.ok) {
+      context.addIssue({ code: "custom", message: result.error });
+      return z.NEVER;
+    }
+    return result.url;
+  });
 
 const agriculturalDetailsSchema = z
   .object({
@@ -155,6 +170,7 @@ export const adminPropertyDraftSchema = z
     localityId: uuid.optional(),
     landmarkText: blankToUndefined(240),
     publicAddress: blankToUndefined(2_000),
+    googleMapsEmbedUrl: googleMapsEmbedUrlSchema.optional(),
     displayAreaValue: z.number().finite().positive("Area must be greater than zero."),
     displayAreaUnitId: uuid,
     publicSlug: z.preprocess(
@@ -166,7 +182,7 @@ export const adminPropertyDraftSchema = z
         .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase letters, numbers, and hyphens only.")
         .optional(),
     ),
-    location: propertyLocationSchema.extend({ locationNotes: blankToUndefined(5_000) }),
+    location: propertyLocationSchema.extend({ locationNotes: blankToUndefined(5_000) }).optional(),
     offer: offerSchema,
     parcel: propertyParcelDraftSchema.optional(),
     planning: propertyPlanningDraftSchema.optional(),

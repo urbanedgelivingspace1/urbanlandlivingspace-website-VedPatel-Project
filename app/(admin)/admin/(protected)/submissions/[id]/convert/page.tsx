@@ -37,7 +37,7 @@ export default async function ConvertOwnerSubmissionPage({
       </h1>
       <div className="mt-5 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950">
         <strong>This action does not publish.</strong> It creates one DRAFT property, keeps owner
-        documents private, and initializes verification as a separate workflow.
+        documents private, and leaves publication subject to the existing readiness checks.
       </div>
       {error ? (
         <p className="mt-5 rounded-lg border border-red-200 bg-red-50 p-3 text-red-900">{error}</p>
@@ -153,7 +153,7 @@ export default async function ConvertOwnerSubmissionPage({
           <input name="confirmation" type="checkbox" required />
           <span>
             I confirm that I reviewed the public copy and understand this creates a private DRAFT
-            only. Publication and verification require separate actions.
+            only. Publication requires a separate preview, readiness review, and publish action.
           </span>
         </label>
         <div className="flex flex-wrap gap-3">

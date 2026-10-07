@@ -1,4 +1,4 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 import { expect, test, type Page } from "@playwright/test";
 import sharp from "sharp";
 
@@ -37,121 +37,6 @@ async function serviceContext() {
   return { client, actorId: actor.id };
 }
 
-async function rpc(result: PromiseLike<{ error: { message: string } | null }>) {
-  const resolved = await result;
-  if (resolved.error) throw new Error(resolved.error.message);
-}
-
-async function completeRequiredChecks(
-  client: SupabaseClient<Database>,
-  actorId: string,
-  propertyId: string,
-) {
-  await rpc(
-    client.rpc("initialize_property_verifications", {
-      requested_actor_id: actorId,
-      requested_property_id: propertyId,
-    }),
-  );
-  const definitions = await client
-    .from("verification_check_definitions")
-    .select("id,code")
-    .in("code", ["PROPERTY_IDENTITY_REVIEWED", "REVENUE_RECORDS_REVIEWED"]);
-  if (definitions.error) throw definitions.error;
-  const definitionByCode = new Map(definitions.data.map(({ code, id }) => [code, id]));
-  const checks = await client
-    .from("property_verifications")
-    .select("id,check_definition_id")
-    .eq("property_id", propertyId)
-    .in("check_definition_id", [...definitionByCode.values()]);
-  if (checks.error) throw checks.error;
-  const checkByCode = new Map(
-    [...definitionByCode].map(([code, definitionId]) => [
-      code,
-      checks.data.find((check) => check.check_definition_id === definitionId)?.id,
-    ]),
-  );
-  const document = await client
-    .from("private_documents")
-    .select("id")
-    .eq("property_id", propertyId)
-    .eq("scan_status", "CLEAN")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .single();
-  if (document.error) throw document.error;
-
-  for (const configuration of [
-    {
-      code: "PROPERTY_IDENTITY_REVIEWED",
-      evidenceType: "OWNER_DOCUMENT",
-      sourceClass: "URBANEDGE_OPERATIONAL_POLICY",
-      target: "PASSED_WITH_NOTE",
-      notes: "Owner-provided evidence was reviewed for the bounded scope.",
-      sourceVerified: false,
-    },
-    {
-      code: "REVENUE_RECORDS_REVIEWED",
-      evidenceType: "OFFICIAL_RECORD",
-      sourceClass: "OFFICIAL_ADMINISTRATIVE_PRACTICE",
-      target: "PASSED",
-      notes: undefined,
-      sourceVerified: true,
-    },
-  ] as const) {
-    const verificationId = checkByCode.get(configuration.code);
-    if (!verificationId) throw new Error(`Required ${configuration.code} check was not found.`);
-    await rpc(
-      client.rpc("transition_property_verification", {
-        requested_actor_id: actorId,
-        requested_verification_id: verificationId,
-        requested_target: "IN_REVIEW",
-        requested_payload: {},
-      }),
-    );
-    const evidence = await client.rpc("link_verification_evidence", {
-      requested_actor_id: actorId,
-      requested_verification_id: verificationId,
-      requested_payload: {
-        privateDocumentId: document.data.id,
-        evidenceType: configuration.evidenceType,
-        sourceClass: configuration.sourceClass,
-        evidenceReference: `SYNTHETIC-M9-${configuration.code}`,
-      },
-    });
-    if (evidence.error) throw evidence.error;
-    await rpc(
-      client.rpc("advance_verification_evidence", {
-        requested_actor_id: actorId,
-        requested_evidence_id: evidence.data,
-        requested_state: "REVIEWED",
-      }),
-    );
-    if (configuration.sourceVerified) {
-      await rpc(
-        client.rpc("advance_verification_evidence", {
-          requested_actor_id: actorId,
-          requested_evidence_id: evidence.data,
-          requested_state: "SOURCE_VERIFIED",
-        }),
-      );
-    }
-    await rpc(
-      client.rpc("transition_property_verification", {
-        requested_actor_id: actorId,
-        requested_verification_id: verificationId,
-        requested_target: configuration.target,
-        requested_payload: {
-          scopeStatement: `The required ${configuration.code} references were reviewed for this synthetic parcel.`,
-          limitations: "Bounded record scope only; no title or legal guarantee.",
-          notes: configuration.notes,
-          recheckAt: "2099-01-01T00:00:00Z",
-        },
-      }),
-    );
-  }
-}
-
 test("M9 publishes and unpublishes only a complete public-safe property", async ({ page }) => {
   test.setTimeout(120_000);
   await signIn(page);
@@ -181,64 +66,44 @@ test("M9 publishes and unpublishes only a complete public-safe property", async 
   await page.getByLabel("Road touch observed").check();
   await page.getByLabel("Source type").fill("SYNTHETIC_E2E");
   await page.getByLabel("Source name").fill("M9 controlled fixture");
-  await page.getByRole("button", { name: "Create draft" }).click();
-  await expect(page).toHaveURL(/\/admin\/properties\/[0-9a-f-]+$/);
-  const propertyId = page.url().split("/").at(-1) as string;
+  await page.getByRole("button", { name: "Save & Next →" }).click();
+  await expect(page).toHaveURL(/\/admin\/properties\/[0-9a-f-]+\/media$/);
+  const propertyId = page.url().split("/").at(-2) as string;
 
-  await page.getByRole("link", { name: "Review", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Publication readiness" })).toBeVisible();
+  await page.getByRole("link", { name: /Save & Next/ }).click();
   await expect(
     page.getByText("Choose one approved public cover image with alt text."),
   ).toBeVisible();
-  await expect(page.getByRole("button", { name: "Publish property" })).toBeDisabled();
-
-  await page.getByRole("link", { name: "Public preview" }).click();
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   await expect(page.getByText("PRIVATE_M9_E2E_LOCATION_CANARY")).toHaveCount(0);
-  await page.getByRole("link", { name: "Back to publication readiness" }).click();
-  await page.getByRole("link", { name: /Media/ }).click();
-  await page.getByRole("link", { name: "Upload & manage media" }).click();
+  await page.getByRole("link", { name: /Continue to Publish/ }).click();
+  await expect(page.getByRole("button", { name: "Publish Property" })).toBeDisabled();
+  await page.getByRole("link", { name: /← Preview/ }).click();
+  await page.getByRole("link", { name: /← Photos & Documents/ }).click();
   const image = await sharp({
     create: { width: 1200, height: 800, channels: 3, background: "#8d724d" },
   })
     .jpeg()
     .toBuffer();
-  const imageForm = page.locator("form").filter({ hasText: "Upload gallery image" });
+  const imageForm = page.locator("form").filter({ hasText: "Drag photos here" });
   await imageForm.locator('input[type="file"]').setInputFiles({
     name: "synthetic-m9-cover.jpg",
     mimeType: "image/jpeg",
     buffer: image,
   });
-  await imageForm.getByPlaceholder(/Truthful alt text/).fill("Synthetic agricultural frontage");
-  await imageForm.getByRole("button", { name: "Upload" }).click();
-  await expect(imageForm.getByRole("status")).toContainText("private staging");
-  await page.getByRole("button", { name: "Approve / promote" }).click();
-  await page.getByRole("button", { name: "Set cover" }).click();
-
-  const documentForm = page.locator("form").filter({ hasText: "Upload private evidence" });
-  await documentForm.locator('input[type="file"]').setInputFiles({
-    name: "private-m9-record.pdf",
-    mimeType: "application/pdf",
-    buffer: Buffer.from(
-      "%PDF-1.4\n1 0 obj << /Type /Catalog >> endobj\n2 0 obj << /Type /Page >> endobj\n%%EOF",
-    ),
-  });
-  await documentForm.getByRole("button", { name: "Upload" }).click();
-  await expect(documentForm.getByRole("status")).toContainText("scanned clean");
+  await imageForm.getByRole("button", { name: "Upload 1 Photo" }).click();
+  await expect(imageForm.getByRole("status")).toContainText("1 photo added");
+  await expect(page.getByText("✓ Cover Photo")).toBeVisible();
 
   const { client, actorId } = await serviceContext();
-  await completeRequiredChecks(client, actorId, propertyId);
-  await page.goto(`/admin/properties/${propertyId}?tab=review`);
-  await expect(page.getByText("NO BLOCKERS")).toBeVisible();
-  await expect(page.getByText(/does not block standard marketing publication/)).toBeVisible();
-  await page
-    .getByLabel(
-      /I reviewed every readiness group and understand publication is not a legal guarantee/,
-    )
-    .check();
-  await page.getByRole("button", { name: "Publish property" }).click();
-  await expect(page.getByText("PUBLISHED").first()).toBeVisible();
-  await expect(page.getByRole("button", { name: "Unpublish property" })).toBeVisible();
+  await page.getByRole("link", { name: /Save & Next/ }).click();
+  await expect(page.getByRole("heading", { name: "Ready to publish" })).toBeVisible();
+  await page.getByRole("link", { name: /Continue to Publish/ }).click();
+  await page.getByLabel(/I’ve reviewed this listing/).check();
+  await page.getByRole("button", { name: "Publish Property" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Property published successfully" }),
+  ).toBeVisible();
 
   const anonymous = createClient<Database>(environment().url, environment().anonKey, {
     auth: { autoRefreshToken: false, persistSession: false },
@@ -261,7 +126,7 @@ test("M9 publishes and unpublishes only a complete public-safe property", async 
   });
   expect(JSON.stringify(published.data)).not.toContain("PRIVATE_M9");
 
-  await page.getByRole("link", { name: "Activity" }).click();
+  await page.goto(`/admin/properties/${propertyId}?tab=activity`);
   page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Mark Property Sold" }).click();
   await expect(page.getByText("SOLD", { exact: true }).first()).toBeVisible();
@@ -272,11 +137,12 @@ test("M9 publishes and unpublishes only a complete public-safe property", async 
     .single();
   expect(sold.data?.availability_status).toBe("SOLD");
 
-  await page.getByRole("link", { name: "Review", exact: true }).click();
+  await page.goto(`/admin/properties/${propertyId}`);
+  await page.getByText("Publishing options").click();
   await page.getByLabel("Reason for unpublishing").fill("Synthetic M9 E2E removal check");
-  await page.getByRole("button", { name: "Unpublish property" }).click();
+  await page.getByRole("button", { name: "Unpublish" }).click();
   await expect(page.getByText("UNPUBLISHED").first()).toBeVisible();
-  await expect(page.getByRole("button", { name: "Publish property" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Publish Property" })).toBeVisible();
   const unpublished = await anonymous
     .from("public_property_listings")
     .select("id")

@@ -104,7 +104,7 @@ export default async function AdminPropertiesPage({
       <AdminPageHeader
         eyebrow="Inventory operations"
         title="Properties"
-        description={`${result.total} propert${result.total === 1 ? "y" : "ies"} across draft, verification and live inventory.`}
+        description={`${result.total} propert${result.total === 1 ? "y" : "ies"} across draft and live inventory.`}
         actions={
           <Link href="/admin/properties/new" className="button button-primary">
             + Add property
@@ -212,8 +212,8 @@ export default async function AdminPropertiesPage({
 
       {result.items.length ? (
         <>
-          <div className="hidden overflow-x-auto rounded-xl border border-slate-200 bg-white md:block">
-            <table className="w-full min-w-[980px] text-left text-sm">
+          <div className="hidden overflow-visible rounded-xl border border-slate-200 bg-white md:block">
+            <table className="w-full text-left text-sm">
               <thead className="bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                 <tr>
                   <th className="px-4 py-3">Property</th>
@@ -221,8 +221,7 @@ export default async function AdminPropertiesPage({
                   <th className="px-4 py-3">Price</th>
                   <th className="px-4 py-3">Publication</th>
                   <th className="px-4 py-3">Availability</th>
-                  <th className="px-4 py-3">Media</th>
-                  <th className="px-4 py-3">Updated</th>
+
                   <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
@@ -256,12 +255,7 @@ export default async function AdminPropertiesPage({
                     <td className="px-4 py-3">
                       <Status value={property.availabilityStatus} />
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-xs text-slate-600">
-                      {property.mediaCount} photos · {property.documentCount} docs
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-xs text-slate-500">
-                      {formatDate(property.updatedAt)}
-                    </td>
+
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">
                         <Link
@@ -271,7 +265,7 @@ export default async function AdminPropertiesPage({
                         >
                           Open
                         </Link>
-                        <details className="relative">
+                        <details className="relative" name="property-actions">
                           <summary
                             className="button button-secondary cursor-pointer list-none"
                             aria-label={`More actions for ${property.propertyCode}`}
@@ -415,15 +409,6 @@ function friendly(value: string) {
     .toLowerCase()
     .replaceAll("_", " ")
     .replace(/^./, (letter) => letter.toUpperCase());
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "Asia/Kolkata",
-  }).format(new Date(value));
 }
 
 function formatPrice(mode: string, amount: number | null) {

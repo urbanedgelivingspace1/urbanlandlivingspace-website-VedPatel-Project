@@ -215,10 +215,12 @@ export function projectPublicPropertyDetail(
   media: readonly PublicMediaRow[],
   verifications: readonly PublicVerificationSummaryRow[],
   identifiers: readonly PublicParcelIdentifierRow[] = [],
+  googleMapsEmbedUrl: string | null = null,
 ): PublicPropertyDetailDto {
   return {
     ...projectPublicPropertyCard(row),
     description: row.description,
+    googleMapsEmbedUrl,
     seo: {
       title: row.seo_title,
       description: row.seo_description,

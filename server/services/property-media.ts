@@ -8,9 +8,11 @@ import { z } from "zod";
 import type {
   AdminMediaAssetDto,
   AdminPrivateDocumentDto,
+  BatchPhotoUploadResult,
   ExternalMediaKind,
 } from "@/features/media/domain/contracts";
 import { MediaValidationError } from "@/features/media/domain/contracts";
+import { extractGoogleDriveFileId, normalizeGoogleDriveShareUrl } from "@/lib/media/google-drive";
 import { requireActiveAdmin } from "@/server/auth/authorization";
 import { getServerEnvironment } from "@/server/env";
 import { createPrivilegedServerClient } from "@/server/supabase/privileged";
@@ -66,6 +68,8 @@ const documentTypeSchema = z
   .default("OTHER");
 
 const MAX_STAGED_IMAGES_PER_PROPERTY = 20;
+const MAX_BATCH_IMAGES = 20;
+const MAX_BATCH_SOURCE_BYTES = 50 * 1024 * 1024;
 const MAX_ACTIVE_BROCHURES_PER_PROPERTY = 1;
 
 async function storageHealthWithClient(client: Db) {
@@ -266,6 +270,129 @@ export async function uploadPropertyImage(
   );
 }
 
+async function setPropertyCoverWithClient(
+  client: Db,
+  actorId: string,
+  propertyId: string,
+  mediaId: string,
+) {
+  const { error } = await client.rpc("set_property_cover", {
+    requested_actor_id: actorId,
+    requested_property_id: z.uuid().parse(propertyId),
+    requested_media_id: z.uuid().parse(mediaId),
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function uploadPropertyImagesBatchWithClient(
+  client: Db,
+  actorId: string,
+  propertyId: string,
+  files: readonly File[],
+): Promise<BatchPhotoUploadResult> {
+  if (files.length === 0) {
+    throw new MediaValidationError("Choose at least one property photo.");
+  }
+  if (files.length > MAX_BATCH_IMAGES) {
+    throw new MediaValidationError(`Choose no more than ${MAX_BATCH_IMAGES} photos at once.`);
+  }
+  if (files.reduce((total, file) => total + file.size, 0) > MAX_BATCH_SOURCE_BYTES) {
+    throw new MediaValidationError("The selected photo batch must be 50 MB or smaller.");
+  }
+
+  const id = await ensureActiveProperty(client, propertyId);
+  const [propertyResult, imageCountResult, coverResult] = await Promise.all([
+    client.from("properties").select("property_code,listing_title").eq("id", id).single(),
+    client
+      .from("media_assets")
+      .select("id", { count: "exact", head: true })
+      .eq("property_id", id)
+      .eq("media_type", "IMAGE")
+      .is("archived_at", null),
+    client
+      .from("media_assets")
+      .select("id")
+      .eq("property_id", id)
+      .eq("media_type", "IMAGE")
+      .eq("is_cover", true)
+      .is("archived_at", null)
+      .maybeSingle(),
+  ]);
+  if (propertyResult.error) throw propertyResult.error;
+  if (imageCountResult.error) throw imageCountResult.error;
+  if (coverResult.error) throw coverResult.error;
+
+  const propertyLabel =
+    propertyResult.data.listing_title?.trim() || propertyResult.data.property_code;
+  let photoNumber = (imageCountResult.count ?? 0) + 1;
+  let hasCover = Boolean(coverResult.data);
+  const results: Array<BatchPhotoUploadResult["results"][number]> = [];
+
+  for (const file of files) {
+    const fileName = file.name.slice(0, 255) || "Property photo";
+    try {
+      const uploaded = await uploadPropertyImageWithClient(client, actorId, id, file, {
+        altText: `${propertyLabel} - property photo ${photoNumber}`,
+      });
+      const registered = await client
+        .from("media_assets")
+        .select("alt_text,processing_status,is_cover")
+        .eq("id", uploaded.id)
+        .single();
+      if (registered.error) throw registered.error;
+
+      if (registered.data.processing_status === "READY") {
+        if (!registered.data.alt_text) {
+          const metadata = await client.rpc("update_property_media_metadata", {
+            requested_actor_id: actorId,
+            requested_media_id: uploaded.id,
+            requested_alt_text: `${propertyLabel} - property photo ${photoNumber}`,
+            requested_caption: "",
+          });
+          if (metadata.error) throw new Error(metadata.error.message);
+        }
+        await approvePropertyMediaWithClient(client, actorId, uploaded.id);
+      }
+      if (!hasCover) {
+        await setPropertyCoverWithClient(client, actorId, id, uploaded.id);
+        hasCover = true;
+      }
+      results.push({
+        fileName,
+        ok: true,
+        duplicate: uploaded.duplicate,
+        message: uploaded.duplicate ? "Already in the gallery." : "Added to the gallery.",
+      });
+      if (!uploaded.duplicate) photoNumber += 1;
+    } catch (error) {
+      results.push({
+        fileName,
+        ok: false,
+        message:
+          error instanceof MediaValidationError || error instanceof z.ZodError
+            ? error.message
+            : "This photo could not be processed. Try it again.",
+      });
+    }
+  }
+
+  const uploaded = results.filter((result) => result.ok).length;
+  return {
+    ok: uploaded === files.length,
+    uploaded,
+    results,
+    message:
+      uploaded === files.length
+        ? `${uploaded} ${uploaded === 1 ? "photo" : "photos"} added to the gallery.`
+        : `${uploaded} of ${files.length} photos were added. Review the results below.`,
+  };
+}
+
+export async function uploadPropertyImagesBatch(propertyId: string, files: readonly File[]) {
+  const admin = await requireActiveAdmin();
+  return uploadPropertyImagesBatchWithClient(privilegedClient(), admin.userId, propertyId, files);
+}
+
 export async function uploadPropertyBrochureWithClient(
   client: Db,
   actorId: string,
@@ -333,6 +460,85 @@ export async function uploadPropertyBrochureWithClient(
 export async function uploadPropertyBrochure(propertyId: string, file: File) {
   const admin = await requireActiveAdmin();
   return uploadPropertyBrochureWithClient(privilegedClient(), admin.userId, propertyId, file);
+}
+
+export async function saveGoogleDriveBrochureWithClient(
+  client: Db,
+  actorId: string,
+  propertyId: string,
+  rawUrl: string,
+) {
+  const id = await ensureActiveProperty(client, propertyId);
+  const fileId = extractGoogleDriveFileId(rawUrl);
+  const canonicalUrl = normalizeGoogleDriveShareUrl(rawUrl);
+  if (!fileId || !canonicalUrl) {
+    throw new MediaValidationError(
+      "Paste a valid Google Drive file link. Folder links and links from other websites are not accepted.",
+      "brochureUrl",
+    );
+  }
+
+  const current = await client
+    .from("media_assets")
+    .select("id,external_provider,external_media_id,processing_status")
+    .eq("property_id", id)
+    .eq("media_type", "BROCHURE")
+    .is("archived_at", null)
+    .maybeSingle();
+  if (current.error) throw current.error;
+  if (
+    current.data?.external_provider === "GOOGLE_DRIVE" &&
+    current.data.external_media_id === fileId
+  ) {
+    if (current.data.processing_status === "READY") {
+      await approvePropertyMediaWithClient(client, actorId, current.data.id);
+    }
+    return { id: current.data.id, duplicate: true, replaced: false } as const;
+  }
+
+  const previousId = current.data?.id ?? null;
+  let newId: string | null = null;
+  if (previousId) {
+    const archived = await client.rpc("archive_property_media", {
+      requested_actor_id: actorId,
+      requested_media_id: previousId,
+    });
+    if (archived.error) throw new Error(archived.error.message);
+  }
+
+  try {
+    const mediaId = randomUUID();
+    newId = await registerMedia(client, actorId, {
+      id: mediaId,
+      propertyId: id,
+      mediaType: "BROCHURE",
+      sourceType: "GOOGLE_DRIVE",
+      externalUrl: canonicalUrl,
+      externalProvider: "GOOGLE_DRIVE",
+      externalMediaId: fileId,
+    });
+    await approvePropertyMediaWithClient(client, actorId, newId);
+    return { id: newId, duplicate: newId !== mediaId, replaced: Boolean(previousId) } as const;
+  } catch (error) {
+    if (newId) {
+      await client.rpc("archive_property_media", {
+        requested_actor_id: actorId,
+        requested_media_id: newId,
+      });
+    }
+    if (previousId) {
+      await client.rpc("restore_property_media", {
+        requested_actor_id: actorId,
+        requested_media_id: previousId,
+      });
+    }
+    throw error;
+  }
+}
+
+export async function saveGoogleDriveBrochure(propertyId: string, rawUrl: string) {
+  const admin = await requireActiveAdmin();
+  return saveGoogleDriveBrochureWithClient(privilegedClient(), admin.userId, propertyId, rawUrl);
 }
 
 export async function addExternalPropertyMediaWithClient(
@@ -631,12 +837,33 @@ export async function reorderPropertyMedia(propertyId: string, mediaIds: readonl
 
 export async function setPropertyCover(propertyId: string, mediaId: string) {
   const admin = await requireActiveAdmin();
-  const { error } = await privilegedClient().rpc("set_property_cover", {
-    requested_actor_id: admin.userId,
-    requested_property_id: z.uuid().parse(propertyId),
-    requested_media_id: z.uuid().parse(mediaId),
-  });
-  if (error) throw new Error(error.message);
+  return setPropertyCoverWithClient(privilegedClient(), admin.userId, propertyId, mediaId);
+}
+
+export async function approvePropertyImageAndMaybeSetCover(propertyId: string, mediaId: string) {
+  const admin = await requireActiveAdmin();
+  const client = privilegedClient();
+  const id = z.uuid().parse(propertyId);
+  const media = await client
+    .from("media_assets")
+    .select("media_type")
+    .eq("id", z.uuid().parse(mediaId))
+    .eq("property_id", id)
+    .is("archived_at", null)
+    .single();
+  if (media.error) throw new MediaValidationError("Media asset not found.", "mediaId");
+  await approvePropertyMediaWithClient(client, admin.userId, mediaId);
+  if (media.data.media_type !== "IMAGE") return;
+  const cover = await client
+    .from("media_assets")
+    .select("id")
+    .eq("property_id", id)
+    .eq("media_type", "IMAGE")
+    .eq("is_cover", true)
+    .is("archived_at", null)
+    .maybeSingle();
+  if (cover.error) throw cover.error;
+  if (!cover.data) await setPropertyCoverWithClient(client, admin.userId, id, mediaId);
 }
 
 export async function approvePropertyMediaWithClient(client: Db, actorId: string, mediaId: string) {

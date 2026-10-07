@@ -18,20 +18,20 @@ async function createDraft(page: Page) {
   await page.getByLabel("District").selectOption({ label: "Ahmedabad" });
   await page.getByLabel("Display area").fill("2.5");
   await page.locator('select[name="displayAreaUnitId"]').selectOption({ label: "Acre (ac)" });
-  await page.getByRole("button", { name: "Create draft" }).click();
-  await expect(page).toHaveURL(/\/admin\/properties\/[0-9a-f-]+$/);
+  await page.getByRole("button", { name: "Save & Next →" }).click();
+  await expect(page).toHaveURL(/\/admin\/properties\/[0-9a-f-]+\/media$/);
 }
 
-test("active admin manages staged/public media and private evidence without publishing", async ({
+test("active admin uploads a photo batch and connects a Drive brochure without publishing", async ({
   page,
 }) => {
   await signIn(page);
   await createDraft(page);
-  await page.getByRole("link", { name: /Media/ }).click();
-  await page.getByRole("link", { name: "Upload & manage media" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Property media and private storage" }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Photos & Brochure" })).toBeVisible();
+  await expect(page.getByText(/Private Documents/)).toHaveCount(0);
+  await expect(page.getByText("Add Documents")).toHaveCount(0);
+  await expect(page.getByText("Document Category")).toHaveCount(0);
+  await expect(page.getByText(/Drop documents here/)).toHaveCount(0);
 
   const image = await sharp({
     create: { width: 1200, height: 800, channels: 3, background: "#9b865b" },
@@ -39,51 +39,44 @@ test("active admin manages staged/public media and private evidence without publ
     .jpeg()
     .withMetadata({ exif: { IFD0: { ImageDescription: "PRIVATE_E2E_GPS_CANARY" } } })
     .toBuffer();
-  const imageForm = page.locator("form").filter({ hasText: "Upload gallery image" });
-  await imageForm.locator('input[type="file"]').setInputFiles({
-    name: "private-owner-name.jpg",
-    mimeType: "image/jpeg",
-    buffer: image,
-  });
-  await imageForm.getByPlaceholder(/Truthful alt text/).fill("Synthetic access road view");
-  await imageForm.getByRole("button", { name: "Upload" }).click();
-  await expect(imageForm.getByRole("status")).toContainText("private staging");
-  await expect(page.getByText("READY").first()).toBeVisible();
+  const secondImage = await sharp({
+    create: { width: 1200, height: 800, channels: 3, background: "#806f54" },
+  })
+    .jpeg()
+    .toBuffer();
+  const imageForm = page.locator("form").filter({ hasText: "Drag photos here" });
+  await imageForm.locator('input[type="file"]').setInputFiles([
+    { name: "front-view.jpg", mimeType: "image/jpeg", buffer: image },
+    { name: "failed-photo.png", mimeType: "image/png", buffer: Buffer.from("not an image") },
+    { name: "road-view.jpg", mimeType: "image/jpeg", buffer: secondImage },
+  ]);
+  await expect(imageForm.getByText("3 photos selected")).toBeVisible();
+  await imageForm.getByRole("button", { name: "Upload 3 Photos" }).click();
+  await expect(imageForm.getByRole("status")).toContainText("2 of 3 photos were added");
+  await expect(imageForm.getByRole("status")).toContainText("failed-photo.png");
+  await expect(page.getByText("Photo 1", { exact: true })).toBeVisible();
+  await expect(page.getByText("Photo 2", { exact: true })).toBeVisible();
+  await expect(page.getByText("✓ Cover Photo")).toBeVisible();
 
-  await page.getByRole("button", { name: "Approve / promote" }).click();
-  await expect(page.getByText("APPROVED").first()).toBeVisible();
-  await page.getByRole("button", { name: "Set cover" }).click();
-  await expect(page.getByText("Cover", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Set as Cover" }).click();
+  await expect(page.getByText("✓ Cover Photo")).toBeVisible();
 
-  const externalForm = page
-    .locator("form")
-    .filter({ has: page.getByRole("button", { name: "Add URL" }) });
-  await externalForm.getByLabel("HTTPS URL").fill("https://youtu.be/AbCdEf12345?utm_source=e2e");
-  await externalForm.getByRole("button", { name: "Add URL" }).click();
-  await expect(externalForm.getByRole("status")).toContainText("validated and added");
-  await expect(page.getByText("STANDARD_VIDEO")).toBeVisible();
-
-  const pdf = Buffer.from(
-    "%PDF-1.4\n1 0 obj << /Type /Catalog >> endobj\n2 0 obj << /Type /Page >> endobj\n%%EOF",
-  );
-  const privateForm = page.locator("form").filter({ hasText: "Upload private evidence" });
-  await privateForm.locator('input[type="file"]').setInputFiles({
-    name: "private-title-record.pdf",
-    mimeType: "application/pdf",
-    buffer: pdf,
-  });
-  await privateForm.getByRole("button", { name: "Upload" }).click();
-  await expect(privateForm.getByRole("status")).toContainText("scanned clean");
-  await expect(page.getByRole("link", { name: "Create temporary link" })).toHaveAttribute(
+  const brochureForm = page.locator("form").filter({ hasText: "Google Drive brochure link" });
+  await brochureForm
+    .getByLabel("Google Drive brochure link")
+    .fill("https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz_12345/view?usp=sharing");
+  await brochureForm.getByRole("button", { name: "Save Brochure" }).click();
+  await expect(page.getByText("✓ Brochure connected")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Test Download" })).toHaveAttribute(
     "href",
-    /\/api\/admin\/private-documents\/[0-9a-f-]+\/download/,
+    "https://drive.google.com/uc?export=download&id=1AbCdEfGhIjKlMnOpQrStUvWxYz_12345",
   );
+  await expect(page.getByText(/Private evidence|External media|Approve \/ promote/)).toHaveCount(0);
 
-  await page.getByRole("link", { name: "Back to property" }).click();
-  await expect(page.getByText("DRAFT").first()).toBeVisible();
-  await page.getByRole("link", { name: "Review", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Publication readiness" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Publish property" })).toBeDisabled();
+  await page.getByRole("link", { name: /Save & Next/ }).click();
+  await expect(page).toHaveURL(/\/preview$/);
+  await page.getByRole("link", { name: /← Photos & Documents/ }).click();
+  await expect(page).toHaveURL(/\/media$/);
 });
 
 test("anonymous users cannot reach the media manager", async ({ page }) => {

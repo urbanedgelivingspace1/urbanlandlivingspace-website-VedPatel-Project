@@ -7,6 +7,7 @@ import type {
   PublicationActionState,
   PublicationReadiness,
 } from "@/features/properties/domain/publication";
+import { humanizePublicationIssue } from "@/features/properties/domain/publication";
 
 const EMPTY: PublicationActionState = { ok: false, message: "" };
 type Action = (state: PublicationActionState, data: FormData) => Promise<PublicationActionState>;
@@ -60,7 +61,7 @@ export function PropertyPublicationPanel({
                   <span aria-hidden="true" className="font-bold text-amber-700">
                     ○
                   </span>
-                  <span>{plainIssue(issue.message)}</span>
+                  <span>{humanizePublicationIssue(issue.message)}</span>
                 </li>
               ))}
             </ul>
@@ -73,7 +74,9 @@ export function PropertyPublicationPanel({
               </summary>
               <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
                 {readiness.warnings.map((issue) => (
-                  <li key={`${issue.code}-${issue.message}`}>{plainIssue(issue.message)}</li>
+                  <li key={`${issue.code}-${issue.message}`}>
+                    {humanizePublicationIssue(issue.message)}
+                  </li>
                 ))}
               </ul>
             </details>
@@ -147,10 +150,4 @@ function Result({ state }: Readonly<{ state: PublicationActionState }>) {
       {state.message}
     </p>
   ) : null;
-}
-function plainIssue(message: string) {
-  return message
-    .replace(/public[- ]safe/gi, "listing")
-    .replace(/publication/gi, "publishing")
-    .replace(/authoritative/gi, "saved");
 }

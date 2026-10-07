@@ -127,7 +127,7 @@ describe.sequential("M6 property draft service integration", () => {
     const changed = draft("AGRICULTURAL");
     changed.displayAreaValue = 4;
     changed.location = {
-      ...changed.location,
+      ...changed.location!,
       visibility: "APPROXIMATE",
       publicLatitude: 23.02,
       publicLongitude: 72.02,

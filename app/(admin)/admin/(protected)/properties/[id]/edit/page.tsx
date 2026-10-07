@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { isNonProductionEnvironment } from "@/config/environment-schema";
 import { PropertyDraftForm } from "@/components/admin/property-draft-form";
+import { PropertyWorkflow } from "@/components/admin/property-workflow";
 import { requireActiveAdminPage } from "@/server/auth/require-admin-page";
 import { getAdminProperty, getAdminReferenceData } from "@/server/services/property-drafts";
 
@@ -95,27 +96,31 @@ export default async function EditPropertyPage({
     sourceName: record.sourceLink?.source_name,
     sourceReference: record.sourceLink?.source_reference,
     sourceNotesInternal: record.sourceLink?.notes_internal,
+    expectedUpdatedAt: row.updated_at,
   };
   return (
-    <div className="mx-auto max-w-5xl space-y-5">
-      <header>
-        <p className="text-xs font-bold tracking-widest text-[var(--brand-gold-deep)] uppercase">
-          {row.property_code}
-        </p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight">Edit Property</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Update the information you have now. Other details can remain blank until they are known.
-        </p>
-      </header>
-      <PropertyDraftForm
-        action={action}
-        references={references}
-        initialValues={values}
-        submitLabel="Save draft"
-        allowTestPresets={isNonProductionEnvironment()}
-        propertyId={row.id}
-        deleteAction={deletePropertyDraftAction}
-      />
+    <div className="mx-auto max-w-5xl">
+      <PropertyWorkflow currentStep="details" propertyId={id}>
+        <header>
+          <p className="text-xs font-bold tracking-widest text-[var(--brand-gold-deep)] uppercase">
+            {row.property_code}
+          </p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight">Edit Property</h1>
+          <p className="mt-1 text-sm text-slate-600">
+            Update the information you have now. Other details can remain blank until they are
+            known.
+          </p>
+        </header>
+        <PropertyDraftForm
+          action={action}
+          references={references}
+          initialValues={values}
+          submitLabel="Save Draft"
+          allowTestPresets={isNonProductionEnvironment()}
+          propertyId={row.id}
+          deleteAction={deletePropertyDraftAction}
+        />
+      </PropertyWorkflow>
     </div>
   );
 }

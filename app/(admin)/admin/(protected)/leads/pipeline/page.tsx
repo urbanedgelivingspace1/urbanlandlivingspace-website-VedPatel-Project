@@ -1,11 +1,7 @@
 import Link from "next/link";
 
-import {
-  AdminPageHeader,
-  EmptyState,
-  StatusBadge,
-  WorkspaceTabs,
-} from "@/components/admin/admin-ui";
+import { AdminPageHeader, EmptyState, StatusBadge } from "@/components/admin/admin-ui";
+import { CrmWorkspaceTabs } from "@/components/admin/crm-workspace-tabs";
 import type { LeadStatus } from "@/features/admin/contracts";
 import type { LeadListItem } from "@/features/crm/domain/contracts";
 import { formatIndiaDateTime } from "@/features/crm/domain/follow-ups";
@@ -78,16 +74,7 @@ export default async function PipelinePage() {
           </Link>
         }
       />
-      <WorkspaceTabs
-        label="CRM workspaces"
-        active="pipeline"
-        tabs={[
-          { key: "leads", label: "Leads", href: "/admin/leads" },
-          { key: "pipeline", label: "Pipeline", href: "/admin/leads/pipeline" },
-          { key: "follow-ups", label: "Follow-ups", href: "/admin/follow-ups" },
-          { key: "site-visits", label: "Site visits", href: "/admin/site-visits" },
-        ]}
-      />
+      <CrmWorkspaceTabs active="pipeline" />
       <div className="mt-5 flex gap-3 overflow-x-auto pb-5">
         {lanes.map((lane) => {
           const cards = leads.filter((lead) => lane.statuses.includes(lead.status));

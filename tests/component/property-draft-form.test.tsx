@@ -1,4 +1,5 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { PropertyDraftForm } from "@/components/admin/property-draft-form";
@@ -32,6 +33,7 @@ describe("PropertyDraftForm", () => {
       "Basic Details",
       "Location & Land Details",
       "Price",
+      "Property Location",
       "Location Coordinates",
       "Survey / Parcel Details",
       "Planning Information",
@@ -44,10 +46,42 @@ describe("PropertyDraftForm", () => {
     expect(screen.getByRole("group", { name: "Basic Details" })).toBeVisible();
     expect(screen.getByRole("group", { name: "Location & Land Details" })).toBeVisible();
     expect(screen.getByRole("group", { name: "Price" })).toBeVisible();
+    expect(screen.getByRole("group", { name: "Property Location" })).toBeVisible();
+    expect(screen.getByLabelText(/^Location Title/)).toBeInTheDocument();
+    expect(screen.getByLabelText("Google Maps Embed")).toBeInTheDocument();
     expect(screen.queryByRole("group", { name: "NA Details" })).not.toBeInTheDocument();
     expect(screen.queryByRole("group", { name: "Industrial Details" })).not.toBeInTheDocument();
-    expect(screen.getByText(/Add photos and documents from the property record/)).toBeVisible();
+    expect(screen.getByText(/Continue when you are ready to add photos/)).toBeVisible();
     expect(screen.queryByRole("button", { name: /^publish$/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save & Next →" })).toBeVisible();
+    expect(screen.getByLabelText("Private latitude")).toBeInTheDocument();
+    expect(screen.getByLabelText("Private longitude")).toBeInTheDocument();
+    expect(screen.getByLabelText("Listing latitude")).toBeInTheDocument();
+    expect(screen.getByLabelText("Listing longitude")).toBeInTheDocument();
+  });
+
+  it("submits Save & Next with an explicit server-controlled intent", async () => {
+    const user = userEvent.setup();
+    const action = vi.fn(async (state, formData: FormData) => ({
+      ...state,
+      values: { submitIntent: String(formData.get("submitIntent")) },
+    }));
+    render(<PropertyDraftForm action={action} references={references} submitLabel="Save Draft" />);
+
+    await user.click(screen.getByRole("button", { name: "Save & Next →" }));
+
+    await waitFor(() => expect(action).toHaveBeenCalledTimes(1));
+    expect((action.mock.calls[0]?.[1] as FormData).get("submitIntent")).toBe("save-next");
+  });
+
+  it("guards Save & Next against a double submit", async () => {
+    const user = userEvent.setup();
+    const action = vi.fn(async (state) => state);
+    render(<PropertyDraftForm action={action} references={references} submitLabel="Save Draft" />);
+
+    await user.dblClick(screen.getByRole("button", { name: "Save & Next →" }));
+
+    await waitFor(() => expect(action).toHaveBeenCalledTimes(1));
   });
 
   it("renders the testing helper toolbar and prefill buttons when allowTestPresets is true", () => {

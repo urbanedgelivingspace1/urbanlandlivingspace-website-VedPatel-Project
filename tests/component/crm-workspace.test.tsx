@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -140,6 +140,21 @@ afterEach(cleanup);
 
 service.searchMatchableProperties.mockResolvedValue([]);
 
+function expectCrmTabs(activeLabel: string) {
+  const tabs = within(screen.getByRole("navigation", { name: "CRM workspaces" }));
+  const expectedRoutes = {
+    Leads: "/admin/leads",
+    Pipeline: "/admin/leads/pipeline",
+    "Follow-ups": "/admin/follow-ups",
+    "Site visits": "/admin/site-visits",
+  } as const;
+
+  for (const [label, href] of Object.entries(expectedRoutes)) {
+    expect(tabs.getByRole("link", { name: label })).toHaveAttribute("href", href);
+  }
+  expect(tabs.getByRole("link", { name: activeLabel })).toHaveAttribute("aria-current", "page");
+}
+
 describe("M12 CRM components", () => {
   it("provides an accessible lead editor with the approved demand taxonomy", async () => {
     const action = vi.fn(async () => ({
@@ -169,6 +184,11 @@ describe("M12 CRM components", () => {
     const populated = await LeadsPage({ searchParams: Promise.resolve({ q: "M12" }) });
     const view = render(populated);
     expect(screen.getByRole("heading", { name: "Leads" })).toBeVisible();
+    expectCrmTabs("Leads");
+    expect(screen.getByRole("link", { name: "+ New lead" })).toHaveAttribute(
+      "href",
+      "/admin/leads/new",
+    );
     expect(screen.getAllByRole("link", { name: "M12 Buyer" })[0]).toBeVisible();
     expect(screen.getByLabelText("Stage")).toBeVisible();
     expect(screen.getByLabelText("Next action")).toBeVisible();
@@ -184,6 +204,7 @@ describe("M12 CRM components", () => {
     service.listLeads.mockResolvedValue([lead]);
     render(await PipelinePage());
     expect(screen.getByRole("heading", { name: "Pipeline" })).toBeVisible();
+    expectCrmTabs("Pipeline");
     expect(screen.getByRole("region", { name: "Interested 1" })).toContainElement(
       screen.getByRole("link", { name: /M12 Buyer/ }),
     );
@@ -335,6 +356,7 @@ describe("M12 CRM components", () => {
       },
     ]);
     render(await FollowUpsPage({ searchParams: Promise.resolve({ bucket: "OVERDUE" }) }));
+    expectCrmTabs("Follow-ups");
     expect(screen.getByRole("link", { name: /Overdue/ })).toBeVisible();
     expect(screen.getByRole("link", { name: /Today/ })).toBeVisible();
     expect(screen.getByRole("link", { name: /Upcoming/ })).toBeVisible();

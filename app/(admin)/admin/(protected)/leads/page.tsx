@@ -2,12 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import {
-  AdminPageHeader,
-  EmptyState,
-  StatusBadge,
-  WorkspaceTabs,
-} from "@/components/admin/admin-ui";
+import { AdminPageHeader, EmptyState, StatusBadge } from "@/components/admin/admin-ui";
+import { CrmWorkspaceTabs } from "@/components/admin/crm-workspace-tabs";
 import { LEAD_STATUSES, type LeadListItem } from "@/features/crm/domain/contracts";
 import { classifyFollowUp, formatIndiaDateTime } from "@/features/crm/domain/follow-ups";
 import { leadStatusLabel } from "@/features/crm/domain/pipeline";
@@ -141,16 +137,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
           </Link>
         }
       />
-      <WorkspaceTabs
-        label="CRM workspaces"
-        active="leads"
-        tabs={[
-          { key: "leads", label: "Leads", href: "/admin/leads" },
-          { key: "pipeline", label: "Pipeline", href: "/admin/leads/pipeline" },
-          { key: "follow-ups", label: "Follow-ups", href: "/admin/follow-ups" },
-          { key: "site-visits", label: "Site visits", href: "/admin/site-visits" },
-        ]}
-      />
+      <CrmWorkspaceTabs active="leads" />
       {value("deleted") === "1" ? (
         <div
           role="status"

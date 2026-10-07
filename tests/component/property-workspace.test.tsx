@@ -4,10 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { PropertyWorkspace } from "@/components/admin/property-workspace";
 import type { AdminPropertyDraftRecord } from "@/server/services/property-drafts";
 import type { PublicationReadiness } from "@/features/properties/domain/publication";
-import type {
-  AdminMediaAssetDto,
-  AdminPrivateDocumentDto,
-} from "@/features/media/domain/contracts";
+import type { AdminMediaAssetDto } from "@/features/media/domain/contracts";
 import type { PropertyInterestedBuyers } from "@/features/crm/domain/contracts";
 import type { PropertyActivityItem } from "@/features/properties/domain/contracts";
 
@@ -208,20 +205,26 @@ const mockMedia: AdminMediaAssetDto[] = [
   },
 ];
 
-const mockDocuments: AdminPrivateDocumentDto[] = [
-  {
-    id: "doc-1",
-    propertyId: "20000000-0000-4000-8000-000000000001",
-    documentType: "OWNER_DOCUMENT",
-    mimeType: "application/pdf",
-    fileSizeBytes: 512000,
-    originalFileName: "7-12-record.pdf",
-    pageCount: 2,
-    scanStatus: "CLEAN",
-    createdAt: "2026-09-04T00:00:00Z",
-    archivedAt: null,
-  },
-];
+const driveBrochure: AdminMediaAssetDto = {
+  ...mockMedia[0]!,
+  id: "media-drive-brochure",
+  mediaType: "BROCHURE",
+  sourceType: "GOOGLE_DRIVE",
+  storageBucket: null,
+  objectPath: null,
+  externalUrl: "https://drive.google.com/file/d/1AbCdEfGhIjKlMn/view",
+  externalProvider: "GOOGLE_DRIVE",
+  externalMediaId: "1AbCdEfGhIjKlMn",
+  mimeType: null,
+  fileSizeBytes: null,
+  width: null,
+  height: null,
+  altText: null,
+  caption: null,
+  isCover: false,
+  sortOrder: 2,
+  previewUrl: "https://drive.google.com/file/d/1AbCdEfGhIjKlMn/view",
+};
 
 const action = vi.fn(async () => ({ ok: true, message: "Done" }));
 const mutateAction = vi.fn(async () => {});
@@ -238,7 +241,6 @@ describe("PropertyWorkspace", () => {
         property={mockProperty}
         readiness={mockReadiness}
         mediaList={mockMedia}
-        documentList={mockDocuments}
         publishAction={action}
         unpublishAction={action}
         changeAvailabilityAction={mutateAction}
@@ -252,7 +254,8 @@ describe("PropertyWorkspace", () => {
     expect(screen.getAllByText("UE-LS-000001")[0]).toBeVisible();
     expect(screen.getByRole("heading", { name: "Sanand Prime Agricultural Land" })).toBeVisible();
     expect(screen.getByRole("link", { name: "Edit" })).toBeVisible();
-    expect(screen.getByRole("link", { name: "Add Photos / Documents" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Add Photos / Brochure" })).toBeVisible();
+    expect(screen.queryByRole("link", { name: "Verification" })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "1 item before publishing" })).toBeVisible();
     expect(screen.queryByText("1. Listing Details")).not.toBeInTheDocument();
   });
@@ -295,7 +298,6 @@ describe("PropertyWorkspace", () => {
       property: mockProperty,
       readiness: mockReadiness,
       mediaList: mockMedia,
-      documentList: mockDocuments,
       interestedBuyers: mockInterestedBuyers,
       activity,
       publishAction: action,
@@ -313,11 +315,16 @@ describe("PropertyWorkspace", () => {
 
     cleanup();
     render(<PropertyWorkspace {...props} initialTab="media" />);
-    expect(screen.getByRole("heading", { name: /Photos & Listing Media \(1\)/ })).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: /Photos & (Listing Media|Brochure) \(1\)/ }),
+    ).toBeVisible();
+    expect(screen.getByRole("link", { name: "Add or Manage Photos" })).toBeVisible();
     expect(screen.getByText("Front entrance facing road")).toBeVisible();
-    expect(screen.getByRole("heading", { name: /Private Documents/ })).toBeVisible();
-    expect(screen.getByText("Private · Staff access only")).toBeVisible();
-    expect(screen.getByText("7-12-record.pdf")).toBeVisible();
+    expect(screen.queryByText(/Private Documents/)).not.toBeInTheDocument();
+    expect(screen.queryByText("Add Documents")).not.toBeInTheDocument();
+    expect(screen.queryByText("Document Category")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Drop documents here/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Upload files" })).not.toBeInTheDocument();
 
     cleanup();
     render(<PropertyWorkspace {...props} initialTab="buyers" />);
@@ -334,47 +341,25 @@ describe("PropertyWorkspace", () => {
     expect(screen.getByRole("button", { name: "Archive property" })).toBeVisible();
   });
 
-  it("queues and uploads multiple private documents in one batch", async () => {
-    const uploadBatch = vi.fn(async (_propertyId: string, formData: FormData) => ({
-      ok: true,
-      uploaded: formData.getAll("documents").length,
-      message: "2 files uploaded privately.",
-      results: formData.getAll("documents").map((item) => ({
-        ok: true,
-        fileName: item instanceof File ? item.name : "unknown",
-        message: "Uploaded",
-      })),
-    }));
+  it("renders a Drive brochure as a document card instead of an image", () => {
     render(
       <PropertyWorkspace
         property={mockProperty}
         readiness={mockReadiness}
         initialTab="media"
-        documentList={mockDocuments}
+        mediaList={[...mockMedia, driveBrochure]}
         publishAction={action}
         unpublishAction={action}
         changeAvailabilityAction={mutateAction}
         markPropertySoldAction={mutateAction}
         archivePropertyAction={mutateAction}
         restorePropertyAction={mutateAction}
-        uploadBatchPropertyDocumentsAction={uploadBatch}
       />,
     );
 
-    const fileInput = screen.getByLabelText(/Select Files/);
-    const files = [
-      new File(["land record"], "7-12.pdf", { type: "application/pdf" }),
-      new File(["deed"], "sale-deed.pdf", { type: "application/pdf" }),
-    ];
-    fireEvent.change(fileInput, { target: { files } });
-    expect(screen.getByText("2 files ready")).toBeVisible();
-    fireEvent.click(screen.getByRole("button", { name: "Upload files" }));
-
-    await waitFor(() => expect(uploadBatch).toHaveBeenCalledTimes(1));
-    const [propertyId, submitted] = uploadBatch.mock.calls[0]!;
-    expect(propertyId).toBe(mockProperty.property.id);
-    expect((submitted as FormData).getAll("documents")).toHaveLength(2);
-    expect(screen.getByRole("status")).toHaveTextContent("2 files uploaded privately.");
+    expect(screen.getByText("Property brochure")).toBeVisible();
+    expect(screen.getByRole("img", { name: "Lush farmland view" })).toBeVisible();
+    expect(screen.getAllByRole("img")).toHaveLength(1);
   });
 
   it("renders delete draft button for draft properties and handles confirmation", async () => {

@@ -6,15 +6,9 @@ import { usePathname } from "next/navigation";
 const groups = [
   {
     label: "Main",
-    items: [{ label: "Action centre", href: "/admin/dashboard", icon: "home" }],
-  },
-  {
-    label: "CRM",
     items: [
-      { label: "Leads", href: "/admin/leads", icon: "people" },
-      { label: "Pipeline", href: "/admin/leads/pipeline", icon: "pipeline" },
-      { label: "Follow-ups", href: "/admin/follow-ups", icon: "task" },
-      { label: "Site visits", href: "/admin/site-visits", icon: "calendar" },
+      { label: "Action centre", href: "/admin/dashboard", icon: "home" },
+      { label: "CRM", href: "/admin/leads", icon: "people" },
     ],
   },
   {
@@ -22,7 +16,6 @@ const groups = [
     items: [
       { label: "All properties", href: "/admin/properties", icon: "property" },
       { label: "Seller enquiries", href: "/admin/submissions", icon: "seller" },
-      { label: "Verification", href: "/admin/verification/queue", icon: "verify" },
       { label: "Media library", href: "/admin/media", icon: "media" },
     ],
   },
@@ -36,12 +29,17 @@ const groups = [
   },
 ] as const;
 
+const crmRouteRoots = ["/admin/leads", "/admin/follow-ups", "/admin/site-visits"] as const;
+
+export function isCrmPathname(pathname: string) {
+  return crmRouteRoots.some((root) => pathname === root || pathname.startsWith(`${root}/`));
+}
+
 export function AdminNavigation({ canManageSecurity }: Readonly<{ canManageSecurity: boolean }>) {
   const pathname = usePathname() ?? "";
   const isCurrent = (href: string) => {
     if (href === "/admin/dashboard") return pathname === href;
-    if (href === "/admin/leads" && pathname.startsWith("/admin/leads/pipeline")) return false;
-    if (href === "/admin/verification/queue") return pathname.startsWith("/admin/verification");
+    if (href === "/admin/leads") return isCrmPathname(pathname);
     return pathname === href || pathname.startsWith(`${href}/`);
   };
 
@@ -109,13 +107,7 @@ function NavIcon({ name }: Readonly<{ name: IconName }>) {
     people: (
       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
     ),
-    pipeline: (
-      <path d="M4 5h4v4H4zM10 5h4v4h-4zM16 5h4v4h-4zM6 9v5m6-5v5m6-5v5M4 15h4v4H4zM10 15h4v4h-4zM16 15h4v4h-4z" />
-    ),
-    task: <path d="M9 5h11M9 12h11M9 19h11M4 5l1 1 2-2M4 12l1 1 2-2M4 19l1 1 2-2" />,
-    calendar: <path d="M4 5h16v15H4zM8 3v4m8-4v4M4 10h16M8 14h2m3 0h3" />,
     seller: <path d="M12 21s7-4.3 7-11V5l-7-2-7 2v5c0 6.7 7 11 7 11Zm-3-9 2 2 4-5" />,
-    verify: <path d="M12 3 4 6v6c0 5 3.4 8 8 9 4.6-1 8-4 8-9V6l-8-3Zm-3 9 2 2 4-5" />,
     media: <path d="M4 5h16v14H4zM8 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm-4 7 5-5 3 3 2-2 6 6" />,
     content: <path d="M5 3h14v18H5zM8 7h8M8 11h8M8 15h5" />,
     location: (

@@ -285,6 +285,24 @@ async function createPublicFixtures(client: SupabaseClient<Database>, actorId: s
       }),
     );
   }
+  await insertOrThrow(
+    client.from("media_assets").insert({
+      id: "98000000-0000-4000-8000-000000000010",
+      property_id: agricultural.id,
+      media_type: "BROCHURE",
+      external_url: "https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz_12345/view",
+      external_provider: "GOOGLE_DRIVE",
+      external_media_id: "1AbCdEfGhIjKlMnOpQrStUvWxYz_12345",
+      visibility: "PUBLIC",
+      is_cover: false,
+      sort_order: 30,
+      source_type: "GOOGLE_DRIVE",
+      processing_status: "APPROVED",
+      approved_at: publishedAt,
+      created_by: actorId,
+      updated_by: actorId,
+    }),
+  );
 }
 
 async function expectNoHorizontalOverflow(page: Page) {
@@ -352,6 +370,10 @@ test("published detail renders media, correct price/area, and approximate public
   await expect(page.getByText("Interactive map provider is not configured.")).toBeVisible();
   await gallery.getByRole("button", { name: "Show property image 2" }).click();
   await expect(gallery.getByAltText("Synthetic agricultural second view")).toBeVisible();
+  await expect(page.getByRole("link", { name: /Download Brochure/ })).toHaveAttribute(
+    "href",
+    "https://drive.google.com/uc?export=download&id=1AbCdEfGhIjKlMnOpQrStUvWxYz_12345",
+  );
 
   const browserVisible = `${await page.content()} ${visibleResponses.join(" ")}`;
   expect(browserVisible).not.toContain(privateLatitudeCanary);
