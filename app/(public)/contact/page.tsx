@@ -21,6 +21,7 @@ import { WhatsAppIcon } from "@/components/shared/whatsapp-icon";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildPublicMetadata({
   title: "Contact UrbanEdge Land Space",
+  absoluteTitle: true,
   description:
     "Contact UrbanEdge about land discovery and brokerage support in Ahmedabad and Gandhinagar.",
   path: "/contact",

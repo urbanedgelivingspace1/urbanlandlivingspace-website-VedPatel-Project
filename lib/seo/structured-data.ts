@@ -1,4 +1,5 @@
 import type { PublicPropertyDetailDto } from "@/features/properties/domain/contracts";
+import { siteConfig } from "@/config/site";
 import {
   categoryLabels,
   formatPublicArea,
@@ -31,7 +32,7 @@ export function organizationJsonLd(
     "@context": "https://schema.org",
     "@type": "RealEstateAgent",
     "@id": `${absoluteCanonical("/")}#organization`,
-    name: "UrbanEdge Land Space",
+    name: siteConfig.name,
     url: absoluteCanonical("/"),
     logo: absoluteCanonical("/brand/urbanedge-land-space-logo.png"),
     areaServed: ["Ahmedabad", "Gandhinagar"],
@@ -59,7 +60,7 @@ export function websiteJsonLd() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "@id": `${absoluteCanonical("/")}#website`,
-    name: "UrbanEdge Land Space",
+    name: siteConfig.name,
     url: absoluteCanonical("/"),
     inLanguage: "en-IN",
     publisher: { "@id": `${absoluteCanonical("/")}#organization` },

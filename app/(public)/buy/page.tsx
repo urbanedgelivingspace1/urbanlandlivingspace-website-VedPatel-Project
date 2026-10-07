@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
     published: true,
     noindex: false,
     title: "Land for Purchase",
-    seoTitle: "Land for Purchase in Ahmedabad & Gandhinagar | UrbanEdge",
+    seoTitle: "Land for Purchase in Ahmedabad & Gandhinagar",
     seoDescription:
       "Browse published land for purchase with category, area, location and transaction context.",
     intro: transactionLandingEditorialText("BUY"),
@@ -25,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
     internalLinkCount: 5,
   });
   return buildPublicMetadata({
-    title: "Land for Purchase in Ahmedabad & Gandhinagar | UrbanEdge",
+    title: "Land for Purchase in Ahmedabad & Gandhinagar",
     description:
       "Browse published land for purchase with category, area, location and transaction context.",
     path: "/buy",

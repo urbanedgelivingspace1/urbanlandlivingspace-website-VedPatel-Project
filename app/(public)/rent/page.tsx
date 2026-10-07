@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
     published: true,
     noindex: false,
     title: "Land for Rent",
-    seoTitle: "Land for Rent in Ahmedabad & Gandhinagar | UrbanEdge",
+    seoTitle: "Land for Rent in Ahmedabad & Gandhinagar",
     seoDescription:
       "Browse published rental land with practical area, location, use and commercial context.",
     intro: transactionLandingEditorialText("RENT"),
@@ -25,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
     internalLinkCount: 5,
   });
   return buildPublicMetadata({
-    title: "Land for Rent in Ahmedabad & Gandhinagar | UrbanEdge",
+    title: "Land for Rent in Ahmedabad & Gandhinagar",
     description:
       "Browse published rental land with practical area, location, use and commercial context.",
     path: "/rent",

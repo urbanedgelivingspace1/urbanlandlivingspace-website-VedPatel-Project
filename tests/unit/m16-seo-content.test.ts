@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 
 import { siteConfig, siteIcons } from "@/config/site";
 import { guideInputSchema, seoPageInputSchema } from "@/features/content/domain/validation";
-import { buildPublicMetadata } from "@/lib/seo/metadata";
+import { buildPublicMetadata, withoutSiteNameSuffix } from "@/lib/seo/metadata";
 import {
   evaluateSeoPageQuality,
   isGuideCategoryIndexable,
@@ -21,7 +21,7 @@ import {
 import { breadcrumbJsonLd } from "@/lib/seo/breadcrumbs";
 import { flattenRedirects, isSafeRedirectPath } from "@/lib/seo/redirects";
 import { effectiveRobots, INDEX_FOLLOW, NOINDEX_NOFOLLOW } from "@/lib/seo/robots";
-import { isSitemapEligiblePath } from "@/lib/seo/sitemap";
+import { isSitemapEligiblePath, staticIndexablePaths } from "@/lib/seo/sitemap";
 import { organizationJsonLd, propertyJsonLd, websiteJsonLd } from "@/lib/seo/structured-data";
 import { safeSeoText, serializeJsonLd } from "@/lib/seo/privacy-safe-seo";
 import { buildPublicPropertyDetail } from "@/tests/builders/public-property";
@@ -75,8 +75,7 @@ describe("M16 canonical, metadata and crawl policy", () => {
     const metadata = buildPublicMetadata({
       title: siteConfig.name,
       absoluteTitle: true,
-      description:
-        "Discover curated Agricultural, NA and Industrial land with UrbanEdge guidance across Ahmedabad and Gandhinagar.",
+      description: siteConfig.description,
       path: "/",
       robots: INDEX_FOLLOW,
     });
@@ -88,6 +87,27 @@ describe("M16 canonical, metadata and crawl policy", () => {
     });
     expect(metadata.twitter).toMatchObject({ title: "UrbanEdge Land Space" });
     expect(metadata.alternates).toEqual({ canonical: "https://theurbanedgelandspace.com/" });
+    expect(siteConfig.description).toContain("UrbanEdge Land Space");
+    expect(siteConfig.description).toContain("Agricultural Land");
+    expect(siteConfig.description).toContain("NA Land");
+    expect(siteConfig.description).toContain("Industrial Land");
+    expect(siteConfig.description).toContain("Ahmedabad");
+    expect(siteConfig.description).toContain("Gandhinagar");
+    expect(siteConfig.description.length).toBeLessThanOrEqual(175);
+  });
+
+  it("removes legacy brand suffixes before the root title template is applied", () => {
+    expect(withoutSiteNameSuffix("Agricultural Land | UrbanEdge")).toBe("Agricultural Land");
+    expect(withoutSiteNameSuffix("Land Guide | UrbanEdge Land Space")).toBe("Land Guide");
+    expect(withoutSiteNameSuffix("About UrbanEdge Land Space")).toBe("About UrbanEdge Land Space");
+    expect(
+      buildPublicMetadata({
+        title: "Land in Ahmedabad | UrbanEdge",
+        description: "Land discovery in Ahmedabad.",
+        path: "/locations/ahmedabad",
+        robots: INDEX_FOLLOW,
+      }).title,
+    ).toBe("Land in Ahmedabad");
   });
 
   it("uses one stable brand favicon artwork and keeps structured-data names aligned", async () => {
@@ -123,7 +143,27 @@ describe("M16 canonical, metadata and crawl policy", () => {
   });
 
   it("keeps filters, private surfaces and query URLs out of the sitemap", () => {
-    expect(isSitemapEligiblePath("/locations/ahmedabad")).toBe(true);
+    expect(staticIndexablePaths).toEqual([
+      "/",
+      "/properties",
+      "/guides",
+      "/about",
+      "/contact",
+      "/sell-your-land",
+    ]);
+    for (const path of [
+      "/properties",
+      "/guides",
+      "/about",
+      "/contact",
+      "/sell-your-land",
+      "/agricultural-land",
+      "/na-land",
+      "/industrial-land",
+      "/locations/ahmedabad",
+      "/locations/gandhinagar",
+    ])
+      expect(isSitemapEligiblePath(path)).toBe(true);
     expect(isSitemapEligiblePath("/properties?category=na")).toBe(false);
     expect(isSitemapEligiblePath("/admin/guides")).toBe(false);
     expect(isSitemapEligiblePath("/privacy")).toBe(false);

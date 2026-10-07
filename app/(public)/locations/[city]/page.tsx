@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const result = await data((await params).city);
   if (!result) return { title: "Location not found", robots: { index: false, follow: false } };
   return buildPublicMetadata({
-    title: result.page.seoTitle ?? result.page.title,
+    title: result.page.title,
     description: result.page.seoDescription ?? result.page.intro ?? result.page.title,
     path: `/${result.page.slug}`,
     canonicalPath: result.page.canonicalPath,

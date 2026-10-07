@@ -3660,7 +3660,7 @@ select option {
     grid-template-columns: minmax(0, 1fr) auto;
   }
   .footer-grid {
-    grid-template-columns: 1.4fr repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -3673,6 +3673,9 @@ select option {
 @media (min-width: 1280px) {
   .menu-trigger {
     display: none;
+  }
+  .footer-grid {
+    grid-template-columns: 1.4fr repeat(5, minmax(0, 1fr));
   }
 }
 

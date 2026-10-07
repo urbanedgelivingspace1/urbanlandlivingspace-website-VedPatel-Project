@@ -9,7 +9,7 @@ const en = {
   "nav.explore": "Explore Land",
   "nav.landTypes": "Land Types",
   "nav.locations": "Locations",
-  "nav.guides": "Guides",
+  "nav.guides": "Land Guides",
   "nav.about": "About",
   "nav.contact": "Contact",
   "nav.sell": "Sell Your Land",
@@ -67,7 +67,7 @@ const en = {
   "home.titleLead": "Find the right land in",
   "home.titlePlace": "Ahmedabad & Gandhinagar.",
   "home.intro":
-    "Explore Agricultural, NA and Industrial land for buy, rent or lease—with local UrbanEdge guidance from discovery to site visit.",
+    "UrbanEdge Land Space connects buyers, investors, developers and landowners with Agricultural, NA and Industrial land across Ahmedabad and Gandhinagar, with local support from discovery to site visits.",
   "home.explore": "Explore land",
   "home.sell": "Sell, rent or lease your land",
   "home.searchTitle": "Tell us what you need.",
@@ -135,6 +135,8 @@ const en = {
     "UrbanEdge begins with two connected land markets where local geography, access, planning and buyer intent can be discussed with useful context.",
   "home.corridor": "Primary service corridor",
   "home.corridorBody": "Urban, peri-urban, agricultural and industrial opportunity areas",
+  "home.ahmedabadLand": "Explore Ahmedabad Land",
+  "home.gandhinagarLand": "Explore Gandhinagar Land",
   "home.reviewEyebrow": "A careful trust model",
   "home.reviewTitle": "“Reviewed” should always tell you what it means.",
   "home.reviewBody":
@@ -155,7 +157,7 @@ const en = {
   "home.finalTitle": "Explore published land—or tell UrbanEdge exactly what you need.",
   "properties.breadcrumb": "Properties",
   "properties.eyebrow": "Published land search",
-  "properties.title": "Find land that fits your requirement.",
+  "properties.title": "Explore land properties for your requirement.",
   "properties.description":
     "Start with location, land type, transaction, budget and area. Use more filters when property-specific details matter to your search.",
   "properties.inventory": "Current inventory",
@@ -218,13 +220,13 @@ const en = {
     "Use the published page for discovery and keep material checks tied to the actual property and offer.",
   "landing.opportunitiesDescription":
     "Browse current listings, then open a property for its approved land, location and commercial details.",
-  "category.agricultural.title": "Understand the land before you plan the next step.",
+  "category.agricultural.title": "Agricultural Land in Ahmedabad & Gandhinagar",
   "category.agricultural.intro":
     "Browse curated agricultural land across Ahmedabad and Gandhinagar with useful context on area, village or taluka, access, water and current use.",
-  "category.na.title": "Recorded land status, explained with the right limits.",
+  "category.na.title": "NA Land in Ahmedabad & Gandhinagar",
   "category.na.intro":
     "Explore NA land with available public context on purpose, access, planning, utilities and the records presented for the individual property.",
-  "category.industrial.title": "Land for operations, infrastructure and long-term access.",
+  "category.industrial.title": "Industrial Land in Ahmedabad & Gandhinagar",
   "category.industrial.intro":
     "Discover industrial land for manufacturing, warehousing and logistics with practical context on estate, authority, utilities, truck access and connectivity.",
   "transaction.buy.title": "Land for purchase, with context before commitment.",
@@ -396,6 +398,7 @@ const en = {
   "footer.ecosystem":
     "Part of the UrbanEdge real-estate ecosystem alongside UrbanEdge Living Space.",
   "footer.explore": "Explore",
+  "footer.locations": "Locations",
   "footer.company": "Company",
   "footer.owners": "Landowners",
   "footer.contact": "Contact",
@@ -435,7 +438,7 @@ const gu: Dictionary = {
   "nav.explore": "જમીન જુઓ",
   "nav.landTypes": "જમીનના પ્રકાર",
   "nav.locations": "સ્થળ",
-  "nav.guides": "માર્ગદર્શિકા",
+  "nav.guides": "જમીન માર્ગદર્શિકા",
   "nav.about": "અમારા વિશે",
   "nav.contact": "સંપર્ક",
   "nav.sell": "તમારી જમીન વેચો",
@@ -493,7 +496,7 @@ const gu: Dictionary = {
   "home.titleLead": "યોગ્ય જમીન શોધો",
   "home.titlePlace": "અમદાવાદ અને ગાંધીનગરમાં.",
   "home.intro":
-    "ખરીદી, ભાડા અથવા લીઝ માટે ખેતી, NA અને ઔદ્યોગિક જમીન શોધો—પસંદગીથી સાઇટ વિઝિટ સુધી UrbanEdgeનું સ્થાનિક માર્ગદર્શન મેળવો.",
+    "UrbanEdge Land Space ખરીદદારો, રોકાણકારો, ડેવલપરો અને જમીનમાલિકોને અમદાવાદ અને ગાંધીનગરમાં ખેતી, NA અને ઔદ્યોગિક જમીન શોધવા માટે સ્થાનિક સહાય આપે છે.",
   "home.explore": "જમીન જુઓ",
   "home.sell": "તમારી જમીન વેચો, ભાડે આપો અથવા લીઝ પર આપો",
   "home.searchTitle": "તમારી જરૂરિયાત જણાવો.",
@@ -559,6 +562,8 @@ const gu: Dictionary = {
     "UrbanEdge બે જોડાયેલા જમીન બજારોથી શરૂઆત કરે છે, જ્યાં સ્થાનિક ભૂગોળ, પ્રવેશ, આયોજન અને ખરીદદારના હેતુની ઉપયોગી માહિતી સાથે ચર્ચા થઈ શકે છે.",
   "home.corridor": "મુખ્ય સેવા કોરિડોર",
   "home.corridorBody": "શહેરી, શહેરની આસપાસના, ખેતી અને ઔદ્યોગિક તકના વિસ્તારો",
+  "home.ahmedabadLand": "અમદાવાદની જમીન જુઓ",
+  "home.gandhinagarLand": "ગાંધીનગરની જમીન જુઓ",
   "home.reviewEyebrow": "વિચારપૂર્વકનું વિશ્વાસ મોડેલ",
   "home.reviewTitle": "“સમીક્ષા કરેલી” માહિતીનો અર્થ હંમેશા સ્પષ્ટ હોવો જોઈએ.",
   "home.reviewBody":
@@ -579,7 +584,7 @@ const gu: Dictionary = {
   "home.finalTitle": "પ્રકાશિત જમીન જુઓ—અથવા UrbanEdge ને તમારી ચોક્કસ જરૂરિયાત જણાવો.",
   "properties.breadcrumb": "મિલકતો",
   "properties.eyebrow": "પ્રકાશિત જમીન શોધ",
-  "properties.title": "તમારી જરૂરિયાત મુજબ જમીન શોધો.",
+  "properties.title": "તમારી જરૂરિયાત માટે જમીનની મિલકતો જુઓ.",
   "properties.description":
     "સ્થળ, જમીનનો પ્રકાર, વ્યવહાર, બજેટ અને વિસ્તારથી શરૂઆત કરો. જરૂર મુજબ વધુ ફિલ્ટર્સ વાપરો.",
   "properties.inventory": "હાલની ઉપલબ્ધ જમીન",
@@ -641,13 +646,13 @@ const gu: Dictionary = {
     "પ્રકાશિત પેજનો ઉપયોગ શોધ માટે કરો અને મહત્વપૂર્ણ તપાસ વાસ્તવિક મિલકત અને ઓફર સાથે જોડેલી રાખો.",
   "landing.opportunitiesDescription":
     "હાલની સૂચિઓ જુઓ, પછી મંજૂર જમીન, સ્થળ અને વ્યવસાયિક વિગતો માટે મિલકત ખોલો.",
-  "category.agricultural.title": "આગળનું પગલું નક્કી કરતાં પહેલાં જમીનને સમજો.",
+  "category.agricultural.title": "અમદાવાદ અને ગાંધીનગરમાં ખેતીની જમીન",
   "category.agricultural.intro":
     "વિસ્તાર, ગામ અથવા તાલુકો, પ્રવેશ, પાણી અને હાલના ઉપયોગની ઉપયોગી માહિતી સાથે અમદાવાદ અને ગાંધીનગરની પસંદ કરેલી ખેતીની જમીન જુઓ.",
-  "category.na.title": "નોંધાયેલ જમીન સ્થિતિ, યોગ્ય મર્યાદાઓ સાથે સમજાવેલી.",
+  "category.na.title": "અમદાવાદ અને ગાંધીનગરમાં NA જમીન",
   "category.na.intro":
     "હેતુ, પ્રવેશ, આયોજન, સુવિધાઓ અને મિલકતના નોંધાયેલા દસ્તાવેજોની ઉપલબ્ધ જાહેર માહિતી સાથે NA જમીન જુઓ.",
-  "category.industrial.title": "કામકાજ, માળખાકીય સુવિધા અને લાંબા ગાળાના પ્રવેશ માટે જમીન.",
+  "category.industrial.title": "અમદાવાદ અને ગાંધીનગરમાં ઔદ્યોગિક જમીન",
   "category.industrial.intro":
     "એસ્ટેટ, સત્તા, સુવિધાઓ, ટ્રક પ્રવેશ અને કનેક્ટિવિટીની વ્યવહારુ માહિતી સાથે ઉત્પાદન, વેરહાઉસિંગ અને લોજિસ્ટિક્સ માટે ઔદ્યોગિક જમીન શોધો.",
   "transaction.buy.title": "પ્રતિબદ્ધતા પહેલાં જરૂરી માહિતી સાથે ખરીદી માટે જમીન.",
@@ -813,6 +818,7 @@ const gu: Dictionary = {
   "footer.description": "અમદાવાદ અને ગાંધીનગર માટે જમીન સલાહ અને બ્રોકરેજ સેવા.",
   "footer.ecosystem": "UrbanEdge Living Space સાથે UrbanEdge રિયલ એસ્ટેટ પરિવારનો ભાગ.",
   "footer.explore": "શોધો",
+  "footer.locations": "સ્થળ",
   "footer.company": "કંપની",
   "footer.owners": "જમીનમાલિકો",
   "footer.contact": "સંપર્ક",
@@ -849,7 +855,7 @@ const hi: Dictionary = {
   "nav.explore": "ज़मीन देखें",
   "nav.landTypes": "ज़मीन के प्रकार",
   "nav.locations": "जगह",
-  "nav.guides": "गाइड",
+  "nav.guides": "ज़मीन गाइड",
   "nav.about": "हमारे बारे में",
   "nav.contact": "संपर्क",
   "nav.sell": "अपनी ज़मीन बेचें",
@@ -907,7 +913,7 @@ const hi: Dictionary = {
   "home.titleLead": "सही ज़मीन खोजें",
   "home.titlePlace": "अहमदाबाद और गांधीनगर में।",
   "home.intro":
-    "खरीद, किराये या लीज़ के लिए खेती, NA और औद्योगिक ज़मीन देखें—खोज से साइट विज़िट तक UrbanEdge की स्थानीय मदद पाएँ।",
+    "UrbanEdge Land Space खरीदारों, निवेशकों, डेवलपरों और ज़मीन मालिकों को अहमदाबाद और गांधीनगर में खेती, NA और औद्योगिक ज़मीन खोजने में स्थानीय सहायता देता है।",
   "home.explore": "ज़मीन देखें",
   "home.sell": "अपनी ज़मीन बेचें, किराये पर दें या लीज़ करें",
   "home.searchTitle": "अपनी ज़रूरत बताएँ।",
@@ -974,6 +980,8 @@ const hi: Dictionary = {
     "UrbanEdge दो जुड़े ज़मीन बाज़ारों से शुरुआत करता है, जहाँ स्थानीय भूगोल, पहुँच, योजना और खरीदार के उद्देश्य पर उपयोगी संदर्भ के साथ चर्चा हो सकती है।",
   "home.corridor": "मुख्य सेवा गलियारा",
   "home.corridorBody": "शहरी, शहर के आसपास, खेती और औद्योगिक अवसर वाले क्षेत्र",
+  "home.ahmedabadLand": "अहमदाबाद की ज़मीन देखें",
+  "home.gandhinagarLand": "गांधीनगर की ज़मीन देखें",
   "home.reviewEyebrow": "सोचा-समझा भरोसा मॉडल",
   "home.reviewTitle": "“समीक्षित” जानकारी का अर्थ हमेशा स्पष्ट होना चाहिए।",
   "home.reviewBody":
@@ -994,7 +1002,7 @@ const hi: Dictionary = {
   "home.finalTitle": "प्रकाशित ज़मीन देखें—या UrbanEdge को अपनी सटीक ज़रूरत बताएँ।",
   "properties.breadcrumb": "प्रॉपर्टी",
   "properties.eyebrow": "प्रकाशित ज़मीन खोज",
-  "properties.title": "अपनी ज़रूरत के अनुसार ज़मीन खोजें।",
+  "properties.title": "अपनी ज़रूरत के लिए ज़मीन की प्रॉपर्टी देखें।",
   "properties.description":
     "जगह, ज़मीन का प्रकार, लेन-देन, बजट और क्षेत्रफल से शुरू करें। ज़रूरत के अनुसार और फ़िल्टर इस्तेमाल करें।",
   "properties.inventory": "मौजूदा उपलब्ध ज़मीन",
@@ -1056,13 +1064,13 @@ const hi: Dictionary = {
     "प्रकाशित पेज का उपयोग खोज के लिए करें और महत्वपूर्ण जाँच वास्तविक प्रॉपर्टी व ऑफ़र से जुड़ी रखें।",
   "landing.opportunitiesDescription":
     "मौजूदा लिस्टिंग देखें, फिर मंज़ूर ज़मीन, जगह और व्यावसायिक विवरण के लिए प्रॉपर्टी खोलें।",
-  "category.agricultural.title": "अगला कदम तय करने से पहले ज़मीन को समझें।",
+  "category.agricultural.title": "अहमदाबाद और गांधीनगर में कृषि भूमि",
   "category.agricultural.intro":
     "क्षेत्रफल, गाँव या तालुका, पहुँच, पानी और मौजूदा उपयोग की उपयोगी जानकारी के साथ अहमदाबाद और गांधीनगर की चुनी हुई खेती की ज़मीन देखें।",
-  "category.na.title": "दर्ज ज़मीन स्थिति, सही सीमाओं के साथ समझाई गई।",
+  "category.na.title": "अहमदाबाद और गांधीनगर में NA भूमि",
   "category.na.intro":
     "उद्देश्य, पहुँच, योजना, सुविधाओं और प्रॉपर्टी के दर्ज दस्तावेज़ों की उपलब्ध सार्वजनिक जानकारी के साथ NA ज़मीन देखें।",
-  "category.industrial.title": "कामकाज, बुनियादी ढाँचे और लंबे समय की पहुँच के लिए ज़मीन।",
+  "category.industrial.title": "अहमदाबाद और गांधीनगर में औद्योगिक भूमि",
   "category.industrial.intro":
     "एस्टेट, प्राधिकरण, सुविधाओं, ट्रक पहुँच और कनेक्टिविटी की व्यावहारिक जानकारी के साथ निर्माण, वेयरहाउसिंग और लॉजिस्टिक्स के लिए औद्योगिक ज़मीन खोजें।",
   "transaction.buy.title": "प्रतिबद्धता से पहले सही जानकारी के साथ खरीद के लिए ज़मीन।",
@@ -1234,6 +1242,7 @@ const hi: Dictionary = {
   "footer.description": "अहमदाबाद और गांधीनगर के लिए ज़मीन सलाह और ब्रोकरेज सेवा।",
   "footer.ecosystem": "UrbanEdge Living Space के साथ UrbanEdge रियल एस्टेट परिवार का हिस्सा।",
   "footer.explore": "देखें",
+  "footer.locations": "जगह",
   "footer.company": "कंपनी",
   "footer.owners": "ज़मीन मालिक",
   "footer.contact": "संपर्क",

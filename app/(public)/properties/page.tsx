@@ -27,16 +27,13 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
   const { query } = parseSearchParams(await searchParams);
   const canonical = searchHref(query);
   return {
-    title:
-      query.page > 1
-        ? `Published Land Properties — Page ${query.page}`
-        : "Published Land Properties",
+    title: query.page > 1 ? `Land Properties — Page ${query.page}` : "Land Properties",
     description:
       "Search UrbanEdge's published Agricultural, NA and Industrial land across Ahmedabad and Gandhinagar.",
     alternates: { canonical },
     robots: { index: hasIndexableSearchState(query), follow: true },
     openGraph: {
-      title: "Published Land Properties | UrbanEdge Land Space",
+      title: "Land Properties | UrbanEdge Land Space",
       description: "Curated published land across Ahmedabad and Gandhinagar.",
       url: canonical,
       type: "website",

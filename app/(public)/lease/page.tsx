@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
     published: true,
     noindex: false,
     title: "Land for Lease",
-    seoTitle: "Land for Lease in Ahmedabad & Gandhinagar | UrbanEdge",
+    seoTitle: "Land for Lease in Ahmedabad & Gandhinagar",
     seoDescription:
       "Browse published land offered on lease with category, area, infrastructure and location context.",
     intro: transactionLandingEditorialText("LEASE"),
@@ -25,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
     internalLinkCount: 5,
   });
   return buildPublicMetadata({
-    title: "Land for Lease in Ahmedabad & Gandhinagar | UrbanEdge",
+    title: "Land for Lease in Ahmedabad & Gandhinagar",
     description:
       "Browse published land offered on lease with category, area, infrastructure and location context.",
     path: "/lease",

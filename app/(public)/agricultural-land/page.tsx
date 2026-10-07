@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
     published: true,
     noindex: false,
     title: "Agricultural Land",
-    seoTitle: "Agricultural Land in Ahmedabad & Gandhinagar | UrbanEdge",
+    seoTitle: "Agricultural Land in Ahmedabad & Gandhinagar",
     seoDescription:
       "Explore curated agricultural land with access, water, area and current-use context across Ahmedabad and Gandhinagar.",
     intro: categoryLandingEditorialText("AGRICULTURAL"),
@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
     category: "AGRICULTURAL",
   });
   return buildPublicMetadata({
-    title: "Agricultural Land in Ahmedabad & Gandhinagar | UrbanEdge",
+    title: "Agricultural Land in Ahmedabad & Gandhinagar",
     description:
       "Explore curated agricultural land with access, water, area and current-use context across Ahmedabad and Gandhinagar.",
     path: "/agricultural-land",

@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { OfficeMap } from "@/components/public/office-map";
+import { SiteFooter } from "@/components/public/site-footer";
 import { SiteHeader } from "@/components/public/site-header";
 import { WhatsAppIcon } from "@/components/shared/whatsapp-icon";
 import { OFFICIAL_OFFICE_MAP_EMBED_URL } from "@/lib/config/public-business";
@@ -28,6 +29,39 @@ afterEach(() => {
 });
 
 describe("contact and navigation production fixes", () => {
+  it("links priority land, guide, company and location pages from the global navigation", () => {
+    const { unmount } = render(<SiteHeader config={config} />);
+    for (const href of [
+      "/properties",
+      "/agricultural-land",
+      "/na-land",
+      "/industrial-land",
+      "/locations/ahmedabad",
+      "/locations/gandhinagar",
+      "/guides",
+      "/about",
+      "/contact",
+      "/sell-your-land",
+    ])
+      expect(document.querySelector(`a[href="${href}"]`)).toBeInTheDocument();
+
+    unmount();
+    render(<SiteFooter config={config} locale="en" />);
+    for (const href of [
+      "/properties",
+      "/agricultural-land",
+      "/na-land",
+      "/industrial-land",
+      "/locations/ahmedabad",
+      "/locations/gandhinagar",
+      "/guides",
+      "/about",
+      "/contact",
+      "/sell-your-land",
+    ])
+      expect(document.querySelector(`a[href="${href}"]`)).toBeInTheDocument();
+  });
+
   it("renders the approved interactive UrbanEdge Google Maps embed", () => {
     render(<OfficeMap address={config.officeAddress} locale="en" />);
 

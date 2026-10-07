@@ -21,7 +21,12 @@ type PublicMetadataInput = Readonly<{
   modifiedTime?: string | null;
 }>;
 
+export function withoutSiteNameSuffix(title: string): string {
+  return title.replace(/\s*\|\s*UrbanEdge(?: Land Space)?\s*$/i, "").trim();
+}
+
 export function buildPublicMetadata(input: PublicMetadataInput): Metadata {
+  const title = input.absoluteTitle ? input.title.trim() : withoutSiteNameSuffix(input.title);
   const canonical = absoluteCanonical(approvedSameSitePath(input.canonicalPath, input.path));
   const image = input.image
     ? {
@@ -38,12 +43,12 @@ export function buildPublicMetadata(input: PublicMetadataInput): Metadata {
       };
   const images = [image];
   return {
-    title: input.absoluteTitle ? { absolute: input.title } : input.title,
+    title: input.absoluteTitle ? { absolute: title } : title,
     description: input.description,
     alternates: { canonical },
     robots: effectiveRobots(input.robots ?? INDEX_FOLLOW),
     openGraph: {
-      title: input.title,
+      title,
       description: input.description,
       url: canonical,
       siteName: siteConfig.name,
@@ -59,7 +64,7 @@ export function buildPublicMetadata(input: PublicMetadataInput): Metadata {
     },
     twitter: {
       card: "summary_large_image",
-      title: input.title,
+      title,
       description: input.description,
       images: images.map(({ url }) => url),
     },

@@ -20,8 +20,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildPublicMetadata({
   title: siteConfig.name,
   absoluteTitle: true,
-  description:
-    "Discover curated Agricultural, NA and Industrial land with UrbanEdge guidance across Ahmedabad and Gandhinagar.",
+  description: siteConfig.description,
   path: "/",
   robots: { index: true, follow: true },
 });
@@ -248,10 +247,10 @@ export default async function HomePage() {
             />
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/locations/ahmedabad" className="button button-primary">
-                {t("common.ahmedabad")}
+                {t("home.ahmedabadLand")}
               </Link>
               <Link href="/locations/gandhinagar" className="button button-outline">
-                {t("common.gandhinagar")}
+                {t("home.gandhinagarLand")}
               </Link>
             </div>
           </div>

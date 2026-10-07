@@ -1,10 +1,11 @@
 import Image from "next/image";
+import { siteConfig } from "@/config/site";
 
 export function BrandWordmark({ compact = false }: Readonly<{ compact?: boolean }>) {
   return (
     <span className={compact ? "brand-logo brand-logo-compact" : "brand-logo"}>
       <Image
-        alt="UrbanEdge Land Space"
+        alt={siteConfig.name}
         height={320}
         preload={compact}
         sizes={compact ? "64px" : "144px"}

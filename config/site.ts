@@ -5,7 +5,7 @@ export const siteConfig = {
   defaultUrl: "https://theurbanedgelandspace.com",
   launchRegion: "Ahmedabad and Gandhinagar, Gujarat",
   description:
-    "Specialist land advisory and brokerage for Agricultural, NA and Industrial land across Ahmedabad and Gandhinagar.",
+    "UrbanEdge Land Space helps buyers, investors, developers and landowners find Agricultural Land, NA Land and Industrial Land in Ahmedabad and Gandhinagar with local support.",
   socialImage: {
     path: "/brand/urbanedge-social-share.png",
     width: 1200,

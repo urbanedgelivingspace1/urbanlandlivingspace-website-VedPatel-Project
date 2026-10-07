@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
     published: true,
     noindex: false,
     title: "Industrial Land",
-    seoTitle: "Industrial Land in Ahmedabad & Gandhinagar | UrbanEdge",
+    seoTitle: "Industrial Land in Ahmedabad & Gandhinagar",
     seoDescription:
       "Explore industrial land with estate, authority, infrastructure and connectivity context.",
     intro: categoryLandingEditorialText("INDUSTRIAL"),
@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
     category: "INDUSTRIAL",
   });
   return buildPublicMetadata({
-    title: "Industrial Land in Ahmedabad & Gandhinagar | UrbanEdge",
+    title: "Industrial Land in Ahmedabad & Gandhinagar",
     description:
       "Explore industrial land with estate, authority, infrastructure and connectivity context.",
     path: "/industrial-land",

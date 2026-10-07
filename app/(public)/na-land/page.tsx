@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
     published: true,
     noindex: false,
     title: "NA Land",
-    seoTitle: "NA Land in Ahmedabad & Gandhinagar | UrbanEdge",
+    seoTitle: "NA Land in Ahmedabad & Gandhinagar",
     seoDescription:
       "Explore curated NA land with carefully scoped status, planning, access and utility context.",
     intro: categoryLandingEditorialText("NA"),
@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
     category: "NA",
   });
   return buildPublicMetadata({
-    title: "NA Land in Ahmedabad & Gandhinagar | UrbanEdge",
+    title: "NA Land in Ahmedabad & Gandhinagar",
     description:
       "Explore curated NA land with carefully scoped status, planning, access and utility context.",
     path: "/na-land",

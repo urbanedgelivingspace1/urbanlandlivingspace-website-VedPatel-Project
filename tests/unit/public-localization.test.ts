@@ -21,6 +21,26 @@ describe("public localization", () => {
     expect(translate("hi", "property.overview")).toBe("सारांश");
     expect(localeForFormatting("hi")).toBe("hi-IN");
   });
+
+  it("gives priority discovery pages unique, descriptive English H1 copy", () => {
+    const headings = [
+      dictionaries.en["properties.title"],
+      dictionaries.en["guides.title"],
+      dictionaries.en["about.title"],
+      dictionaries.en["contact.title"],
+      dictionaries.en["category.agricultural.title"],
+      dictionaries.en["category.na.title"],
+      dictionaries.en["category.industrial.title"],
+    ];
+    expect(new Set(headings).size).toBe(headings.length);
+    expect(headings).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("Agricultural Land"),
+        expect.stringContaining("NA Land"),
+        expect.stringContaining("Industrial Land"),
+      ]),
+    );
+  });
 });
 
 describe("local calendar date formatting", () => {

@@ -11,6 +11,10 @@ import { transactionLandingEditorialText } from "@/components/public/transaction
 import type { PublicGuide, PublicSeoPage } from "@/features/content/domain/contracts";
 import { markdownWordCount } from "@/lib/seo/indexability";
 
+vi.mock("server-only", () => ({}));
+vi.mock("@/lib/i18n/server", () => ({
+  getRequestLocale: vi.fn(async () => "en"),
+}));
 vi.mock("@/server/queries/public-search", () => ({
   loadFixedPublicSearch: vi.fn(async () => ({ status: "ready", properties: [] })),
 }));
@@ -90,11 +94,11 @@ describe("M16 content page components", () => {
     );
   });
 
-  it("renders guide category navigation, structured data and a truthful empty state", () => {
+  it("renders guide category navigation, structured data and a truthful empty state", async () => {
     const { container } = render(
-      <GuideIndex
-        guides={[]}
-        categories={[
+      await GuideIndex({
+        guides: [],
+        categories: [
           {
             id: "16000000-0000-4000-8000-000000000001",
             name: "Land Buying",
@@ -102,8 +106,8 @@ describe("M16 content page components", () => {
             description: "Practical preparation.",
             sortOrder: 10,
           },
-        ]}
-      />,
+        ],
+      }),
     );
     expect(screen.getByRole("navigation", { name: "Guide categories" })).toBeVisible();
     expect(screen.getByRole("heading", { name: /No published guides/ })).toBeVisible();

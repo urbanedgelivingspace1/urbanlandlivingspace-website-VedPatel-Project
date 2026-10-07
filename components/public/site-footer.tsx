@@ -35,6 +35,10 @@ export function SiteFooter({
           <Link href="/na-land">{translate(locale, "nav.na")}</Link>
           <Link href="/industrial-land">{translate(locale, "nav.industrial")}</Link>
         </FooterGroup>
+        <FooterGroup title={translate(locale, "footer.locations")}>
+          <Link href="/locations/ahmedabad">{translate(locale, "home.ahmedabadLand")}</Link>
+          <Link href="/locations/gandhinagar">{translate(locale, "home.gandhinagarLand")}</Link>
+        </FooterGroup>
         <FooterGroup title={translate(locale, "footer.company")}>
           <Link href="/about">{translate(locale, "nav.about")}</Link>
           <Link href="/contact">{translate(locale, "nav.contact")}</Link>

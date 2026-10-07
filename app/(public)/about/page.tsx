@@ -6,6 +6,7 @@ import { translate } from "@/lib/i18n/dictionaries";
 
 export const metadata: Metadata = buildPublicMetadata({
   title: "About UrbanEdge Land Space",
+  absoluteTitle: true,
   description:
     "How UrbanEdge curates public land information and supports discovery, enquiries and site visits across Ahmedabad and Gandhinagar.",
   path: "/about",
