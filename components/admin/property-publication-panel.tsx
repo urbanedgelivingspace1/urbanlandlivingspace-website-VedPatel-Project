@@ -31,7 +31,7 @@ export function PropertyPublicationPanel({
       className={`rounded-xl border p-5 ${isPublished || readiness.ready ? "border-emerald-200 bg-emerald-50/70" : "border-amber-200 bg-amber-50/70"}`}
       aria-labelledby="publishing-status-heading"
     >
-      <div className="flex flex-col items-stretch gap-5 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-5">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span
@@ -82,7 +82,7 @@ export function PropertyPublicationPanel({
             </details>
           ) : null}
         </div>
-        <div className="w-full sm:w-auto sm:shrink-0">
+        <div className="shrink-0">
           {isPublished ? (
             <details className="relative">
               <summary className="button button-secondary list-none cursor-pointer">
@@ -104,7 +104,7 @@ export function PropertyPublicationPanel({
               </form>
             </details>
           ) : (
-            <form action={publishFormAction} className="space-y-2 sm:max-w-xs">
+            <form action={publishFormAction} className="space-y-2">
               <input type="hidden" name="propertyId" value={readiness.propertyId} />
               <input type="hidden" name="expectedUpdatedAt" value={expectedUpdatedAt} />
               <label className="flex max-w-xs items-start gap-2 text-sm text-slate-700">

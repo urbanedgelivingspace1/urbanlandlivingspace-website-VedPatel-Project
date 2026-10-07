@@ -7,46 +7,44 @@ vi.mock("next/navigation", () => ({
   usePathname: () => navigation.pathname,
 }));
 
-import { AdminNavigation } from "@/components/admin/admin-navigation";
+import { AdminNavigation, isCrmPathname } from "@/components/admin/admin-navigation";
 import { CrmWorkspaceTabs, type CrmWorkspace } from "@/components/admin/crm-workspace-tabs";
 
 afterEach(cleanup);
 
-describe("CRM navigation", () => {
-  it("shows each CRM workspace directly in the sidebar", () => {
+describe("unified CRM navigation", () => {
+  it("shows one CRM sidebar item instead of four workspace links", () => {
     render(<AdminNavigation canManageSecurity />);
 
-    expect(screen.getByRole("link", { name: "Leads" })).toHaveAttribute("href", "/admin/leads");
-    expect(screen.getByRole("link", { name: "Pipeline" })).toHaveAttribute(
-      "href",
-      "/admin/leads/pipeline",
-    );
-    expect(screen.getByRole("link", { name: "Follow-ups" })).toHaveAttribute(
-      "href",
-      "/admin/follow-ups",
-    );
-    expect(screen.getByRole("link", { name: "Site visits" })).toHaveAttribute(
-      "href",
-      "/admin/site-visits",
-    );
-    expect(screen.queryByRole("link", { name: "CRM" })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "CRM" })).toHaveLength(1);
+    expect(screen.queryByRole("link", { name: "Leads" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Pipeline" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Follow-ups" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Site visits" })).not.toBeInTheDocument();
   });
 
   it.each([
-    ["/admin/leads", "Leads"],
-    ["/admin/leads/new", "Leads"],
-    ["/admin/leads/lead-1", "Leads"],
-    ["/admin/leads/pipeline", "Pipeline"],
-    ["/admin/follow-ups", "Follow-ups"],
-    ["/admin/site-visits", "Site visits"],
-    ["/admin/site-visits/visit-1", "Site visits"],
-    ["/admin/site-visits/calendar", "Site visits"],
-  ])("marks only the matching sidebar link active at %s", (pathname, activeLabel) => {
+    "/admin/leads",
+    "/admin/leads/new",
+    "/admin/leads/lead-1",
+    "/admin/leads/pipeline",
+    "/admin/follow-ups",
+    "/admin/site-visits",
+    "/admin/site-visits/visit-1",
+    "/admin/site-visits/calendar",
+  ])("keeps CRM active at %s", (pathname) => {
     navigation.pathname = pathname;
     render(<AdminNavigation canManageSecurity />);
 
-    expect(screen.getByRole("link", { name: activeLabel })).toHaveAttribute("aria-current", "page");
-    expect(screen.getAllByRole("link", { current: "page" })).toHaveLength(1);
+    expect(screen.getByRole("link", { name: "CRM" })).toHaveAttribute("aria-current", "page");
+  });
+
+  it("matches only legitimate CRM route segments", () => {
+    expect(isCrmPathname("/admin/leads/pipeline")).toBe(true);
+    expect(isCrmPathname("/admin/follow-ups")).toBe(true);
+    expect(isCrmPathname("/admin/site-visits/calendar")).toBe(true);
+    expect(isCrmPathname("/admin/leads-archive")).toBe(false);
+    expect(isCrmPathname("/admin/properties")).toBe(false);
   });
 
   it.each<readonly [CrmWorkspace, string]>([
