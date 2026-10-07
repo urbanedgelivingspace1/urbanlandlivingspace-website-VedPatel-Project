@@ -32,7 +32,6 @@ const baseProps = {
   updateMetadataAction: simple,
   reorderAction: simple,
   setCoverAction: simple,
-  approveAction: simple,
   archiveMediaAction: simple,
 };
 
@@ -129,15 +128,15 @@ describe("PropertyMediaManager", () => {
     expect(screen.queryByText("PUBLIC")).not.toBeInTheDocument();
   });
 
-  it("shows legacy staged media with plain-language approval", () => {
+  it("keeps legacy staged media in a plain-language processing state", () => {
     render(
       <PropertyMediaManager
         {...baseProps}
         media={[{ ...image, processingStatus: "READY", visibility: "ADMIN_ONLY" }]}
       />,
     );
-    expect(screen.getByText("Ready to add to the listing")).toBeVisible();
-    expect(screen.getByRole("button", { name: "Add to Listing" })).toBeVisible();
+    expect(screen.getByText("Finishing photo processing…")).toBeVisible();
+    expect(screen.queryByRole("button", { name: /Approve|Add to Listing/ })).toBeNull();
     expect(screen.queryByText("READY")).not.toBeInTheDocument();
     expect(screen.queryByText("ADMIN_ONLY")).not.toBeInTheDocument();
   });
@@ -169,11 +168,13 @@ describe("PropertyMediaManager", () => {
     const brochure = screen.getByRole("heading", { name: "Property Brochure" }).closest("section");
     expect(brochure).not.toBeNull();
     expect(within(brochure!).getByText("✓ Brochure connected")).toBeVisible();
-    expect(within(brochure!).getByRole("link", { name: "Test Download" })).toHaveAttribute(
+    expect(
+      within(brochure!).getByRole("link", { name: "Test / Download Brochure" }),
+    ).toHaveAttribute(
       "href",
       "https://drive.google.com/uc?export=download&id=1AbCdEfGhIjKlMnOpQrStUvWxYz_12345",
     );
-    expect(within(brochure!).getByRole("button", { name: "Replace Link" })).toBeVisible();
+    expect(within(brochure!).getByRole("button", { name: "Replace Brochure" })).toBeVisible();
     expect(within(brochure!).getByRole("button", { name: "Remove Brochure" })).toBeVisible();
   });
 

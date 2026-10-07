@@ -7,7 +7,6 @@ import { getAdminProperty } from "@/server/services/property-drafts";
 import { getAdminPropertyVisualMedia } from "@/server/services/property-media";
 
 import {
-  approveMediaAction,
   archiveMediaAction,
   reorderMediaAction,
   saveGoogleDriveBrochureAction,
@@ -61,7 +60,6 @@ export default async function PropertyMediaPage({
           updateMetadataAction={updateMediaMetadataAction}
           reorderAction={reorderMediaAction}
           setCoverAction={setCoverAction}
-          approveAction={approveMediaAction}
           archiveMediaAction={archiveMediaAction}
         />
       </PropertyWorkflow>

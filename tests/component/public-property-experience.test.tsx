@@ -89,6 +89,37 @@ describe("M10 public property experience", () => {
     expect(screen.getByAltText("Second approved image")).toBeVisible();
   });
 
+  it("shows the cover photo first even when its stored order is later", () => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://synthetic.supabase.co");
+    render(
+      <PropertyGallery
+        title="Synthetic property"
+        coverId="media-cover"
+        media={[
+          {
+            id: "media-first",
+            mediaType: "IMAGE",
+            objectPath: "properties/synthetic/media/first.webp",
+            altText: "First stored image",
+            width: 1200,
+            height: 800,
+          },
+          {
+            id: "media-cover",
+            mediaType: "IMAGE",
+            objectPath: "properties/synthetic/media/cover.webp",
+            altText: "Selected cover image",
+            width: 1200,
+            height: 800,
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByAltText("Selected cover image")).toBeVisible();
+    expect(screen.getByText("1 / 2")).toBeVisible();
+  });
+
   it("does not fabricate contact channels and replaces closed CTAs", () => {
     const property = buildPublicPropertyDetail();
     const { rerender } = render(<PropertyActions property={property} config={noContacts} />);

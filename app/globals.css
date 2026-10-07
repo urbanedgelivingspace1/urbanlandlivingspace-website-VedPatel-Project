@@ -905,6 +905,10 @@ select option {
   background: #f8fafc;
   border-color: #94a3b8;
 }
+.admin-workflow-current {
+  background-color: #174f42 !important;
+  color: #ffffff !important;
+}
 .admin-nav-link {
   display: flex;
   min-height: 2.35rem;

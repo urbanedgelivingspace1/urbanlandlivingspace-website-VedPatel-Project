@@ -67,7 +67,7 @@ export function PropertyWorkflow({
             );
             const className = `flex min-h-14 items-center gap-2 rounded-lg px-2.5 py-2 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-gold-deep)] ${
               isCurrent
-                ? "bg-[#02066f] text-white"
+                ? "admin-workflow-current"
                 : isComplete
                   ? "bg-emerald-50 text-emerald-950 hover:bg-emerald-100"
                   : "bg-slate-100 text-slate-500"

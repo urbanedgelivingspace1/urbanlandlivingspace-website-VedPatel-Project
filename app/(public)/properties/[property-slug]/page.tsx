@@ -4,7 +4,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { permanentRedirect } from "next/navigation";
 
-import { SafeExternalMedia } from "@/components/media/safe-external-media";
 import { AvailabilityBadge } from "@/components/public/availability-badge";
 import { Breadcrumbs } from "@/components/public/breadcrumbs";
 import { ArrowIcon, LocationIcon } from "@/components/public/icons";
@@ -127,15 +126,9 @@ export default async function PropertyDetailPage({ params }: Props) {
       : relatedResult;
   const closed = isClosedPublicAvailability(property.availability);
   const images = property.media.filter((item) => item.mediaType === "IMAGE");
-  const galleryMedia = images.length > 0 ? images : property.cover ? [property.cover] : [];
-  const externalMedia = property.media.filter(
-    (item) =>
-      (item.mediaType === "VIDEO" || item.mediaType === "PANORAMA_360") &&
-      item.externalMediaId &&
-      (item.externalProvider === "YOUTUBE" ||
-        item.externalProvider === "VIMEO" ||
-        item.externalProvider === "MATTERPORT"),
-  );
+  const galleryMedia = property.cover
+    ? [property.cover, ...images.filter((item) => item.id !== property.cover?.id)]
+    : images;
   const brochures = property.media.filter(
     (item) =>
       item.mediaType === "BROCHURE" &&
@@ -171,7 +164,7 @@ export default async function PropertyDetailPage({ params }: Props) {
             </span>
           </div>
         ) : null}
-        <PropertyGallery media={galleryMedia} title={property.title} />
+        <PropertyGallery media={galleryMedia} title={property.title} coverId={property.cover?.id} />
 
         <div className="property-title-block">
           <div>
@@ -191,6 +184,24 @@ export default async function PropertyDetailPage({ params }: Props) {
         </div>
 
         <CoreFactStrip property={property} />
+
+        {brochures[0] ? (
+          <section
+            className="mt-6 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+            aria-labelledby="property-brochure-heading"
+          >
+            <div>
+              <p className="eyebrow">Property brochure</p>
+              <h2
+                id="property-brochure-heading"
+                className="mt-1 font-display text-2xl font-semibold"
+              >
+                Property details to take with you
+              </h2>
+            </div>
+            <PropertyBrochureLink brochure={brochures[0]} />
+          </section>
+        ) : null}
 
         <div className="property-detail-layout">
           <div className="property-detail-main">
@@ -235,34 +246,6 @@ export default async function PropertyDetailPage({ params }: Props) {
 
             {property.verifications.length > 0 ? (
               <VerificationExplainer verifications={property.verifications} />
-            ) : null}
-
-            {externalMedia.length > 0 || brochures.length > 0 ? (
-              <section className="detail-section" aria-labelledby="property-media">
-                <p className="eyebrow">More property media</p>
-                <h2 id="property-media">
-                  {externalMedia.length > 0 ? "Video, brochure and 360°" : "Property brochure"}
-                </h2>
-                <div className="external-media-grid">
-                  {externalMedia.map((item) => (
-                    <SafeExternalMedia
-                      key={item.id}
-                      provider={item.externalProvider as "YOUTUBE" | "VIMEO" | "MATTERPORT"}
-                      mediaId={item.externalMediaId as string}
-                      title={
-                        item.mediaSubtype === "DRONE"
-                          ? "Drone video"
-                          : item.mediaType === "PANORAMA_360"
-                            ? "360° property experience"
-                            : "Property video"
-                      }
-                    />
-                  ))}
-                </div>
-                {brochures.map((item) => (
-                  <PropertyBrochureLink key={item.id} brochure={item} />
-                ))}
-              </section>
             ) : null}
 
             <section

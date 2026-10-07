@@ -315,11 +315,12 @@ describe("PropertyWorkspace", () => {
 
     cleanup();
     render(<PropertyWorkspace {...props} initialTab="media" />);
-    expect(
-      screen.getByRole("heading", { name: /Photos & (Listing Media|Brochure) \(1\)/ }),
-    ).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Photos & Brochure (1)" })).toBeVisible();
     expect(screen.getByRole("link", { name: "Add or Manage Photos" })).toBeVisible();
     expect(screen.getByText("Front entrance facing road")).toBeVisible();
+    expect(screen.getByText("Photo")).toBeVisible();
+    expect(screen.queryByText("APPROVED")).not.toBeInTheDocument();
+    expect(screen.queryByText("PUBLIC")).not.toBeInTheDocument();
     expect(screen.queryByText(/Private Documents/)).not.toBeInTheDocument();
     expect(screen.queryByText("Add Documents")).not.toBeInTheDocument();
     expect(screen.queryByText("Document Category")).not.toBeInTheDocument();
@@ -357,7 +358,7 @@ describe("PropertyWorkspace", () => {
       />,
     );
 
-    expect(screen.getByText("Property brochure")).toBeVisible();
+    expect(screen.getAllByText("Property brochure")[0]).toBeVisible();
     expect(screen.getByRole("img", { name: "Lush farmland view" })).toBeVisible();
     expect(screen.getAllByRole("img")).toHaveLength(1);
   });

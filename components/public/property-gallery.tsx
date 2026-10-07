@@ -11,11 +11,13 @@ import { PropertyImageFallback } from "./property-image";
 export function PropertyGallery({
   media,
   title,
-}: Readonly<{ media: readonly PublicMediaDto[]; title: string }>) {
+  coverId,
+}: Readonly<{ media: readonly PublicMediaDto[]; title: string; coverId?: string | null }>) {
   const images = media
-    .filter((item) => item.mediaType === "IMAGE" && item.objectPath)
+    .filter((item) => (!item.mediaType || item.mediaType === "IMAGE") && item.objectPath)
     .map((item) => ({ ...item, url: buildPublicMediaUrl(item.objectPath) }))
-    .filter((item): item is typeof item & { url: string } => Boolean(item.url));
+    .filter((item): item is typeof item & { url: string } => Boolean(item.url))
+    .sort((left, right) => Number(right.id === coverId) - Number(left.id === coverId));
   const [selected, setSelected] = useState(0);
 
   if (images.length === 0) {

@@ -67,7 +67,7 @@ test("active admin uploads a photo batch and connects a Drive brochure without p
     .fill("https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz_12345/view?usp=sharing");
   await brochureForm.getByRole("button", { name: "Save Brochure" }).click();
   await expect(page.getByText("✓ Brochure connected")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Test Download" })).toHaveAttribute(
+  await expect(page.getByRole("link", { name: "Test / Download Brochure" })).toHaveAttribute(
     "href",
     "https://drive.google.com/uc?export=download&id=1AbCdEfGhIjKlMnOpQrStUvWxYz_12345",
   );

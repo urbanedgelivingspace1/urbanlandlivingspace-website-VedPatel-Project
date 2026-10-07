@@ -9,24 +9,30 @@ export const dynamic = "force-dynamic";
 export default async function AdminMediaPage() {
   await requireActiveAdminPage();
   const [media, storage] = await Promise.all([listAdminMedia(), getAdminStorageHealth()]);
-  const unused = media.filter((asset) => asset.archivedAt || asset.processingStatus === "FAILED");
+  const listingMedia = media.filter(
+    (asset) => asset.mediaType === "IMAGE" || asset.mediaType === "BROCHURE",
+  );
+  const unused = listingMedia.filter(
+    (asset) => asset.archivedAt || asset.processingStatus === "FAILED",
+  );
   return (
     <div className="space-y-6">
       <AdminPageHeader
         eyebrow="Inventory operations"
-        title="Media registry"
-        description="Review processing and visibility, identify failed assets, and return to the owning property for changes."
+        title="Media library"
+        description="Review property photos and brochures, identify items that need attention, and return to the property to make changes."
       />
       <section className="grid gap-4 sm:grid-cols-4">
-        <Metric label="All assets" value={media.length} />
+        <Metric label="Photos & brochures" value={listingMedia.length} />
         <Metric
-          label="Approved"
+          label="Added"
           value={
-            media.filter((asset) => asset.processingStatus === "APPROVED" && !asset.archivedAt)
-              .length
+            listingMedia.filter(
+              (asset) => asset.processingStatus === "APPROVED" && !asset.archivedAt,
+            ).length
           }
         />
-        <Metric label="Failed / unused" value={unused.length} />
+        <Metric label="Needs attention / removed" value={unused.length} />
         <Metric label="Registry storage" value={`${storage.usagePercent.toFixed(1)}%`} />
       </section>
       <p
@@ -41,7 +47,7 @@ export default async function AdminMediaPage() {
         configured budget. Warning at {storage.warningPercent}%; uploads stop at
         {` ${storage.hardStopPercent}%`}.
       </p>
-      {media.length === 0 ? (
+      {listingMedia.length === 0 ? (
         <EmptyState
           title="No media assets"
           description="Upload photos and documents from a property workspace."
@@ -55,11 +61,10 @@ export default async function AdminMediaPage() {
                 <th className="p-3">Property</th>
                 <th className="p-3">Type</th>
                 <th className="p-3">State</th>
-                <th className="p-3">Visibility</th>
               </tr>
             </thead>
             <tbody>
-              {media.map((asset) => (
+              {listingMedia.map((asset) => (
                 <tr key={asset.id} className="border-t border-slate-200">
                   <td className="p-3">
                     <Link
@@ -73,7 +78,7 @@ export default async function AdminMediaPage() {
                       {asset.propertyTitle || "Untitled draft"}
                     </span>
                   </td>
-                  <td className="p-3">{asset.mediaSubtype || asset.mediaType}</td>
+                  <td className="p-3">{asset.mediaType === "BROCHURE" ? "Brochure" : "Photo"}</td>
                   <td className="p-3">
                     <StatusBadge
                       tone={
@@ -84,10 +89,15 @@ export default async function AdminMediaPage() {
                             : "warning"
                       }
                     >
-                      {asset.archivedAt ? "ARCHIVED" : asset.processingStatus}
+                      {asset.archivedAt
+                        ? "Removed"
+                        : asset.processingStatus === "APPROVED"
+                          ? "Added"
+                          : asset.processingStatus === "FAILED"
+                            ? "Needs attention"
+                            : "Processing"}
                     </StatusBadge>
                   </td>
-                  <td className="p-3">{asset.visibility}</td>
                 </tr>
               ))}
             </tbody>

@@ -69,6 +69,9 @@ export function PropertyWorkspace({
 
   const row = property.property;
   const id = row.id;
+  const photoAndBrochureMedia = mediaList.filter(
+    (asset) => !asset.archivedAt && (asset.mediaType === "IMAGE" || asset.mediaType === "BROCHURE"),
+  );
 
   const matchesCount = interestedBuyers.matches.length;
   const visitsCount = interestedBuyers.siteVisits.length;
@@ -110,7 +113,7 @@ export function PropertyWorkspace({
               ← Properties
             </Link>
             <Link
-              href={`/admin/properties/${id}?tab=media`}
+              href={`/admin/properties/${id}/media`}
               prefetch={false}
               className="button button-secondary"
             >
@@ -200,7 +203,7 @@ export function PropertyWorkspace({
             aria-current={activeTab === "media" ? "page" : undefined}
             className="admin-tab"
           >
-            Photos &amp; brochure ({property.mediaCount})
+            Photos &amp; brochure
           </Link>
           <Link
             href={`/admin/properties/${id}?tab=buyers`}
@@ -340,38 +343,40 @@ export function PropertyWorkspace({
           <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5">
             <div>
               <h2 id="media-heading" className="font-display text-xl font-bold text-slate-900">
-                Photos &amp; Listing Media ({mediaList.length})
+                Photos &amp; Brochure ({photoAndBrochureMedia.length})
               </h2>
               <p className="mt-1 text-sm text-slate-600">
-                Photos, aerial drone footage, brochures, and site layout plans.
+                Property photos and an optional Google Drive brochure.
               </p>
             </div>
             <Link
               href={`/admin/properties/${id}/media`}
-              className="inline-flex items-center justify-center rounded-lg bg-[#02066f] px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#01043d] transition-colors"
+              prefetch={false}
+              className="button button-primary"
             >
               Add or Manage Photos
             </Link>
           </div>
 
-          {mediaList.length === 0 ? (
+          {photoAndBrochureMedia.length === 0 ? (
             <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center">
               <p className="text-sm font-medium text-slate-600">
-                No photos or listing media have been added yet.
+                No property photos or brochure have been added yet.
               </p>
               <p className="mt-1 text-xs text-slate-400">
-                A property requires at least one approved cover image for public website display.
+                Add at least one photo and choose a cover before publishing the property.
               </p>
               <Link
                 href={`/admin/properties/${id}/media`}
-                className="mt-4 inline-flex items-center justify-center rounded-lg bg-[#02066f] px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#01043d] transition-colors"
+                prefetch={false}
+                className="button button-primary mt-4"
               >
                 Upload photos now
               </Link>
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {mediaList.map((asset) => (
+              {photoAndBrochureMedia.map((asset) => (
                 <div
                   key={asset.id}
                   className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs"
@@ -390,10 +395,10 @@ export function PropertyWorkspace({
                     ) : (
                       <div className="flex h-full flex-col items-center justify-center gap-2 px-3 text-center text-slate-500">
                         <span className="text-2xl" aria-hidden="true">
-                          {asset.mediaType === "BROCHURE" ? "↓" : "▶"}
+                          {asset.mediaType === "BROCHURE" ? "↓" : "□"}
                         </span>
                         <span className="text-xs font-bold">
-                          {asset.mediaType === "BROCHURE" ? "Property brochure" : "Listing media"}
+                          {asset.mediaType === "BROCHURE" ? "Property brochure" : "Property photo"}
                         </span>
                       </div>
                     )}
@@ -409,15 +414,21 @@ export function PropertyWorkspace({
                           : "bg-slate-700 text-white"
                       }`}
                     >
-                      {asset.processingStatus}
+                      {asset.processingStatus === "APPROVED"
+                        ? "Added"
+                        : asset.processingStatus === "FAILED"
+                          ? "Needs attention"
+                          : "Processing"}
                     </span>
                   </div>
                   <div className="p-3">
                     <p className="truncate text-xs font-semibold text-slate-800">
-                      {asset.caption || asset.altText || "Unnamed photo"}
+                      {asset.caption ||
+                        asset.altText ||
+                        (asset.mediaType === "BROCHURE" ? "Property brochure" : "Property photo")}
                     </p>
                     <p className="mt-0.5 text-[11px] text-slate-500">
-                      {asset.mediaType} · {asset.visibility}
+                      {asset.mediaType === "BROCHURE" ? "Brochure" : "Photo"}
                     </p>
                   </div>
                 </div>

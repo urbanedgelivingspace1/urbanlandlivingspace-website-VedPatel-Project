@@ -5,7 +5,7 @@ export function PropertyBrochureLink({ brochure }: Readonly<{ brochure: PublicMe
   const url = buildPublicBrochureUrl(brochure);
   if (!url) return null;
   return (
-    <a className="button button-outline mt-5" href={url} target="_blank" rel="noreferrer">
+    <a className="button button-outline" href={url} target="_blank" rel="noreferrer">
       <span aria-hidden="true">↓</span> Download Brochure
     </a>
   );

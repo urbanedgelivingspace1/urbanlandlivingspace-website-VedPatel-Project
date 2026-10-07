@@ -43,7 +43,6 @@ type Props = Readonly<{
   updateMetadataAction: (data: FormData) => Promise<void>;
   reorderAction: (data: FormData) => Promise<void>;
   setCoverAction: (data: FormData) => Promise<void>;
-  approveAction: (data: FormData) => Promise<void>;
   archiveMediaAction: (data: FormData) => Promise<void>;
 }>;
 
@@ -140,9 +139,7 @@ function PhotoUploader({ action }: Readonly<{ action: BatchAction }>) {
         </span>
         <span className="mt-3 text-base font-bold text-slate-950">Drag photos here</span>
         <span className="mt-1 text-sm text-slate-600">or</span>
-        <span className="mt-2 inline-flex items-center justify-center rounded-lg bg-[#02066f] px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-[#01043d] transition-colors">
-          Choose Photos
-        </span>
+        <span className="button button-primary mt-2">Choose Photos</span>
         <input
           ref={inputRef}
           id={inputId}
@@ -254,7 +251,6 @@ export function PropertyMediaManager(props: Props) {
           updateMetadataAction={props.updateMetadataAction}
           reorderAction={props.reorderAction}
           setCoverAction={props.setCoverAction}
-          approveAction={props.approveAction}
           archiveMediaAction={props.archiveMediaAction}
         />
 
@@ -262,7 +258,6 @@ export function PropertyMediaManager(props: Props) {
           propertyId={props.propertyId}
           brochure={brochure}
           saveAction={props.saveBrochureAction}
-          approveAction={props.approveAction}
           removeAction={props.archiveMediaAction}
         />
 
@@ -291,7 +286,6 @@ function PhotoGallery({
   updateMetadataAction,
   reorderAction,
   setCoverAction,
-  approveAction,
   archiveMediaAction,
 }: Readonly<{
   propertyId: string;
@@ -300,7 +294,6 @@ function PhotoGallery({
   updateMetadataAction: (data: FormData) => Promise<void>;
   reorderAction: (data: FormData) => Promise<void>;
   setCoverAction: (data: FormData) => Promise<void>;
-  approveAction: (data: FormData) => Promise<void>;
   archiveMediaAction: (data: FormData) => Promise<void>;
 }>) {
   if (photos.length === 0) {
@@ -343,7 +336,7 @@ function PhotoGallery({
           const laterIds = nextPhoto
             ? swap(allIds, mediaIndex, activeMediaIds.indexOf(nextPhoto.id))
             : null;
-          const needsApproval = photo.processingStatus === "READY";
+          const processing = photo.processingStatus === "READY";
           const failed = photo.processingStatus === "FAILED";
 
           return (
@@ -378,16 +371,9 @@ function PhotoGallery({
               </div>
               <div className="space-y-3 p-4">
                 <h3 className="font-bold">Photo {photoIndex + 1}</h3>
-                {needsApproval ? (
+                {processing ? (
                   <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-950">
-                    <p className="font-semibold">Ready to add to the listing</p>
-                    <SimpleAction
-                      action={approveAction}
-                      propertyId={propertyId}
-                      name="mediaId"
-                      value={photo.id}
-                      label="Add to Listing"
-                    />
+                    <p className="font-semibold">Finishing photo processing…</p>
                   </div>
                 ) : null}
                 <div className="flex flex-wrap gap-2">
@@ -466,13 +452,11 @@ function BrochureSection({
   propertyId,
   brochure,
   saveAction,
-  approveAction,
   removeAction,
 }: Readonly<{
   propertyId: string;
   brochure: AdminMediaAssetDto | null;
   saveAction: MediaAction;
-  approveAction: (data: FormData) => Promise<void>;
   removeAction: (data: FormData) => Promise<void>;
 }>) {
   const operationId = useId();
@@ -533,24 +517,20 @@ function BrochureSection({
                 target="_blank"
                 rel="noreferrer"
               >
-                Test Download
+                Test / Download Brochure
               </a>
             ) : null}
             {brochure.processingStatus === "READY" ? (
-              <SimpleAction
-                action={approveAction}
-                propertyId={propertyId}
-                name="mediaId"
-                value={brochure.id}
-                label="Add to Listing"
-              />
+              <p className="self-center text-sm font-semibold text-amber-900">
+                Finishing brochure setup…
+              </p>
             ) : null}
             <button
               type="button"
               className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-bold"
               onClick={() => setReplacing((current) => !current)}
             >
-              {replacing ? "Cancel Replace" : "Replace Link"}
+              {replacing ? "Cancel Replace" : "Replace Brochure"}
             </button>
             <SimpleAction
               action={removeAction}

@@ -120,6 +120,7 @@ function projectCover(row: PublicPropertyListingRow): PublicMediaDto | null {
   if (!row.cover_media_id || !row.cover_object_path) return null;
   return {
     id: row.cover_media_id,
+    mediaType: "IMAGE",
     objectPath: row.cover_object_path,
     altText: row.cover_alt_text,
     width: row.cover_width_px,
