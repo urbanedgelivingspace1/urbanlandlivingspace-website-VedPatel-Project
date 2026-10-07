@@ -74,6 +74,22 @@ describe("PropertyDraftForm", () => {
     expect((action.mock.calls[0]?.[1] as FormData).get("submitIntent")).toBe("save-next");
   });
 
+  it("loads a saved Google Maps embed when editing an existing property", () => {
+    const embedUrl = "https://www.google.com/maps/embed?pb=saved-property-map";
+    render(
+      <PropertyDraftForm
+        action={vi.fn(async (state) => state)}
+        references={references}
+        submitLabel="Save Draft"
+        initialValues={{ googleMapsEmbedUrl: embedUrl }}
+      />,
+    );
+
+    expect(screen.getByLabelText("Google Maps Embed")).toHaveValue(embedUrl);
+    expect(screen.getByTitle("Google Maps location preview")).toHaveAttribute("src", embedUrl);
+    expect(screen.getByText("Google Maps location added successfully.")).toBeVisible();
+  });
+
   it("guards Save & Next against a double submit", async () => {
     const user = userEvent.setup();
     const action = vi.fn(async (state) => state);
@@ -82,6 +98,21 @@ describe("PropertyDraftForm", () => {
     await user.dblClick(screen.getByRole("button", { name: "Save & Next →" }));
 
     await waitFor(() => expect(action).toHaveBeenCalledTimes(1));
+  });
+
+  it("keeps the edit form valid when the delete control is present", () => {
+    const { container } = render(
+      <PropertyDraftForm
+        action={vi.fn(async (state) => state)}
+        references={references}
+        submitLabel="Save Draft"
+        propertyId="20000000-0000-4000-8000-000000000001"
+        deleteAction={vi.fn(async () => undefined)}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Delete draft" })).toBeVisible();
+    expect(container.querySelector("form form")).toBeNull();
   });
 
   it("renders the testing helper toolbar and prefill buttons when allowTestPresets is true", () => {

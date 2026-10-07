@@ -10,6 +10,7 @@ import {
   projectPublicPropertyCard,
   projectPublicPropertyDetail,
 } from "@/features/properties/queries/public-property-projector";
+import { isMissingOptionalGoogleMapsSchema } from "@/lib/supabase/schema-compatibility";
 import type { Database } from "@/types/database";
 
 const publicListingFields =
@@ -87,7 +88,7 @@ export async function getPublicPropertyDetail(
       .order("sequence_no")
       .order("is_primary", { ascending: false }),
   ]);
-  if (googleMapError) throw googleMapError;
+  if (googleMapError && !isMissingOptionalGoogleMapsSchema(googleMapError)) throw googleMapError;
   if (mediaError) throw mediaError;
   if (verificationError) throw verificationError;
   if (identifierError) throw identifierError;

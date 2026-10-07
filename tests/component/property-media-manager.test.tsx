@@ -118,25 +118,27 @@ describe("PropertyMediaManager", () => {
         ]}
       />,
     );
-    expect(screen.getByRole("button", { name: "Set as Cover" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Use Photo 1 as Cover" })).toBeVisible();
     expect(screen.getAllByRole("button", { name: "Remove" })).toHaveLength(2);
     expect(screen.getByRole("button", { name: "Move Later" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Move Earlier" })).toBeVisible();
     expect(screen.getAllByText("Edit photo details")).toHaveLength(2);
-    expect(screen.getByText("✓ Cover Photo")).toBeVisible();
+    expect(screen.getByText("✓ Current Cover")).toBeVisible();
+    expect(screen.getByText("Current cover photo")).toBeVisible();
     expect(screen.queryByText("APPROVED")).not.toBeInTheDocument();
     expect(screen.queryByText("PUBLIC")).not.toBeInTheDocument();
   });
 
-  it("keeps legacy staged media in a plain-language processing state", () => {
+  it("lets staff choose a staged photo as cover while processing finishes automatically", () => {
     render(
       <PropertyMediaManager
         {...baseProps}
         media={[{ ...image, processingStatus: "READY", visibility: "ADMIN_ONLY" }]}
       />,
     );
-    expect(screen.getByText("Finishing photo processing…")).toBeVisible();
+    expect(screen.getByText("Preparing this photo for the listing…")).toBeVisible();
     expect(screen.queryByRole("button", { name: /Approve|Add to Listing/ })).toBeNull();
+    expect(screen.getByRole("button", { name: "Use Photo 1 as Cover" })).toBeVisible();
     expect(screen.queryByText("READY")).not.toBeInTheDocument();
     expect(screen.queryByText("ADMIN_ONLY")).not.toBeInTheDocument();
   });

@@ -218,6 +218,38 @@ describe.sequential("M7 media and private storage integration", () => {
     expect(coverAfterLaterUpload.data?.alt_text).toBe(coverId);
   });
 
+  it("lets one cover choice safely finish an older staged photo", async () => {
+    const source = await sharp({
+      create: { width: 1200, height: 800, channels: 3, background: "#446688" },
+    })
+      .jpeg()
+      .toBuffer();
+    const { setPropertyCoverWithClient, uploadPropertyImageWithClient } =
+      await import("@/server/services/property-media");
+    const staged = await uploadPropertyImageWithClient(
+      database,
+      actorId,
+      propertyId,
+      new File([source], "older-staged-photo.jpg", { type: "image/jpeg" }),
+    );
+
+    await setPropertyCoverWithClient(database, actorId, propertyId, staged.id);
+
+    const selected = await database
+      .from("media_assets")
+      .select("storage_bucket,visibility,processing_status,is_cover,alt_text")
+      .eq("id", staged.id)
+      .single();
+    expect(selected.error).toBeNull();
+    expect(selected.data).toMatchObject({
+      storage_bucket: "property-media-public",
+      visibility: "PUBLIC",
+      processing_status: "APPROVED",
+      is_cover: true,
+    });
+    expect(selected.data?.alt_text).toBe("Synthetic M7 integration property - property photo");
+  });
+
   it("normalizes external video identity without storing a video binary", async () => {
     const { addExternalPropertyMediaWithClient } = await import("@/server/services/property-media");
     const first = await addExternalPropertyMediaWithClient(

@@ -27,8 +27,7 @@ export function DeleteDraftButton({
 
   const label = buttonText ?? (isPublished ? "Delete property" : "Delete draft");
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleClick = () => {
     const title = propertyTitle
       ? `"${propertyTitle}"`
       : isPublished
@@ -41,8 +40,9 @@ export function DeleteDraftButton({
     const confirmed = window.confirm(promptMessage);
     if (!confirmed) return;
 
-    const form = e.currentTarget;
-    const formData = new FormData(form);
+    const formData = new FormData();
+    formData.set("propertyId", propertyId);
+    if (expectedUpdatedAt) formData.set("expectedUpdatedAt", expectedUpdatedAt);
     startTransition(async () => {
       try {
         await action(formData);
@@ -69,21 +69,16 @@ export function DeleteDraftButton({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="inline-block">
-      <input type="hidden" name="propertyId" value={propertyId} />
-      {expectedUpdatedAt ? (
-        <input type="hidden" name="expectedUpdatedAt" value={expectedUpdatedAt} />
-      ) : null}
-      <button
-        type="submit"
-        disabled={isPending}
-        data-testid={isPublished ? "btn-delete-published" : "btn-delete-draft"}
-        aria-label={label}
-        className={`${getVariantStyles()} ${className}`}
-      >
-        {isPending ? "Deleting…" : label}
-      </button>
-    </form>
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={isPending}
+      data-testid={isPublished ? "btn-delete-published" : "btn-delete-draft"}
+      aria-label={label}
+      className={`${getVariantStyles()} ${className}`}
+    >
+      {isPending ? "Deleting…" : label}
+    </button>
   );
 }
 

@@ -93,7 +93,7 @@ test("M9 publishes and unpublishes only a complete public-safe property", async 
   });
   await imageForm.getByRole("button", { name: "Upload 1 Photo" }).click();
   await expect(imageForm.getByRole("status")).toContainText("1 photo added");
-  await expect(page.getByText("✓ Cover Photo")).toBeVisible();
+  await expect(page.getByText("✓ Current Cover")).toBeVisible();
 
   const { client, actorId } = await serviceContext();
   await page.getByRole("link", { name: /Save & Next/ }).click();

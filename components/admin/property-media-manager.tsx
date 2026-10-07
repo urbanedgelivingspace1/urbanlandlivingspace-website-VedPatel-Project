@@ -317,7 +317,8 @@ function PhotoGallery({
             Photo Gallery
           </h2>
           <p className="mt-1 text-sm text-slate-600">
-            Choose the cover, adjust the order, or remove a photo.
+            The photo marked Current Cover is shown first on the website. Use the button on any
+            other photo to change it—no reordering or guessing required.
           </p>
         </div>
         <p className="text-sm font-semibold text-slate-600">
@@ -360,7 +361,7 @@ function PhotoGallery({
                 )}
                 {photo.isCover ? (
                   <span className="absolute top-3 left-3 rounded-full bg-emerald-700 px-3 py-1 text-xs font-bold text-white shadow">
-                    ✓ Cover Photo
+                    ✓ Current Cover
                   </span>
                 ) : null}
                 {failed ? (
@@ -373,19 +374,33 @@ function PhotoGallery({
                 <h3 className="font-bold">Photo {photoIndex + 1}</h3>
                 {processing ? (
                   <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-950">
-                    <p className="font-semibold">Finishing photo processing…</p>
+                    <p className="font-semibold">Preparing this photo for the listing…</p>
+                    <p className="mt-1 text-xs">
+                      You can choose it as the cover now; setup will finish automatically.
+                    </p>
                   </div>
                 ) : null}
-                <div className="flex flex-wrap gap-2">
-                  {!photo.isCover && photo.processingStatus === "APPROVED" ? (
+                {photo.isCover ? (
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-950">
+                    <p className="font-bold">Current cover photo</p>
+                    <p className="mt-1 text-xs">This is the first photo visitors will see.</p>
+                  </div>
+                ) : !failed ? (
+                  <div className="rounded-xl border border-blue-200 bg-blue-50 p-3">
+                    <p className="mb-2 text-xs font-semibold text-blue-950">
+                      Want this photo to appear first?
+                    </p>
                     <SimpleAction
                       action={setCoverAction}
                       propertyId={propertyId}
                       name="mediaId"
                       value={photo.id}
-                      label="Set as Cover"
+                      label={`Use Photo ${photoIndex + 1} as Cover`}
+                      primary
                     />
-                  ) : null}
+                  </div>
+                ) : null}
+                <div className="flex flex-wrap gap-2">
                   {earlierIds ? (
                     <OrderAction
                       action={reorderAction}
@@ -598,6 +613,7 @@ function SimpleAction({
   value,
   label,
   danger = false,
+  primary = false,
 }: Readonly<{
   action: (data: FormData) => Promise<void>;
   propertyId: string;
@@ -605,14 +621,19 @@ function SimpleAction({
   value: string;
   label: string;
   danger?: boolean;
+  primary?: boolean;
 }>) {
   return (
     <form action={action}>
       <input type="hidden" name="propertyId" value={propertyId} />
       <input type="hidden" name={name} value={value} />
       <Submit
-        className={`rounded-lg border bg-white px-3 py-2 text-xs font-bold disabled:opacity-60 ${
-          danger ? "border-red-300 text-red-800" : "border-slate-300 text-slate-900"
+        className={`rounded-lg border px-3 py-2 text-xs font-bold disabled:opacity-60 ${
+          danger
+            ? "border-red-300 bg-white text-red-800"
+            : primary
+              ? "border-[#02066f] bg-[#02066f] text-white hover:bg-[#01043d]"
+              : "border-slate-300 bg-white text-slate-900"
         }`}
       >
         {label}

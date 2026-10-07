@@ -41,6 +41,7 @@ export default async function EditPropertyPage({
     description: row.description,
     districtId: row.district_id,
     publicAddress: row.public_address,
+    googleMapsEmbedUrl: row.google_maps_embed_url,
     landmarkText: row.landmark_text,
     displayAreaValue: row.display_area_value,
     displayAreaUnitId: row.display_area_unit_id,

@@ -7,6 +7,7 @@ import {
   type PublicationReadiness,
 } from "@/features/properties/domain/publication";
 import { projectPublicLocation } from "@/lib/privacy/public-location";
+import { isMissingOptionalGoogleMapsSchema } from "@/lib/supabase/schema-compatibility";
 import { requireActiveAdmin } from "@/server/auth/authorization";
 import { createPrivilegedServerClient } from "@/server/supabase/privileged";
 import type { Database } from "@/types/database.generated";
@@ -187,53 +188,62 @@ export async function getPublicationPreview(
   const { data: property, error } = await client
     .from("properties")
     .select(
-      "id,property_code,public_slug,listing_title,short_description,description,land_category,primary_transaction_type,availability_status,display_area_value,display_area_unit_id,district_id,subdistrict_id,place_id,locality_id,public_address,google_maps_embed_url,location_visibility",
+      "id,property_code,public_slug,listing_title,short_description,description,land_category,primary_transaction_type,availability_status,display_area_value,display_area_unit_id,district_id,subdistrict_id,place_id,locality_id,public_address,location_visibility",
     )
     .eq("id", propertyId)
     .is("deleted_at", null)
     .maybeSingle();
   if (error) throw error;
   if (!property) return null;
-  const [district, subdistrict, place, locality, unit, location, offer, cover] = await Promise.all([
-    client.from("districts").select("name").eq("id", property.district_id).maybeSingle(),
-    property.subdistrict_id
-      ? client.from("subdistricts").select("name").eq("id", property.subdistrict_id).maybeSingle()
-      : Promise.resolve({ data: null, error: null }),
-    property.place_id
-      ? client.from("places").select("official_name").eq("id", property.place_id).maybeSingle()
-      : Promise.resolve({ data: null, error: null }),
-    property.locality_id
-      ? client.from("localities").select("name").eq("id", property.locality_id).maybeSingle()
-      : Promise.resolve({ data: null, error: null }),
-    client
-      .from("area_units")
-      .select("display_name,symbol")
-      .eq("id", property.display_area_unit_id)
-      .maybeSingle(),
-    client
-      .from("property_locations")
-      .select("location_visibility,public_latitude,public_longitude,public_accuracy_m")
-      .eq("property_id", property.id)
-      .maybeSingle(),
-    client
-      .from("property_offers")
-      .select("price_mode")
-      .eq("property_id", property.id)
-      .eq("is_primary", true)
-      .is("archived_at", null)
-      .maybeSingle(),
-    client
-      .from("media_assets")
-      .select("object_path,alt_text")
-      .eq("property_id", property.id)
-      .eq("is_cover", true)
-      .eq("visibility", "PUBLIC")
-      .eq("processing_status", "APPROVED")
-      .is("archived_at", null)
-      .maybeSingle(),
-  ]);
+  const [district, subdistrict, place, locality, unit, location, offer, cover, googleMap] =
+    await Promise.all([
+      client.from("districts").select("name").eq("id", property.district_id).maybeSingle(),
+      property.subdistrict_id
+        ? client.from("subdistricts").select("name").eq("id", property.subdistrict_id).maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      property.place_id
+        ? client.from("places").select("official_name").eq("id", property.place_id).maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      property.locality_id
+        ? client.from("localities").select("name").eq("id", property.locality_id).maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      client
+        .from("area_units")
+        .select("display_name,symbol")
+        .eq("id", property.display_area_unit_id)
+        .maybeSingle(),
+      client
+        .from("property_locations")
+        .select("location_visibility,public_latitude,public_longitude,public_accuracy_m")
+        .eq("property_id", property.id)
+        .maybeSingle(),
+      client
+        .from("property_offers")
+        .select("price_mode")
+        .eq("property_id", property.id)
+        .eq("is_primary", true)
+        .is("archived_at", null)
+        .maybeSingle(),
+      client
+        .from("media_assets")
+        .select("object_path,alt_text")
+        .eq("property_id", property.id)
+        .eq("is_cover", true)
+        .eq("visibility", "PUBLIC")
+        .eq("processing_status", "APPROVED")
+        .is("archived_at", null)
+        .maybeSingle(),
+      client
+        .from("public_property_google_maps")
+        .select("google_maps_embed_url")
+        .eq("property_id", property.id)
+        .maybeSingle(),
+    ]);
   for (const result of [district, subdistrict, place, locality, unit, location, offer, cover])
     if (result.error) throw result.error;
+  if (googleMap.error && !isMissingOptionalGoogleMapsSchema(googleMap.error)) {
+    throw googleMap.error;
+  }
   const visibility = location.data?.location_visibility ?? property.location_visibility;
   return {
     propertyCode: property.property_code,
@@ -247,7 +257,8 @@ export async function getPublicationPreview(
     area: `${property.display_area_value} ${unit.data?.symbol ?? unit.data?.display_name ?? ""}`.trim(),
     priceMode: offer.data?.price_mode ?? null,
     publicAddress: property.public_address,
-    googleMapsEmbedUrl: visibility === "HIDDEN" ? null : property.google_maps_embed_url,
+    googleMapsEmbedUrl:
+      visibility === "HIDDEN" ? null : (googleMap.data?.google_maps_embed_url ?? null),
     location: projectPublicLocation({
       visibility,
       publicLatitude: location.data?.public_latitude ?? null,

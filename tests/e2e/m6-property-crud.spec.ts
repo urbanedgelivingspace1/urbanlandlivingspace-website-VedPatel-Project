@@ -54,6 +54,16 @@ test("admin edits price, area, and public-safe location without publishing", asy
   await expect(page.getByRole("status")).toContainText("Draft changes saved successfully");
   await expect(page.getByText("4.75 Acre (ac)", { exact: true })).toBeVisible();
   await expect(page.getByText("DRAFT").first()).toBeVisible();
+
+  await page.getByRole("link", { name: "Edit draft" }).click();
+  await page.getByRole("button", { name: "Save & Next →" }).click();
+  await expect(page).toHaveURL(/\/media$/);
+  await page.getByRole("link", { name: /Save & Next/ }).click();
+  await expect(page).toHaveURL(/\/preview$/);
+  await expect(page.getByRole("heading", { name: "Preview" })).toBeVisible();
+  await page.getByRole("link", { name: /Continue to Publish/ }).click();
+  await expect(page).toHaveURL(/\/publish$/);
+  await expect(page.getByRole("heading", { name: "Publish" })).toBeVisible();
 });
 
 test("validation errors retain valid draft input", async ({ page }) => {

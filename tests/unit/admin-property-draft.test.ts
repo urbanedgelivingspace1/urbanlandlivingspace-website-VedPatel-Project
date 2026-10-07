@@ -83,6 +83,26 @@ describe("M6 property draft contract", () => {
     ).toThrow(/primary offer/i);
   });
 
+  it("stores only the safe src from pasted Google Maps iframe code", () => {
+    const result = adminPropertyDraftSchema.parse({
+      ...shared("AGRICULTURAL"),
+      googleMapsEmbedUrl:
+        '<iframe src="https://www.google.com/maps/embed?pb=existing-property" width="600" height="450"></iframe>',
+      categoryDetails: { landCategory: "AGRICULTURAL" },
+    });
+
+    expect(result.googleMapsEmbedUrl).toBe(
+      "https://www.google.com/maps/embed?pb=existing-property",
+    );
+
+    const removed = adminPropertyDraftSchema.parse({
+      ...shared("AGRICULTURAL"),
+      googleMapsEmbedUrl: "   ",
+      categoryDetails: { landCategory: "AGRICULTURAL" },
+    });
+    expect(removed.googleMapsEmbedUrl).toBeNull();
+  });
+
   it("builds a stable public slug with the immutable Property ID", () => {
     expect(buildPropertySlug("  Farm & Orchard — Sanand ", "UE-LS-000042")).toBe(
       "farm-orchard-sanand-ue-ls-000042",

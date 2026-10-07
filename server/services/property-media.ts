@@ -270,18 +270,68 @@ export async function uploadPropertyImage(
   );
 }
 
-async function setPropertyCoverWithClient(
+export async function setPropertyCoverWithClient(
   client: Db,
   actorId: string,
   propertyId: string,
   mediaId: string,
 ) {
+  await ensurePropertyImageApprovedWithClient(client, actorId, propertyId, mediaId);
   const { error } = await client.rpc("set_property_cover", {
     requested_actor_id: actorId,
     requested_property_id: z.uuid().parse(propertyId),
     requested_media_id: z.uuid().parse(mediaId),
   });
   if (error) throw new Error(error.message);
+}
+
+async function ensurePropertyImageApprovedWithClient(
+  client: Db,
+  actorId: string,
+  propertyId: string,
+  mediaId: string,
+  fallbackAltText?: string,
+) {
+  const id = z.uuid().parse(propertyId);
+  const targetId = z.uuid().parse(mediaId);
+  const media = await client
+    .from("media_assets")
+    .select("media_type,processing_status,alt_text")
+    .eq("id", targetId)
+    .eq("property_id", id)
+    .is("archived_at", null)
+    .single();
+  if (media.error || media.data.media_type !== "IMAGE") {
+    throw new MediaValidationError("Photo not found.", "mediaId");
+  }
+  if (media.data.processing_status === "APPROVED") return;
+  if (media.data.processing_status !== "READY") {
+    throw new MediaValidationError("This photo needs attention before it can be used.", "mediaId");
+  }
+
+  if (!media.data.alt_text?.trim()) {
+    let description = fallbackAltText?.trim();
+    if (!description) {
+      const property = await client
+        .from("properties")
+        .select("property_code,listing_title")
+        .eq("id", id)
+        .single();
+      if (property.error) throw property.error;
+      const propertyLabel =
+        property.data.listing_title?.trim() || property.data.property_code || "Property";
+      description = `${propertyLabel} - property photo`;
+    }
+    const metadata = await client.rpc("update_property_media_metadata", {
+      requested_actor_id: actorId,
+      requested_media_id: targetId,
+      requested_alt_text: description,
+      requested_caption: "",
+    });
+    if (metadata.error) throw new Error(metadata.error.message);
+  }
+
+  await approvePropertyMediaWithClient(client, actorId, targetId);
 }
 
 export async function uploadPropertyImagesBatchWithClient(
@@ -334,25 +384,13 @@ export async function uploadPropertyImagesBatchWithClient(
       const uploaded = await uploadPropertyImageWithClient(client, actorId, id, file, {
         altText: `${propertyLabel} - property photo ${photoNumber}`,
       });
-      const registered = await client
-        .from("media_assets")
-        .select("alt_text,processing_status,is_cover")
-        .eq("id", uploaded.id)
-        .single();
-      if (registered.error) throw registered.error;
-
-      if (registered.data.processing_status === "READY") {
-        if (!registered.data.alt_text) {
-          const metadata = await client.rpc("update_property_media_metadata", {
-            requested_actor_id: actorId,
-            requested_media_id: uploaded.id,
-            requested_alt_text: `${propertyLabel} - property photo ${photoNumber}`,
-            requested_caption: "",
-          });
-          if (metadata.error) throw new Error(metadata.error.message);
-        }
-        await approvePropertyMediaWithClient(client, actorId, uploaded.id);
-      }
+      await ensurePropertyImageApprovedWithClient(
+        client,
+        actorId,
+        id,
+        uploaded.id,
+        `${propertyLabel} - property photo ${photoNumber}`,
+      );
       if (!hasCover) {
         await setPropertyCoverWithClient(client, actorId, id, uploaded.id);
         hasCover = true;
@@ -844,16 +882,20 @@ export async function approvePropertyImageAndMaybeSetCover(propertyId: string, m
   const admin = await requireActiveAdmin();
   const client = privilegedClient();
   const id = z.uuid().parse(propertyId);
+  const targetId = z.uuid().parse(mediaId);
   const media = await client
     .from("media_assets")
     .select("media_type")
-    .eq("id", z.uuid().parse(mediaId))
+    .eq("id", targetId)
     .eq("property_id", id)
     .is("archived_at", null)
     .single();
   if (media.error) throw new MediaValidationError("Media asset not found.", "mediaId");
-  await approvePropertyMediaWithClient(client, admin.userId, mediaId);
-  if (media.data.media_type !== "IMAGE") return;
+  if (media.data.media_type !== "IMAGE") {
+    await approvePropertyMediaWithClient(client, admin.userId, targetId);
+    return;
+  }
+  await ensurePropertyImageApprovedWithClient(client, admin.userId, id, targetId);
   const cover = await client
     .from("media_assets")
     .select("id")
@@ -863,7 +905,7 @@ export async function approvePropertyImageAndMaybeSetCover(propertyId: string, m
     .is("archived_at", null)
     .maybeSingle();
   if (cover.error) throw cover.error;
-  if (!cover.data) await setPropertyCoverWithClient(client, admin.userId, id, mediaId);
+  if (!cover.data) await setPropertyCoverWithClient(client, admin.userId, id, targetId);
 }
 
 export async function approvePropertyMediaWithClient(client: Db, actorId: string, mediaId: string) {

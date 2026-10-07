@@ -162,6 +162,8 @@ function parsePropertyDraftForm(formData: FormData): AdminPropertyDraftInput {
     localityId: optionalText(formData, "localityId"),
     landmarkText: optionalText(formData, "landmarkText"),
     publicAddress: optionalText(formData, "publicAddress"),
+    // Keep an explicit blank value so editing staff can also remove a saved map.
+    googleMapsEmbedUrl: text(formData, "googleMapsEmbedUrl"),
     displayAreaValue: Number(text(formData, "displayAreaValue")),
     displayAreaUnitId: text(formData, "displayAreaUnitId"),
     publicSlug: optionalText(formData, "publicSlug"),

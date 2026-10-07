@@ -25,14 +25,29 @@ import {
   uploadPropertyImagesBatch,
 } from "@/server/services/property-media";
 
-const initialFailure = (error: unknown, fileName?: string): MediaFormState => ({
-  ok: false,
-  message: `${fileName ? `${fileName}: ` : ""}${
-    error instanceof MediaValidationError || error instanceof z.ZodError
-      ? error.message
-      : "The media operation could not be completed. Refresh and try again."
-  }`,
-});
+const initialFailure = (error: unknown, fileName?: string): MediaFormState => {
+  console.error("media_operation_failed", error);
+  let message = "The media operation could not be completed. Refresh and try again.";
+  if (error instanceof MediaValidationError || error instanceof z.ZodError) {
+    message = error.message;
+  } else if (error instanceof Error) {
+    if (
+      error.message.includes("media_assets_brochure_scan_check") ||
+      error.message.includes("media_assets_locator_check")
+    ) {
+      message =
+        "Google Drive brochure support requires the latest database migration. Please run migration 20261007020000_google_drive_brochures.sql in the Supabase SQL editor.";
+    } else {
+      message = error.message;
+    }
+  } else if (typeof error === "object" && error !== null && "message" in error) {
+    message = String((error as { message: unknown }).message);
+  }
+  return {
+    ok: false,
+    message: `${fileName ? `${fileName}: ` : ""}${message}`,
+  };
+};
 
 const success = (message: string, duplicate = false): MediaFormState => ({
   ok: true,

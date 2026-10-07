@@ -56,10 +56,10 @@ test("active admin uploads a photo batch and connects a Drive brochure without p
   await expect(imageForm.getByRole("status")).toContainText("failed-photo.png");
   await expect(page.getByText("Photo 1", { exact: true })).toBeVisible();
   await expect(page.getByText("Photo 2", { exact: true })).toBeVisible();
-  await expect(page.getByText("✓ Cover Photo")).toBeVisible();
+  await expect(page.getByText("✓ Current Cover")).toBeVisible();
 
-  await page.getByRole("button", { name: "Set as Cover" }).click();
-  await expect(page.getByText("✓ Cover Photo")).toBeVisible();
+  await page.getByRole("button", { name: "Use Photo 2 as Cover" }).click();
+  await expect(page.getByText("✓ Current Cover")).toBeVisible();
 
   const brochureForm = page.locator("form").filter({ hasText: "Google Drive brochure link" });
   await brochureForm

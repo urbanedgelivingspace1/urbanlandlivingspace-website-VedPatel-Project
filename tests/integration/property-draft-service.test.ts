@@ -29,6 +29,7 @@ function draft(category: "AGRICULTURAL" | "NA" | "INDUSTRIAL"): AdminPropertyDra
     landCategory: category,
     primaryTransactionType: category === "INDUSTRIAL" ? "LEASE" : "BUY",
     listingTitle: `Synthetic integration ${category}`,
+    googleMapsEmbedUrl: "https://www.google.com/maps/embed?pb=synthetic-draft-map",
     districtId,
     displayAreaValue: category === "AGRICULTURAL" ? 2 : 500,
     displayAreaUnitId: unitId,
@@ -100,6 +101,9 @@ describe.sequential("M6 property draft service integration", () => {
       if (!property.data) throw property.error;
       expect(property.data.publication_status).toBe("DRAFT");
       expect(property.data.property_code).toMatch(/^UE-LS-\d{6}$/);
+      expect(property.data.google_maps_embed_url).toBe(
+        "https://www.google.com/maps/embed?pb=synthetic-draft-map",
+      );
       expect(offer.data?.price_mode).toBe("PRICE_ON_REQUEST");
       expect(location.data?.private_latitude).toBe(23.01);
       expect(location.data?.public_latitude).toBeNull();
@@ -126,6 +130,7 @@ describe.sequential("M6 property draft service integration", () => {
     if (!loaded.data) throw loaded.error;
     const changed = draft("AGRICULTURAL");
     changed.displayAreaValue = 4;
+    changed.googleMapsEmbedUrl = "https://www.google.com/maps/embed?pb=updated-draft-map";
     changed.location = {
       ...changed.location!,
       visibility: "APPROXIMATE",
@@ -154,10 +159,14 @@ describe.sequential("M6 property draft service integration", () => {
     ).rejects.toMatchObject({ name: "PropertyDraftConflictError" });
     const updated = await database
       .from("properties")
-      .select("display_area_value,publication_status")
+      .select("display_area_value,publication_status,google_maps_embed_url")
       .eq("id", id)
       .single();
-    expect(updated.data).toMatchObject({ display_area_value: 4, publication_status: "DRAFT" });
+    expect(updated.data).toMatchObject({
+      display_area_value: 4,
+      publication_status: "DRAFT",
+      google_maps_embed_url: "https://www.google.com/maps/embed?pb=updated-draft-map",
+    });
   });
 
   it("records actor-attributed audits without private location content", async () => {
