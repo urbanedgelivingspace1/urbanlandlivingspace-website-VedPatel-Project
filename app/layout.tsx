@@ -10,7 +10,7 @@ import type { ReactNode } from "react";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./globals.css";
 
-import { siteConfig } from "@/config/site";
+import { siteConfig, siteIcons } from "@/config/site";
 import { getRequestLocale } from "@/lib/i18n/server";
 
 const montserrat = Montserrat({
@@ -44,10 +44,7 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
-  icons: {
-    icon: "/brand/urbanedge-land-space-logo.png",
-    apple: "/brand/urbanedge-land-space-logo.png",
-  },
+  icons: siteIcons,
   openGraph: {
     title: siteConfig.name,
     description: siteConfig.description,

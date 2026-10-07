@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { ArrowIcon, CheckIcon, CompassIcon, PhoneIcon } from "@/components/public/icons";
 import { WhatsAppIcon } from "@/components/shared/whatsapp-icon";
+import { siteConfig } from "@/config/site";
 import { PropertyCollection } from "@/components/public/property-collection";
 import { JsonLd } from "@/components/public/json-ld";
 import { SectionHeading } from "@/components/public/section-heading";
@@ -17,7 +18,8 @@ import { translate } from "@/lib/i18n/dictionaries";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildPublicMetadata({
-  title: "Curated Land in Ahmedabad & Gandhinagar",
+  title: siteConfig.name,
+  absoluteTitle: true,
   description:
     "Discover curated Agricultural, NA and Industrial land with UrbanEdge guidance across Ahmedabad and Gandhinagar.",
   path: "/",

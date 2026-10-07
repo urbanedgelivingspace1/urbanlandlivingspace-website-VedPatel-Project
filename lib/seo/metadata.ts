@@ -5,6 +5,7 @@ import { effectiveRobots, INDEX_FOLLOW, type IndexPolicy } from "./robots";
 
 type PublicMetadataInput = Readonly<{
   title: string;
+  absoluteTitle?: boolean;
   description: string;
   path: string;
   canonicalPath?: string | null;
@@ -37,7 +38,7 @@ export function buildPublicMetadata(input: PublicMetadataInput): Metadata {
       };
   const images = [image];
   return {
-    title: input.title,
+    title: input.absoluteTitle ? { absolute: input.title } : input.title,
     description: input.description,
     alternates: { canonical },
     robots: effectiveRobots(input.robots ?? INDEX_FOLLOW),

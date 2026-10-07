@@ -1,5 +1,10 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
+
+import sharp from "sharp";
 import { describe, expect, it } from "vitest";
 
+import { siteConfig, siteIcons } from "@/config/site";
 import { guideInputSchema, seoPageInputSchema } from "@/features/content/domain/validation";
 import { buildPublicMetadata } from "@/lib/seo/metadata";
 import {
@@ -17,7 +22,7 @@ import { breadcrumbJsonLd } from "@/lib/seo/breadcrumbs";
 import { flattenRedirects, isSafeRedirectPath } from "@/lib/seo/redirects";
 import { effectiveRobots, INDEX_FOLLOW, NOINDEX_NOFOLLOW } from "@/lib/seo/robots";
 import { isSitemapEligiblePath } from "@/lib/seo/sitemap";
-import { propertyJsonLd } from "@/lib/seo/structured-data";
+import { organizationJsonLd, propertyJsonLd, websiteJsonLd } from "@/lib/seo/structured-data";
 import { safeSeoText, serializeJsonLd } from "@/lib/seo/privacy-safe-seo";
 import { buildPublicPropertyDetail } from "@/tests/builders/public-property";
 
@@ -45,6 +50,7 @@ describe("M16 canonical, metadata and crawl policy", () => {
     expect(metadata.alternates).toEqual({
       canonical: "https://theurbanedgelandspace.com/guides/useful",
     });
+    expect(metadata.title).toBe("Useful Ahmedabad land guide");
     expect(metadata.openGraph).toMatchObject({
       title: "Useful Ahmedabad land guide",
       url: "https://theurbanedgelandspace.com/guides/useful",
@@ -63,6 +69,57 @@ describe("M16 canonical, metadata and crawl policy", () => {
     expect(effectiveRobots(INDEX_FOLLOW, "preview")).toEqual(NOINDEX_NOFOLLOW);
     expect(effectiveRobots(INDEX_FOLLOW, undefined)).toEqual(NOINDEX_NOFOLLOW);
     expect(effectiveRobots(INDEX_FOLLOW, "production")).toEqual(INDEX_FOLLOW);
+  });
+
+  it("emits exact brand-only homepage metadata without changing internal title behavior", () => {
+    const metadata = buildPublicMetadata({
+      title: siteConfig.name,
+      absoluteTitle: true,
+      description:
+        "Discover curated Agricultural, NA and Industrial land with UrbanEdge guidance across Ahmedabad and Gandhinagar.",
+      path: "/",
+      robots: INDEX_FOLLOW,
+    });
+
+    expect(metadata.title).toEqual({ absolute: "UrbanEdge Land Space" });
+    expect(metadata.openGraph).toMatchObject({
+      title: "UrbanEdge Land Space",
+      url: "https://theurbanedgelandspace.com/",
+    });
+    expect(metadata.twitter).toMatchObject({ title: "UrbanEdge Land Space" });
+    expect(metadata.alternates).toEqual({ canonical: "https://theurbanedgelandspace.com/" });
+  });
+
+  it("uses one stable brand favicon artwork and keeps structured-data names aligned", async () => {
+    expect(siteIcons).toEqual({
+      icon: [{ url: "/favicon.png", type: "image/png", sizes: "512x512" }],
+      apple: [{ url: "/apple-touch-icon.png", type: "image/png", sizes: "180x180" }],
+    });
+
+    const faviconPath = path.resolve(process.cwd(), "public/favicon.png");
+    const appleIconPath = path.resolve(process.cwd(), "public/apple-touch-icon.png");
+    expect(existsSync(faviconPath)).toBe(true);
+    expect(existsSync(appleIconPath)).toBe(true);
+    await expect(sharp(faviconPath).metadata()).resolves.toMatchObject({
+      format: "png",
+      width: 512,
+      height: 512,
+    });
+    await expect(sharp(appleIconPath).metadata()).resolves.toMatchObject({
+      format: "png",
+      width: 180,
+      height: 180,
+    });
+
+    expect(websiteJsonLd().name).toBe(siteConfig.name);
+    expect(
+      organizationJsonLd({
+        phone: null,
+        email: null,
+        officeAddress: null,
+        livingSpaceUrl: null,
+      }).name,
+    ).toBe(siteConfig.name);
   });
 
   it("keeps filters, private surfaces and query URLs out of the sitemap", () => {
