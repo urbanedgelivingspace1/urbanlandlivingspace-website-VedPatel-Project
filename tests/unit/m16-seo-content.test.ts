@@ -290,6 +290,21 @@ describe("M16 structured data, breadcrumbs and redirects", () => {
     expect(serializeJsonLd({ value: "</script><script>attack</script>" })).not.toContain("<");
   });
 
+  it("does not emit coordinates for a public location point", () => {
+    const property = buildPublicPropertyDetail({
+      location: {
+        visibility: "EXACT",
+        label: "Ahmedabad",
+        point: { latitude: 23.02, longitude: 72.57, accuracyMetres: null },
+      },
+    });
+
+    const serialized = serializeJsonLd(propertyJsonLd(property, [{ label: "Home", href: "/" }]));
+    expect(serialized).not.toContain("GeoCoordinates");
+    expect(serialized).not.toContain("latitude");
+    expect(serialized).not.toContain("longitude");
+  });
+
   it("accepts only bounded same-site redirects and flattens chains", () => {
     expect(isSafeRedirectPath("/guides/old-slug")).toBe(true);
     expect(isSafeRedirectPath("//attacker.invalid")).toBe(false);

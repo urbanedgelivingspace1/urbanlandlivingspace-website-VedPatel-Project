@@ -25,16 +25,9 @@ export function projectPublicLocation(source: PublicLocationSource): PublicLocat
     return { visibility: "HIDDEN", label: broadLabel(source), point: null };
   }
 
-  const hasPublicPoint = source.publicLatitude !== null && source.publicLongitude !== null;
   return {
     visibility: source.visibility,
     label: source.publicAddress || broadLabel(source),
-    point: hasPublicPoint
-      ? {
-          latitude: source.publicLatitude as number,
-          longitude: source.publicLongitude as number,
-          accuracyMetres: source.publicAccuracyMetres,
-        }
-      : null,
+    point: null,
   };
 }

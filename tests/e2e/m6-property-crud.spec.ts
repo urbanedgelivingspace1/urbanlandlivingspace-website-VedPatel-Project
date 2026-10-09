@@ -15,9 +15,12 @@ async function fillDraftCore(page: Page, category: "AGRICULTURAL" | "NA" | "INDU
   await page.getByLabel("Land category").selectOption(category);
   await page.getByLabel("Property title (optional)").fill(`Synthetic E2E ${category}`);
   await page.getByLabel("District").selectOption({ label: "Ahmedabad" });
-  await page.getByLabel("Display area").fill(category === "AGRICULTURAL" ? "2.5" : "500");
+  await page.getByLabel("Area", { exact: true }).fill(category === "AGRICULTURAL" ? "2.5" : "500");
   await page.locator('select[name="displayAreaUnitId"]').selectOption({ label: "Acre (ac)" });
-  if (category === "NA") await page.getByLabel("NA status").fill("CHECK_PENDING");
+  if (category === "NA") {
+    await page.locator("details > summary").filter({ hasText: "NA Details" }).click();
+    await page.getByLabel("NA status").fill("CHECK_PENDING");
+  }
 }
 
 for (const category of ["AGRICULTURAL", "NA", "INDUSTRIAL"] as const) {
@@ -36,26 +39,25 @@ for (const category of ["AGRICULTURAL", "NA", "INDUSTRIAL"] as const) {
   });
 }
 
-test("admin edits price, area, and public-safe location without publishing", async ({ page }) => {
+test("admin edits price, area, and Google Maps location without publishing", async ({ page }) => {
   await signIn(page);
   await page.goto("/admin/properties/new");
   await fillDraftCore(page, "AGRICULTURAL");
   await page.getByRole("button", { name: "Save Draft" }).click();
-  await page.getByRole("link", { name: "Edit draft" }).click();
-  await page.getByLabel("Display area").fill("4.75");
+  await page.getByRole("link", { name: "Edit", exact: true }).click();
+  await page.getByLabel("Area", { exact: true }).fill("4.75");
   await page.getByLabel("Price mode").selectOption("EXACT_TOTAL");
   await page.getByLabel("Exact amount (INR)").fill("3500000");
-  await page.locator('select[name="locationVisibility"]').selectOption("APPROXIMATE");
-  await page.getByLabel("Public-safe latitude").fill("23.050000");
-  await page.getByLabel("Public-safe longitude").fill("72.550000");
-  await page.getByLabel("Public accuracy (metres)").fill("500");
+  await page
+    .getByLabel("Google Maps Embed")
+    .fill("https://www.google.com/maps/embed?pb=synthetic-m6-map");
   await page.getByRole("button", { name: "Save Draft" }).click();
   await expect(page).toHaveURL(/saved=1/);
-  await expect(page.getByRole("status")).toContainText("Draft changes saved successfully");
+  await expect(page.getByRole("status")).toContainText("Changes saved successfully");
   await expect(page.getByText("4.75 Acre (ac)", { exact: true })).toBeVisible();
   await expect(page.getByText("DRAFT").first()).toBeVisible();
 
-  await page.getByRole("link", { name: "Edit draft" }).click();
+  await page.getByRole("link", { name: "Edit", exact: true }).click();
   await page.getByRole("button", { name: "Save & Next →" }).click();
   await expect(page).toHaveURL(/\/media$/);
   await page.getByRole("link", { name: /Save & Next/ }).click();
@@ -63,7 +65,7 @@ test("admin edits price, area, and public-safe location without publishing", asy
   await expect(page.getByRole("heading", { name: "Preview" })).toBeVisible();
   await page.getByRole("link", { name: /Continue to Publish/ }).click();
   await expect(page).toHaveURL(/\/publish$/);
-  await expect(page.getByRole("heading", { name: "Publish" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Publish", exact: true })).toBeVisible();
 });
 
 test("validation errors retain valid draft input", async ({ page }) => {
@@ -71,7 +73,7 @@ test("validation errors retain valid draft input", async ({ page }) => {
   await page.goto("/admin/properties/new");
   await page.getByLabel("Property title (optional)").fill("Retained synthetic title");
   await page.getByLabel("District").selectOption({ label: "Ahmedabad" });
-  await page.getByLabel("Display area").fill("-1");
+  await page.getByLabel("Area", { exact: true }).fill("-1");
   await page.locator('select[name="displayAreaUnitId"]').selectOption({ label: "Acre (ac)" });
   await page.getByRole("button", { name: "Save & Next →" }).click();
   await expect(page.getByRole("status")).toContainText("retained");

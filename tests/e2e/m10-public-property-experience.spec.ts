@@ -63,6 +63,7 @@ async function createPublicFixtures(client: SupabaseClient<Database>, actorId: s
           description: "A synthetic agricultural property with approved public facts and media.",
           district_id: districtId,
           public_address: "Sanand area, Ahmedabad district",
+          google_maps_embed_url: "https://www.google.com/maps/embed?pb=synthetic-m10-map",
           display_area_value: 2.5,
           display_area_unit_id: acreId,
           featured: true,
@@ -287,7 +288,7 @@ async function createPublicFixtures(client: SupabaseClient<Database>, actorId: s
   }
   await insertOrThrow(
     client.from("media_assets").insert({
-      id: "98000000-0000-4000-8000-000000000010",
+      id: crypto.randomUUID(),
       property_id: agricultural.id,
       media_type: "BROCHURE",
       external_url: "https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz_12345/view",
@@ -350,7 +351,7 @@ test("visitor receives the homepage in initial HTML and browses each category", 
   await expect(page.getByText(industrial.title, { exact: true })).toBeVisible();
 });
 
-test("published detail renders media, correct price/area, and approximate public location", async ({
+test("published detail renders media, correct price/area, and the saved Google map", async ({
   page,
 }) => {
   const visibleResponses: string[] = [];
@@ -366,8 +367,10 @@ test("published detail renders media, correct price/area, and approximate public
   await expect(gallery.getByAltText("Synthetic agricultural cover view")).toBeVisible();
   await expect(page.getByText("2.5 ac", { exact: true }).first()).toBeVisible();
   await expect(page.getByText(/1,25,00,000/).first()).toBeVisible();
-  await expect(page.getByText("Approximate location", { exact: true })).toBeVisible();
-  await expect(page.getByTitle(/map$/)).toBeVisible();
+  await expect(page.getByTitle("Sanand area, Ahmedabad district map")).toHaveAttribute(
+    "src",
+    "https://www.google.com/maps/embed?pb=synthetic-m10-map",
+  );
   await gallery.getByRole("button", { name: "Show property image 2" }).click();
   await expect(gallery.getByAltText("Synthetic agricultural second view")).toBeVisible();
   await expect(page.getByRole("link", { name: /Download Brochure/ })).toHaveAttribute(
@@ -387,9 +390,7 @@ test("hidden and closed pages remain honest while unpublished and invalid slugs 
   page,
 }) => {
   await page.goto(`/properties/${naLand.slug}`);
-  await expect(
-    page.getByText("No pin or coordinate is published for this property."),
-  ).toBeVisible();
+  await expect(page.getByText("Map location is not available for this property.")).toBeVisible();
   expect(await page.content()).not.toContain("PRIVATE_M10_HIDDEN_NOTE_CANARY");
 
   await page.goto(`/properties/${industrial.slug}`);
@@ -400,9 +401,7 @@ test("hidden and closed pages remain honest while unpublished and invalid slugs 
   for (const slug of [unpublishedSlug, "unknown-private-property-slug"]) {
     const response = await page.goto(`/properties/${slug}`);
     expect(response?.status()).toBe(404);
-    await expect(
-      page.getByRole("heading", { name: "This land page is not available." }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "We couldn't find that page." })).toBeVisible();
     expect(await page.content()).not.toContain("PRIVATE_M10_DRAFT");
   }
 });
@@ -415,7 +414,7 @@ test("public pages work across required widths with keyboard-operable navigation
     await page.goto(`/properties/${agricultural.slug}`);
     await expectNoHorizontalOverflow(page);
     const sticky = page.locator(".mobile-sticky-actions");
-    if (width < 1024) await expect(sticky).toBeVisible();
+    if (width < 1152) await expect(sticky).toBeVisible();
     else await expect(sticky).toBeHidden();
   }
 

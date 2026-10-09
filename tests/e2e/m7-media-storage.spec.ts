@@ -16,7 +16,7 @@ async function createDraft(page: Page) {
   await page.goto("/admin/properties/new");
   await page.getByLabel("Property title (optional)").fill("Synthetic M7 media draft");
   await page.getByLabel("District").selectOption({ label: "Ahmedabad" });
-  await page.getByLabel("Display area").fill("2.5");
+  await page.getByLabel("Area", { exact: true }).fill("2.5");
   await page.locator('select[name="displayAreaUnitId"]').selectOption({ label: "Acre (ac)" });
   await page.getByRole("button", { name: "Save & Next →" }).click();
   await expect(page).toHaveURL(/\/admin\/properties\/[0-9a-f-]+\/media$/);

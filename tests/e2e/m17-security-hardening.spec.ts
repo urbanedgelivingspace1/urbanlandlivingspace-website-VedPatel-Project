@@ -67,7 +67,7 @@ test("admin sessions use HttpOnly same-site cookies", async ({ page, context }) 
     expect(cookie.secure).toBe(false);
   }
 
-  await page.getByRole("link", { name: "Security & Audit" }).last().click();
+  await page.getByRole("link", { name: "Security & activity" }).last().click();
   await expect(page.getByRole("heading", { name: "Security health" })).toBeVisible();
   await expect(page.getByText("Credentials, private object paths")).toBeVisible();
   expect(await page.locator("body").innerText()).not.toContain("SUPABASE_SERVICE_ROLE_KEY");

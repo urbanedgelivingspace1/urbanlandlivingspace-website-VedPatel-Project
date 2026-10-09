@@ -39,10 +39,9 @@ function originFor(rawUrl: string | undefined) {
 
 const mediaPattern = remotePatternFor(process.env.NEXT_PUBLIC_SUPABASE_URL);
 const guideMediaPattern = guideRemotePatternFor(process.env.NEXT_PUBLIC_SUPABASE_URL);
-const connectOrigins = [
-  originFor(process.env.NEXT_PUBLIC_SUPABASE_URL),
-  originFor(process.env.NEXT_PUBLIC_MAP_STYLE_URL),
-].filter((value): value is string => Boolean(value));
+const connectOrigins = [originFor(process.env.NEXT_PUBLIC_SUPABASE_URL)].filter(
+  (value): value is string => Boolean(value),
+);
 const applicationEnvironment = process.env.APP_ENV;
 const netlifyContext = process.env.CONTEXT;
 
@@ -70,6 +69,7 @@ const isDevelopment = process.env.NODE_ENV !== "production";
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   poweredByHeader: false,
   reactStrictMode: true,
   images: {

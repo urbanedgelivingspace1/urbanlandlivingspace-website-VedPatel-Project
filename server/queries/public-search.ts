@@ -38,8 +38,17 @@ const loadCachedFixedPublicSearch = unstable_cache(
   { revalidate: 60, tags: ["public-properties"] },
 );
 
+function publicSearchProvider() {
+  return new PostgresSearchProvider(createPublicServerClient());
+}
+
 export async function loadPublicSearch(query: SearchQuery): Promise<PublicSearchPageData> {
   try {
+    if (process.env.APP_ENV === "test") {
+      const provider = publicSearchProvider();
+      const [result, facets] = await Promise.all([provider.search(query), provider.facets()]);
+      return { status: "ready", result, facets };
+    }
     const [result, facets] = await Promise.all([
       loadCachedSearchResult(query),
       loadCachedSearchFacets(),
@@ -55,7 +64,10 @@ export async function loadFixedPublicSearch(
   limit = 12,
 ) {
   try {
-    const result = await loadCachedFixedPublicSearch(constraints, limit);
+    const result =
+      process.env.APP_ENV === "test"
+        ? await publicSearchProvider().searchFixed(constraints, limit)
+        : await loadCachedFixedPublicSearch(constraints, limit);
     return { status: "ready" as const, properties: result.properties };
   } catch {
     return { status: "unavailable" as const, properties: [] as const };

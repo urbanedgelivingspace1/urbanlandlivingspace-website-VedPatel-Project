@@ -279,7 +279,7 @@ describe.sequential("M9 controlled publication service integration", () => {
     expect(JSON.stringify(detail)).not.toMatch(/PRIVATE_M9|owner|notesInternal|privateLatitude/);
   });
 
-  it("projects EXACT, APPROXIMATE, and HIDDEN location modes without reconstructing private data", async () => {
+  it("never projects legacy coordinates for EXACT, APPROXIMATE, or HIDDEN locations", async () => {
     const { getPublicPropertyDetail } = await import("@/server/queries/public-properties");
     const client = anonymousClient as unknown as SupabaseClient<PublicDatabase>;
     const setLocation = async (
@@ -308,18 +308,20 @@ describe.sequential("M9 controlled publication service integration", () => {
     };
 
     const exact = await setLocation("EXACT", 23.022505, 72.571365);
-    expect(exact?.location).toMatchObject({
+    expect(exact?.location).toEqual({
       visibility: "EXACT",
-      point: { latitude: 23.022505, longitude: 72.571365 },
+      label: "Synthetic public area, Ahmedabad district",
+      point: null,
     });
+    expect(JSON.stringify(exact)).not.toMatch(/23[.]022505|72[.]571365/);
 
     const approximate = await setLocation("APPROXIMATE", 22.99, 72.38);
-    expect(approximate?.location).toMatchObject({
+    expect(approximate?.location).toEqual({
       visibility: "APPROXIMATE",
-      point: { latitude: 22.99, longitude: 72.38, accuracyMetres: 2_000 },
+      label: "Synthetic public area, Ahmedabad district",
+      point: null,
     });
-    expect(JSON.stringify(approximate)).not.toContain("23.022505");
-    expect(JSON.stringify(approximate)).not.toContain("72.571365");
+    expect(JSON.stringify(approximate)).not.toMatch(/22[.]99|72[.]38|23[.]022505|72[.]571365/);
 
     const hidden = await setLocation("HIDDEN", null, null);
     expect(hidden?.location).toEqual({

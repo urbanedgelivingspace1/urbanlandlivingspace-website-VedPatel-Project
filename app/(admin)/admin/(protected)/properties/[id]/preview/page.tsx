@@ -41,8 +41,8 @@ export default async function PropertyPublicationPreviewPage({
           </p>
           <h1 className="font-display text-3xl font-semibold">Preview</h1>
           <p className="mt-2 text-sm text-slate-600">
-            Review the saved public projection. Private coordinates, owner information, internal
-            notes, and private documents are excluded.
+            Review the saved public projection. Owner information, internal notes, and private
+            documents are excluded.
           </p>
         </header>
         <section className="rounded-xl border border-slate-200 bg-white p-5">
@@ -63,7 +63,6 @@ export default async function PropertyPublicationPreviewPage({
             label="Listing location"
             value={preview.publicAddress ?? preview.location.label}
           />
-          <Preview label="Location display" value={friendly(preview.location.visibility)} />
           <Preview label="Cover image description" value={preview.cover?.altText} />
         </section>
         <section className="rounded-xl border border-slate-200 bg-white p-5">

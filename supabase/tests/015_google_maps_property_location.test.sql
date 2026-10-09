@@ -154,8 +154,8 @@ where id = (select id from map_property);
 
 select is(
   (select count(*)::integer from public.public_property_google_maps where property_id = (select id from map_property)),
-  0,
-  'hidden location mode suppresses the Google Maps embed'
+  1,
+  'a saved Google Maps embed remains public independently of legacy coordinate visibility'
 );
 select ok(
   not has_function_privilege(

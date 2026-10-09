@@ -40,7 +40,7 @@ test("active admin can sign in, load the dashboard and sign out", async ({ page 
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 
   await page.setViewportSize({ width: 390, height: 844 });
-  const mobileNavigation = page.getByText("Admin navigation", { exact: true });
+  const mobileNavigation = page.getByText("Menu", { exact: true });
   await expect(mobileNavigation).toBeVisible();
   await mobileNavigation.click();
   await expect(page.getByRole("link", { name: "Action centre" }).last()).toBeVisible();

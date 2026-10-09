@@ -285,13 +285,13 @@ select option {
 .whatsapp-contact,
 .mobile-nav-contact a.whatsapp-contact {
   color: white;
-  background: #25d366;
-  border-color: #25d366;
+  background: #0b6b3a;
+  border-color: #0b6b3a;
 }
 
 .whatsapp-contact:hover {
-  background: #1faa52;
-  border-color: #1faa52;
+  background: #07512d;
+  border-color: #07512d;
 }
 
 .whatsapp-contact svg,
@@ -687,8 +687,8 @@ select option {
 
 .mobile-nav-contact a.whatsapp-contact:first-child {
   color: white;
-  background: #25d366;
-  border-color: #25d366;
+  background: #0b6b3a;
+  border-color: #0b6b3a;
 }
 
 .mobile-nav-contact > span[aria-disabled="true"] {
@@ -764,14 +764,14 @@ select option {
 
 .button-whatsapp {
   color: white;
-  background: #25d366;
-  border-color: #25d366;
+  background: #0b6b3a;
+  border-color: #0b6b3a;
 }
 
 .button-whatsapp:hover {
   color: white;
-  background: #1faa52;
-  border-color: #1faa52;
+  background: #07512d;
+  border-color: #07512d;
 }
 
 .site-footer .footer-whatsapp {
@@ -783,13 +783,13 @@ select option {
   padding: 0.45rem 0.75rem;
   color: white;
   font-weight: 800;
-  background: #25d366;
+  background: #0b6b3a;
   border-radius: 999px;
 }
 
 .site-footer .footer-whatsapp:hover {
   color: white;
-  background: #1faa52;
+  background: #07512d;
 }
 .button-disabled {
   color: #7a8190;
@@ -926,7 +926,7 @@ select option {
 }
 .admin-nav-label {
   padding: 0 0.65rem;
-  color: #94a3b8;
+  color: #64748b;
   font-size: 0.65rem;
   font-weight: 800;
   letter-spacing: 0.13em;
@@ -1084,7 +1084,7 @@ select option {
   flex: 0 0 auto;
   align-items: center;
   padding: 0.62rem 0.85rem;
-  color: #64748b;
+  color: #5b6879;
   font-size: 0.88rem;
   font-weight: 700;
   text-decoration: none;
@@ -1134,7 +1134,7 @@ select option {
 .admin-page-description {
   max-width: 48rem;
   margin-top: 0.45rem;
-  color: #64748b;
+  color: #5b6879;
   font-size: 0.9rem;
   line-height: 1.55;
 }

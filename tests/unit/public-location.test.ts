@@ -17,11 +17,11 @@ const source: PublicLocationSource = {
 };
 
 describe("projectPublicLocation", () => {
-  it("returns only the approved public point for approximate locations", () => {
+  it("never projects coordinates into the public website model", () => {
     expect(projectPublicLocation(source)).toEqual({
       visibility: "APPROXIMATE",
       label: "Approved public address",
-      point: { latitude: 23.02, longitude: 72.57, accuracyMetres: 2_000 },
+      point: null,
     });
   });
 

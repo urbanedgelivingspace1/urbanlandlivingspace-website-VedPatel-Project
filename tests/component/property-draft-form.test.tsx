@@ -34,7 +34,6 @@ describe("PropertyDraftForm", () => {
       "Location & Land Details",
       "Price",
       "Property Location",
-      "Location Coordinates",
       "Survey / Parcel Details",
       "Planning Information",
       "Agricultural Details",
@@ -54,10 +53,9 @@ describe("PropertyDraftForm", () => {
     expect(screen.getByText(/Continue when you are ready to add photos/)).toBeVisible();
     expect(screen.queryByRole("button", { name: /^publish$/i })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Save & Next →" })).toBeVisible();
-    expect(screen.getByLabelText("Private latitude")).toBeInTheDocument();
-    expect(screen.getByLabelText("Private longitude")).toBeInTheDocument();
-    expect(screen.getByLabelText("Listing latitude")).toBeInTheDocument();
-    expect(screen.getByLabelText("Listing longitude")).toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Location Coordinates" })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Private latitude")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Listing latitude")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Primary transaction")).toHaveValue("SELL");
     expect(screen.getByRole("option", { name: "Sell" })).toBeInTheDocument();
   });

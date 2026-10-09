@@ -45,7 +45,7 @@ test("M9 publishes and unpublishes only a complete public-safe property", async 
   const title = `Synthetic M9 public property ${unique}`;
   await page.getByLabel("Property title (optional)").fill(title);
   await page
-    .getByLabel("Public slug (optional; generated from title when blank)")
+    .getByLabel("Website address (generated automatically when blank)")
     .fill(`synthetic-m9-public-${unique}`);
   await page
     .getByLabel("Short description")
@@ -54,16 +54,17 @@ test("M9 publishes and unpublishes only a complete public-safe property", async 
     .getByLabel("Description", { exact: true })
     .fill("A complete public description for controlled publication without legal guarantees.");
   await page.getByLabel("District").selectOption({ label: "Ahmedabad" });
-  await page.getByLabel("Public-safe address").fill("Synthetic public area, Ahmedabad district");
-  await page.getByLabel("Display area").fill("2.5");
+  await page.getByLabel("Location Title").fill("Synthetic public area, Ahmedabad district");
+  await page
+    .getByLabel("Google Maps Embed")
+    .fill("https://www.google.com/maps/embed?pb=synthetic-m9-map");
+  await page.getByLabel("Area", { exact: true }).fill("2.5");
   await page.locator('select[name="displayAreaUnitId"]').selectOption({ label: "Acre (ac)" });
-  await page.locator('select[name="locationVisibility"]').selectOption("HIDDEN");
-  await page.getByLabel("Private latitude").fill("23.022505");
-  await page.getByLabel("Private longitude").fill("72.571365");
-  await page.getByLabel("Private location notes").fill("PRIVATE_M9_E2E_LOCATION_CANARY");
+  await page.locator("details > summary").filter({ hasText: "Agricultural Details" }).click();
   await page.getByLabel("Tenure type").fill("Recorded tenure");
   await page.getByLabel("Irrigation status").fill("Recorded irrigation context");
   await page.getByLabel("Road touch observed").check();
+  await page.locator("details > summary").filter({ hasText: "Source Details" }).click();
   await page.getByLabel("Source type").fill("SYNTHETIC_E2E");
   await page.getByLabel("Source name").fill("M9 controlled fixture");
   await page.getByRole("button", { name: "Save & Next →" }).click();
@@ -75,7 +76,6 @@ test("M9 publishes and unpublishes only a complete public-safe property", async 
     page.getByText("Choose one approved public cover image with alt text."),
   ).toBeVisible();
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
-  await expect(page.getByText("PRIVATE_M9_E2E_LOCATION_CANARY")).toHaveCount(0);
   await page.getByRole("link", { name: /Continue to Publish/ }).click();
   await expect(page.getByRole("button", { name: "Publish Property" })).toBeDisabled();
   await page.getByRole("link", { name: /← Preview/ }).click();
@@ -120,7 +120,7 @@ test("M9 publishes and unpublishes only a complete public-safe property", async 
     id: propertyId,
     listing_title: title,
     availability_status: "AVAILABLE",
-    location_visibility: "HIDDEN",
+    location_visibility: "APPROXIMATE",
     public_latitude: null,
     public_longitude: null,
   });

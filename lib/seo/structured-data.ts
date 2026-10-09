@@ -78,15 +78,6 @@ export function propertyJsonLd(
     ? {
         "@type": "Place",
         name: property.location.label,
-        ...(property.location.point
-          ? {
-              geo: {
-                "@type": "GeoCoordinates",
-                latitude: property.location.point.latitude,
-                longitude: property.location.point.longitude,
-              },
-            }
-          : {}),
       }
     : undefined;
   return {

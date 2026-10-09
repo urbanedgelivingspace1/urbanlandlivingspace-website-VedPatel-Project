@@ -115,7 +115,7 @@ export default async function AdminDashboardPage() {
       <div className="mt-6">
         <div className="mb-2 flex items-center justify-between">
           <h2 className="text-sm font-bold text-slate-950">Priority work</h2>
-          <span className="text-xs text-slate-500">Live operational queues</span>
+          <span className="text-xs text-slate-600">Live operational queues</span>
         </div>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           <MetricCard

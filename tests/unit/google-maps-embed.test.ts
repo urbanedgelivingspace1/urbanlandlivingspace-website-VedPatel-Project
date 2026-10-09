@@ -3,7 +3,6 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  buildGoogleMapsPublicPointEmbedUrl,
   isSafeGoogleMapsEmbedUrl,
   parseGoogleMapsEmbedInput,
 } from "@/lib/validation/google-maps-embed";
@@ -44,6 +43,20 @@ describe("Google Maps embed validation", () => {
     ).toEqual({ ok: true, url: "https://www.google.com/maps/embed?pb=copied-map" });
   });
 
+  it("accepts a Google My Maps embed iframe", () => {
+    const input =
+      '<iframe src="https://www.google.com/maps/d/embed?mid=1Nb59Jzcm4g4HXnP0WQVmc4oJlH_c3Xc&ehbc=2E312F" width="640" height="480"></iframe>';
+
+    expect(parseGoogleMapsEmbedInput(input)).toEqual({
+      ok: true,
+      url: "https://www.google.com/maps/d/embed?mid=1Nb59Jzcm4g4HXnP0WQVmc4oJlH_c3Xc&ehbc=2E312F",
+    });
+  });
+
+  it("rejects a Google My Maps embed without a map id", () => {
+    expect(isSafeGoogleMapsEmbedUrl("https://www.google.com/maps/d/embed?ehbc=2E312F")).toBe(false);
+  });
+
   it("rejects missing src, wrong providers, scripts, ports, credentials, and fragments", () => {
     for (const input of [
       "<iframe></iframe>",
@@ -59,18 +72,5 @@ describe("Google Maps embed validation", () => {
 
   it("does not accept ordinary Google Maps links as embeddable sources", () => {
     expect(isSafeGoogleMapsEmbedUrl("https://www.google.com/maps/place/Gandhinagar")).toBe(false);
-  });
-
-  it("builds a constrained Google Maps fallback from a public point", () => {
-    const url = buildGoogleMapsPublicPointEmbedUrl(
-      { latitude: 23.2112345, longitude: 72.6367895 },
-      true,
-    );
-
-    expect(url).toBe("https://www.google.com/maps?q=23.211234%2C72.636790&z=11&output=embed");
-    expect(isSafeGoogleMapsEmbedUrl(url!)).toBe(true);
-    expect(
-      buildGoogleMapsPublicPointEmbedUrl({ latitude: 100, longitude: 72.63 }, true),
-    ).toBeNull();
   });
 });

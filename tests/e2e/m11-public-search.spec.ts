@@ -160,11 +160,11 @@ test("combined controls, reload, history, shared URL and clear-all reproduce one
 }) => {
   await page.goto(`/properties?q=${encodeURIComponent(searchMarker)}`);
   const filters = page.locator(".search-workspace > .search-filter-rail");
-  await filters.getByLabel("Land category").selectOption("agricultural");
+  await filters.getByLabel("Land type").selectOption("agricultural");
   await filters.getByLabel("Transaction").selectOption("buy");
-  await filters.getByLabel("District").selectOption("ahmedabad");
-  await filters.getByLabel("Minimum price").fill("4000000");
-  await filters.getByLabel("Maximum price").fill("18000000");
+  await filters.getByLabel("Location").selectOption("ahmedabad");
+  await filters.getByLabel("Minimum budget").fill("4000000");
+  await filters.getByLabel("Maximum budget").fill("18000000");
   await filters.getByLabel("Minimum area").fill("900");
   await filters.getByLabel("Maximum area").fill("2300");
   await filters.getByLabel("Area unit").selectOption("sq_m");

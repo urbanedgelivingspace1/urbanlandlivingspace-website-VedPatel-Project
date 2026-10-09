@@ -24,35 +24,34 @@ export type PublicInventoryResult =
   | Readonly<{ status: "ready"; properties: readonly PublicPropertyCardDto[] }>
   | Readonly<{ status: "unavailable"; properties: readonly [] }>;
 
-const loadCachedPublicInventory = unstable_cache(
-  async (
-    options: Readonly<{
-      limit?: number;
-      category?: PublicPropertyCardDto["category"];
-      transactionType?: PublicPropertyCardDto["transactionType"];
-      featuredOnly?: boolean;
-    }>,
-  ): Promise<PublicInventoryResult> => {
-    try {
-      const client = createPublicServerClient();
-      const properties = await listPublicPropertyCards(client, options.limit, options);
-      return { status: "ready", properties };
-    } catch {
-      return { status: "unavailable", properties: [] };
-    }
-  },
-  ["public-inventory"],
-  { revalidate: 60, tags: ["public-properties"] },
-);
+type PublicInventoryOptions = Readonly<{
+  limit?: number;
+  category?: PublicPropertyCardDto["category"];
+  transactionType?: PublicPropertyCardDto["transactionType"];
+  featuredOnly?: boolean;
+}>;
+
+async function queryPublicInventory(
+  options: PublicInventoryOptions,
+): Promise<PublicInventoryResult> {
+  try {
+    const client = createPublicServerClient();
+    const properties = await listPublicPropertyCards(client, options.limit, options);
+    return { status: "ready", properties };
+  } catch {
+    return { status: "unavailable", properties: [] };
+  }
+}
+
+const loadCachedPublicInventory = unstable_cache(queryPublicInventory, ["public-inventory"], {
+  revalidate: 60,
+  tags: ["public-properties"],
+});
 
 export function loadPublicInventory(
-  options: Readonly<{
-    limit?: number;
-    category?: PublicPropertyCardDto["category"];
-    transactionType?: PublicPropertyCardDto["transactionType"];
-    featuredOnly?: boolean;
-  }> = {},
+  options: PublicInventoryOptions = {},
 ): Promise<PublicInventoryResult> {
+  if (process.env.APP_ENV === "test") return queryPublicInventory(options);
   return loadCachedPublicInventory(options);
 }
 

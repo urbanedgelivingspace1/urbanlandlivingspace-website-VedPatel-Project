@@ -95,7 +95,7 @@ test("M13 request flows through contact, proposal, confirmation, reschedule, com
 
   await signIn(page);
   await page.goto(`/admin/site-visits?q=${encodeURIComponent(`M14 visitor ${unique}`)}`);
-  await expect(page.getByRole("heading", { name: "Site visit queue" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Site visits" })).toBeVisible();
   await expect(page.getByRole("table").getByText("Requested", { exact: true })).toBeVisible();
   await page.locator(`a[href="/admin/site-visits/${visitId}"]`).click();
 

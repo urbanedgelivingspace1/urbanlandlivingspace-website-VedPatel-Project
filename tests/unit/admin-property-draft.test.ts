@@ -87,12 +87,12 @@ describe("M6 property draft contract", () => {
     const result = adminPropertyDraftSchema.parse({
       ...shared("AGRICULTURAL"),
       googleMapsEmbedUrl:
-        '<iframe src="https://www.google.com/maps/embed?pb=existing-property" width="600" height="450"></iframe>',
+        '<iframe src="https://www.google.com/maps/d/embed?mid=1Nb59Jzcm4g4HXnP0WQVmc4oJlH_c3Xc&ehbc=2E312F" width="640" height="480"></iframe>',
       categoryDetails: { landCategory: "AGRICULTURAL" },
     });
 
     expect(result.googleMapsEmbedUrl).toBe(
-      "https://www.google.com/maps/embed?pb=existing-property",
+      "https://www.google.com/maps/d/embed?mid=1Nb59Jzcm4g4HXnP0WQVmc4oJlH_c3Xc&ehbc=2E312F",
     );
 
     const removed = adminPropertyDraftSchema.parse({

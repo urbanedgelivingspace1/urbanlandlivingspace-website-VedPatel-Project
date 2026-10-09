@@ -216,7 +216,8 @@ test("zero-result discovery prefills and persists one structured CRM requirement
   await page.getByLabel("District").selectOption({ label: "Ahmedabad" });
   await page.getByLabel("Minimum budget (₹)").fill("1000000");
   await page.getByLabel("Maximum budget (₹)").fill("5000000");
-  await page.getByLabel("Intended use (optional)").fill("Logistics yard");
+  await page.locator(".requirement-more-details > summary").click();
+  await page.getByLabel("Intended use").fill("Logistics yard");
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Share requirement" }).click();
   await expect(page).toHaveURL(/\/requirements\/thank-you/);

@@ -7,10 +7,14 @@ const status = JSON.parse(
   }),
 );
 
+const playwrightPort = process.env.PLAYWRIGHT_PORT ?? "3100";
+
 const environment = {
   ...process.env,
   APP_ENV: "test",
-  NEXT_PUBLIC_SITE_URL: "http://127.0.0.1:3000",
+  NEXT_DIST_DIR: ".next/playwright",
+  PLAYWRIGHT_PORT: playwrightPort,
+  NEXT_PUBLIC_SITE_URL: `http://127.0.0.1:${playwrightPort}`,
   NEXT_PUBLIC_SUPABASE_URL: status.API_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: status.ANON_KEY,
   SUPABASE_SERVICE_ROLE_KEY: status.SERVICE_ROLE_KEY,

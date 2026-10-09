@@ -155,8 +155,6 @@ export async function processOwnerLandFormData(
       localityText: optional(formData, "localityText"),
       broadAddress: optional(formData, "broadAddress"),
       locationVisibilityPreference: text(formData, "locationVisibilityPreference"),
-      privateLatitude: number(formData, "privateLatitude"),
-      privateLongitude: number(formData, "privateLongitude"),
       areaValue: number(formData, "areaValue"),
       areaUnitId: text(formData, "areaUnitId"),
       priceMode: text(formData, "priceMode"),

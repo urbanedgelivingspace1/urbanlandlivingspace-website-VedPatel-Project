@@ -20,6 +20,9 @@ async function signIn(page: Page, email = process.env.E2E_ADMIN_EMAIL) {
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in securely" }).click();
+  if (email === process.env.E2E_ADMIN_EMAIL) {
+    await expect(page).toHaveURL(/\/admin\/dashboard/);
+  }
 }
 function indiaLocalInput(daysFromNow: number) {
   return new Date(Date.now() + (daysFromNow * 24 * 60 + 330) * 60_000).toISOString().slice(0, 16);
@@ -104,12 +107,12 @@ test("admin operates the complete lead, demand, matching, follow-up and closure 
   await expect(page).toHaveURL(/\/admin\/dashboard/);
   await page.goto("/admin/leads/new");
   await page.getByLabel("Full name").fill(leadName);
-  await page.getByLabel("Phone").fill(String(Date.now()).slice(-10));
-  await page.getByLabel("Inquiry type").selectOption("BUYER_REQUIREMENT");
+  await page.getByLabel("Phone", { exact: true }).fill(String(Date.now()).slice(-10));
+  await page.getByLabel("Buyer or seller?").selectOption("BUYER_REQUIREMENT");
   await page.getByLabel("Transaction").selectOption("BUY");
   await page.getByLabel("Land category").selectOption("AGRICULTURAL");
   await page.getByLabel("District").selectOption({ label: "Ahmedabad" });
-  await page.getByRole("button", { name: "Create lead" }).click();
+  await page.getByRole("button", { name: "Add Lead" }).click();
   await expect(page).toHaveURL(/\/admin\/leads\/[0-9a-f-]+$/);
   const leadId = page.url().split("/").at(-1) as string;
 
@@ -118,42 +121,43 @@ test("admin operates the complete lead, demand, matching, follow-up and closure 
   await page.getByRole("button", { name: "Save lead" }).click();
   await expect(page.getByText("Long-term agricultural investment")).toBeVisible();
 
-  const firstStageChoices = await page.getByLabel("Next stage").locator("option").allTextContents();
-  expect(firstStageChoices).not.toContain("PROPERTY MATCHED");
+  const firstStageChoices = await page
+    .getByLabel("Move lead to")
+    .locator("option")
+    .allTextContents();
+  expect(firstStageChoices).not.toContain("Properties shared");
   await page.getByLabel("Activity").selectOption("CONTACT_ATTEMPTED");
   await page.getByLabel("Private note").fill("Initial phone attempt");
   await page.getByRole("button", { name: "Record" }).click();
   await expect(page.getByText("Initial phone attempt")).toBeVisible();
-  await page.getByLabel("Next stage").selectOption("CONTACT_ATTEMPTED");
-  await page.getByLabel("Reason or outcome").fill("Phone");
-  await page.getByRole("button", { name: "Change stage" }).click();
-  await expect(page.getByText("Contact attempted", { exact: true })).toBeVisible();
-  await page.getByLabel("Next stage").selectOption("QUALIFIED");
-  await page.getByLabel("Reason or outcome").fill("Qualified buyer");
-  await page.getByRole("button", { name: "Change stage" }).click();
+  await page.getByLabel("Move lead to").selectOption("CONTACT_ATTEMPTED");
+  await page.getByLabel("Short note (optional)").fill("Phone");
+  await page.getByRole("button", { name: "Update lead stage" }).click();
+  await expect(page.getByText("Contact started", { exact: true }).last()).toBeVisible();
+  await page.getByLabel("Move lead to").selectOption("QUALIFIED");
+  await page.getByLabel("Short note (optional)").fill("Qualified buyer");
+  await page.getByRole("button", { name: "Update lead stage" }).click();
   await page.getByLabel("Minimum area").fill("1");
   await page.getByLabel("Maximum area").fill("3");
   await page.getByLabel("Area unit").selectOption("10000000-0000-4000-8000-000000000006");
   await page.getByLabel("Requirement notes").fill("Agricultural land near Ahmedabad");
   await page.getByRole("button", { name: "Save requirement" }).click();
   await expect(page).toHaveURL(/saved=requirement/);
-  await page.getByLabel("Next stage").selectOption("REQUIREMENT_CONFIRMED");
-  await page.getByLabel("Reason or outcome").fill("Reviewed requirement");
-  await page.getByRole("button", { name: "Change stage" }).click();
-  await page.getByLabel("Candidate property").selectOption(propertyId);
-  await page.getByLabel("Internal match note").fill("Manual shortlist");
-  await page.getByRole("button", { name: "Link property" }).click();
-  await expect(page.getByRole("link", { name: /M12 E2E candidate/ })).toBeVisible();
+  await page.getByLabel("Move lead to").selectOption("REQUIREMENT_CONFIRMED");
+  await page.getByLabel("Short note (optional)").fill("Reviewed requirement");
+  await page.getByRole("button", { name: "Update lead stage" }).click();
+  const candidateCard = page.locator("article").filter({
+    has: page.locator(`a[href="/admin/properties/${propertyId}"]`),
+  });
+  await candidateCard.getByRole("button", { name: "Add match" }).click();
+  await expect(page.locator(`a[href="/admin/properties/${propertyId}"]`).last()).toBeVisible();
   await page.getByRole("button", { name: "Remove match" }).click();
-  await expect(page.getByRole("link", { name: /M12 E2E candidate/ })).toHaveCount(0);
   await expect(page.getByText("No candidate properties linked.")).toBeVisible();
-  await page.getByLabel("Candidate property").selectOption(propertyId);
-  await page.getByLabel("Internal match note").fill("Relinked after admin review");
-  await page.getByRole("button", { name: "Link property" }).click();
-  await expect(page.getByRole("link", { name: /M12 E2E candidate/ })).toBeVisible();
-  await page.getByLabel("Next stage").selectOption("PROPERTY_MATCHED");
-  await page.getByLabel("Reason or outcome").fill("Candidate linked");
-  await page.getByRole("button", { name: "Change stage" }).click();
+  await candidateCard.getByRole("button", { name: "Add match" }).click();
+  await expect(page.locator(`a[href="/admin/properties/${propertyId}"]`).last()).toBeVisible();
+  await page.getByLabel("Move lead to").selectOption("PROPERTY_MATCHED");
+  await page.getByLabel("Short note (optional)").fill("Candidate linked");
+  await page.getByRole("button", { name: "Update lead stage" }).click();
   const dueInput = page.getByLabel(/Due in India time|Reschedule for/);
   const scheduledFor = indiaLocalInput(2);
   await dueInput.fill(scheduledFor);
@@ -177,46 +181,38 @@ test("admin operates the complete lead, demand, matching, follow-up and closure 
     .update({ due_at: new Date(Date.now() - 36 * 60 * 60_000).toISOString() })
     .eq("id", followUpId);
   expect(overdue.error).toBeNull();
-  await page.goto("/admin/follow-ups");
-  await expect(
-    page.locator('[aria-labelledby="bucket-OVERDUE"]').getByText(leadName),
-  ).toBeVisible();
+  await page.goto("/admin/follow-ups?bucket=OVERDUE");
+  await expect(page.getByRole("link", { name: leadName })).toBeVisible();
 
   const today = await service()
     .from("lead_follow_ups")
     .update({ due_at: indiaTodayAtNoon() })
     .eq("id", followUpId);
   expect(today.error).toBeNull();
-  await page.reload();
-  await expect(page.locator('[aria-labelledby="bucket-TODAY"]').getByText(leadName)).toBeVisible();
+  await page.goto("/admin/follow-ups?bucket=TODAY");
+  await expect(page.getByRole("link", { name: leadName })).toBeVisible();
 
   const upcoming = await service()
     .from("lead_follow_ups")
     .update({ due_at: new Date(Date.now() + 8 * 24 * 60 * 60_000).toISOString() })
     .eq("id", followUpId);
   expect(upcoming.error).toBeNull();
-  await page.reload();
-  await expect(
-    page.locator('[aria-labelledby="bucket-UPCOMING"]').getByText(leadName),
-  ).toBeVisible();
-  const upcomingArticle = page
-    .locator('[aria-labelledby="bucket-UPCOMING"] article')
-    .filter({ hasText: leadName });
-  await upcomingArticle.getByLabel(/Outcome for/).fill("Buyer contacted");
-  await upcomingArticle.getByRole("button", { name: "Complete" }).click();
-  await expect(
-    page
-      .locator('[aria-labelledby="bucket-COMPLETED"] article')
-      .filter({ hasText: leadName })
-      .getByText(/Buyer contacted/),
-  ).toBeVisible();
+  await page.goto("/admin/follow-ups?bucket=UPCOMING");
+  const upcomingItem = page.locator("li").filter({ hasText: leadName });
+  await expect(upcomingItem.getByRole("link", { name: leadName })).toBeVisible();
+  await upcomingItem.getByText("Complete", { exact: true }).click();
+  await upcomingItem.getByLabel(/Outcome for/).fill("Buyer contacted");
+  await upcomingItem.getByRole("button", { name: "Save completion" }).click();
+  await expect(upcomingItem).toHaveCount(0);
+  await page.goto("/admin/follow-ups?bucket=COMPLETED");
+  await expect(page.locator("li").filter({ hasText: leadName })).toContainText("Buyer contacted");
   const update = await service().from("leads").update({ status: "NEGOTIATION" }).eq("id", leadId);
   expect(update.error).toBeNull();
   await page.goto(`/admin/leads/${leadId}`);
-  await page.getByLabel("Next stage").selectOption("CLOSED_WON");
-  await page.getByLabel("Reason or outcome").fill("Transaction confirmed");
-  await page.getByRole("button", { name: "Change stage" }).click();
-  await expect(page.getByText("Closed won", { exact: true })).toBeVisible();
+  await page.getByLabel("Move lead to").selectOption("CLOSED_WON");
+  await page.getByLabel("What was agreed?").fill("Transaction confirmed");
+  await page.getByRole("button", { name: "Update lead stage" }).click();
+  await expect(page.getByText("Completed", { exact: true }).last()).toBeVisible();
 
   // Explicitly verify CLOSED_WON does NOT change property availability
   const propCheck = await service()
@@ -228,7 +224,7 @@ test("admin operates the complete lead, demand, matching, follow-up and closure 
 
   // Explicitly verify only the explicit [Mark Property Sold] action changes property availability to SOLD
   await page.goto(`/admin/properties/${propertyId}`);
-  await page.getByRole("link", { name: "Activity" }).click();
+  await page.getByRole("link", { name: "Status & history" }).click();
   await expect(page.getByRole("button", { name: "Mark Property Sold" })).toBeVisible();
   page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Mark Property Sold" }).click();
@@ -243,13 +239,13 @@ test("admin operates the complete lead, demand, matching, follow-up and closure 
 
   await page.goto(`/admin/leads?q=${encodeURIComponent(leadName)}`);
   await expect(page.getByRole("link", { name: leadName })).toBeVisible();
-  await page.getByLabel("Pipeline stage").selectOption("CLOSED_WON");
-  await page.getByRole("button", { name: "Apply filters" }).click();
+  await page.getByLabel("Stage").selectOption("CLOSED_WON");
+  await page.getByRole("button", { name: "Apply", exact: true }).click();
   await expect(page).toHaveURL(/status=CLOSED_WON/);
   await expect(page.getByRole("link", { name: leadName })).toBeVisible();
 
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(page.getByRole("heading", { name: "Lead inbox" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Leads", exact: true })).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
@@ -260,12 +256,12 @@ test("admin operates the complete lead, demand, matching, follow-up and closure 
   const lostLeadName = `Synthetic M12 Lost ${Date.now()}`;
   await page.goto("/admin/leads/new");
   await page.getByLabel("Full name").fill(lostLeadName);
-  await page.getByLabel("Phone").fill(String(Date.now() + 1).slice(-10));
-  await page.getByRole("button", { name: "Create lead" }).click();
-  await page.getByLabel("Next stage").selectOption("CLOSED_LOST");
-  await page.getByLabel("Reason or outcome").fill("NOT_INTERESTED");
-  await page.getByRole("button", { name: "Change stage" }).click();
-  await expect(page.getByText("Closed lost", { exact: true })).toBeVisible();
+  await page.getByLabel("Phone", { exact: true }).fill(String(Date.now() + 1).slice(-10));
+  await page.getByRole("button", { name: "Add Lead" }).click();
+  await page.getByLabel("Move lead to").selectOption("CLOSED_LOST");
+  await page.getByLabel("Why is it not going ahead?").selectOption("NOT_INTERESTED");
+  await page.getByRole("button", { name: "Update lead stage" }).click();
+  await expect(page.getByText("Not going ahead", { exact: true }).last()).toBeVisible();
 });
 
 test("inactive and anonymous actors cannot read CRM", async ({ browser }) => {

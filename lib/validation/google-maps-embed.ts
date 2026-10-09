@@ -29,10 +29,10 @@ export function isSafeGoogleMapsEmbedUrl(value: string): boolean {
       url.port === "" &&
       GOOGLE_MAPS_HOSTS.has(url.hostname) &&
       url.hash === "";
-    const officialEmbed =
-      hasSafeOrigin &&
-      (url.pathname === "/maps/embed" || url.pathname.startsWith("/maps/embed/")) &&
-      url.search.length > 1;
+    const standardEmbed = url.pathname === "/maps/embed" || url.pathname.startsWith("/maps/embed/");
+    const myMapsEmbed =
+      url.pathname === "/maps/d/embed" && Boolean(url.searchParams.get("mid")?.trim());
+    const officialEmbed = hasSafeOrigin && (standardEmbed || myMapsEmbed) && url.search.length > 1;
     if (officialEmbed) return true;
 
     if (!hasSafeOrigin || url.searchParams.get("output") !== "embed") {
@@ -63,28 +63,6 @@ export function isSafeGoogleMapsEmbedUrl(value: string): boolean {
   } catch {
     return false;
   }
-}
-
-export function buildGoogleMapsPublicPointEmbedUrl(
-  point: Readonly<{ latitude: number; longitude: number }>,
-  approximate: boolean,
-): string | null {
-  if (
-    !Number.isFinite(point.latitude) ||
-    !Number.isFinite(point.longitude) ||
-    point.latitude < -90 ||
-    point.latitude > 90 ||
-    point.longitude < -180 ||
-    point.longitude > 180
-  ) {
-    return null;
-  }
-
-  const url = new URL("https://www.google.com/maps");
-  url.searchParams.set("q", `${point.latitude.toFixed(6)},${point.longitude.toFixed(6)}`);
-  url.searchParams.set("z", approximate ? "11" : "15");
-  url.searchParams.set("output", "embed");
-  return url.toString();
 }
 
 export function parseGoogleMapsEmbedInput(input: string): GoogleMapsEmbedParseResult {

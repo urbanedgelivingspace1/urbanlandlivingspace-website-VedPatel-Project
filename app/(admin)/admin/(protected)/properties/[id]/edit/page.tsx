@@ -13,10 +13,7 @@ export default async function EditPropertyPage({
 }: Readonly<{ params: Promise<{ id: string }> }>) {
   const { id } = await params;
   await requireActiveAdminPage();
-  const [record, references] = await Promise.all([
-    getAdminProperty(id, { includePrivateLocation: true }),
-    getAdminReferenceData(),
-  ]);
+  const [record, references] = await Promise.all([getAdminProperty(id), getAdminReferenceData()]);
   if (!record) notFound();
   if (record.property.publication_status === "ARCHIVED") {
     return (
@@ -58,13 +55,6 @@ export default async function EditPropertyPage({
     priceUnitId: record.offer?.price_unit_id,
     negotiable: record.offer?.is_negotiable,
     commercialTerms: record.offer?.commercial_terms,
-    locationVisibility: record.location?.location_visibility ?? row.location_visibility,
-    privateLatitude: record.location?.private_latitude,
-    privateLongitude: record.location?.private_longitude,
-    publicLatitude: record.location?.public_latitude,
-    publicLongitude: record.location?.public_longitude,
-    publicAccuracyMetres: record.location?.public_accuracy_m,
-    locationNotes: record.location?.location_notes,
     parcelLabel: record.parcel?.parcel_label,
     parcelAreaValue: record.parcel?.display_area_value,
     parcelAreaUnitId: record.parcel?.display_area_unit_id,

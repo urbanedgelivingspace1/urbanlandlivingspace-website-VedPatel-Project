@@ -257,8 +257,7 @@ export async function getPublicationPreview(
     area: `${property.display_area_value} ${unit.data?.symbol ?? unit.data?.display_name ?? ""}`.trim(),
     priceMode: offer.data?.price_mode ?? null,
     publicAddress: property.public_address,
-    googleMapsEmbedUrl:
-      visibility === "HIDDEN" ? null : (googleMap.data?.google_maps_embed_url ?? null),
+    googleMapsEmbedUrl: googleMap.data?.google_maps_embed_url ?? null,
     location: projectPublicLocation({
       visibility,
       publicLatitude: location.data?.public_latitude ?? null,

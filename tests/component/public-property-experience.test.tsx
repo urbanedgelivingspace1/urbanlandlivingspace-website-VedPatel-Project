@@ -9,7 +9,6 @@ import { PropertyBrochureLink } from "@/components/public/property-brochure-link
 import { PropertyFacts } from "@/components/public/property-facts";
 import { PropertyGallery } from "@/components/public/property-gallery";
 import { GoogleMapsEmbed } from "@/components/public/google-maps-embed";
-import { PublicMap } from "@/components/public/public-map";
 import {
   buildPublicPropertyCard,
   buildPublicPropertyDetail,
@@ -158,37 +157,6 @@ describe("M10 public property experience", () => {
       "/properties",
     );
     expect(screen.queryByText("Enquire now")).not.toBeInTheDocument();
-  });
-
-  it("never renders a point for hidden location and labels approximate location", () => {
-    const { rerender } = render(
-      <PublicMap
-        location={{ visibility: "HIDDEN", label: "Ahmedabad", point: null }}
-        styleUrl={null}
-      />,
-    );
-    expect(screen.getByText("No pin or coordinate is published for this property.")).toBeVisible();
-
-    rerender(
-      <PublicMap
-        location={{
-          visibility: "APPROXIMATE",
-          label: "Ahmedabad",
-          point: { latitude: 22.99, longitude: 72.38, accuracyMetres: 2_000 },
-        }}
-        styleUrl={null}
-      />,
-    );
-    expect(screen.getByText("Approximate location")).toBeVisible();
-    expect(screen.getByTitle("Ahmedabad map")).toHaveAttribute(
-      "src",
-      "https://www.google.com/maps?q=22.990000%2C72.380000&z=11&output=embed",
-    );
-    expect(
-      screen.getByText(
-        "This map shows only the broader area. Contact UrbanEdge for property-specific details.",
-      ),
-    ).toBeVisible();
   });
 
   it("constructs a safe Google Maps iframe and rejects an invalid stored source", () => {

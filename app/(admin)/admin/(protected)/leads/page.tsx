@@ -346,7 +346,7 @@ function LeadRow({ lead }: Readonly<{ lead: LeadListItem }>) {
         <span className="mt-0.5 block text-xs text-slate-500">
           {lead.phone ?? lead.email ?? lead.leadReference}
         </span>
-        <span className="mt-1 block text-[10px] font-bold text-slate-400">
+        <span className="mt-1 block text-[10px] font-bold text-slate-600">
           {seller ? "SELLER" : "BUYER"} · {lead.leadReference}
         </span>
       </td>
@@ -411,7 +411,7 @@ function LeadMobileCard({ lead }: Readonly<{ lead: LeadListItem }>) {
     <article className="p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <span className="text-[10px] font-bold text-slate-400">
+          <span className="text-[10px] font-bold text-slate-600">
             {lead.inquiryType === "SELLER_LEAD" ? "SELLER" : "BUYER"} · {lead.leadReference}
           </span>
           <Link href={`/admin/leads/${lead.id}`} className="mt-1 block font-bold text-slate-950">

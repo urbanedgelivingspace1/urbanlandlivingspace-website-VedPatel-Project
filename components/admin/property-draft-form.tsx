@@ -84,13 +84,6 @@ function buildSampleData(
       negotiable: false,
       commercialTerms:
         "Standard commercial settlement. Possession handed over upon registered sale deed.",
-      locationVisibility: "APPROXIMATE",
-      privateLatitude: "23.165412",
-      privateLongitude: "72.634125",
-      publicLatitude: "23.165000",
-      publicLongitude: "72.634000",
-      publicAccuracyMetres: "150",
-      locationNotes: "Corner plot marked by perimeter fencing and demarcated survey pegs.",
       parcelLabel: "Commercial Plot CP-14",
       parcelAreaValue: "1200",
       parcelAreaUnitId: sqYdUnitId,
@@ -157,13 +150,6 @@ function buildSampleData(
       priceUnitId: "",
       negotiable: true,
       commercialTerms: "Transfer fee payable by transferee as per GIDC circular guidelines.",
-      locationVisibility: "APPROXIMATE",
-      privateLatitude: "22.991240",
-      privateLongitude: "72.374520",
-      publicLatitude: "22.991000",
-      publicLongitude: "72.375000",
-      publicAccuracyMetres: "200",
-      locationNotes: "Industrial plot boundary stones inspected and documented.",
       parcelLabel: "GIDC Industrial Plot E-42",
       parcelAreaValue: "5000",
       parcelAreaUnitId: sqMUnitId,
@@ -230,14 +216,6 @@ function buildSampleData(
     priceUnitId: "",
     negotiable: true,
     commercialTerms: "10% token upon agreement to sell; balance at registered sale deed execution.",
-    locationVisibility: "APPROXIMATE",
-    privateLatitude: "22.986754",
-    privateLongitude: "72.381423",
-    publicLatitude: "22.987000",
-    publicLongitude: "72.381000",
-    publicAccuracyMetres: "250",
-    locationNotes:
-      "Owner supplied a revenue map and identified visible boundary markers for review.",
     parcelLabel: "Block A - Main Farmland",
     parcelAreaValue: "2.5",
     parcelAreaUnitId: acreUnitId,
@@ -714,42 +692,6 @@ export function PropertyDraftForm({
               );
             })()
           : null}
-      </FormSection>
-
-      <FormSection
-        title="Location Coordinates"
-        description="Add map coordinates only when available. Private coordinates remain visible only to staff."
-        advanced
-      >
-        <label className={labelClass}>
-          Visibility
-          <select
-            className={inputClass}
-            name="locationVisibility"
-            defaultValue={String(value("locationVisibility") || "APPROXIMATE")}
-          >
-            <option value="APPROXIMATE">Approximate</option>
-            <option value="HIDDEN">Hidden</option>
-            <option value="EXACT">Exact (public approval still required later)</option>
-          </select>
-        </label>
-        {input("privateLatitude", "Private latitude", { type: "number", step: "0.000001" })}
-        {input("privateLongitude", "Private longitude", { type: "number", step: "0.000001" })}
-        {input("publicLatitude", "Listing latitude", { type: "number", step: "0.000001" })}
-        {input("publicLongitude", "Listing longitude", { type: "number", step: "0.000001" })}
-        {input("publicAccuracyMetres", "Approximate location radius (metres)", {
-          type: "number",
-          step: "0.01",
-        })}
-        <label className={`${labelClass} md:col-span-2`}>
-          Private location notes
-          <textarea
-            className={inputClass}
-            name="locationNotes"
-            rows={2}
-            defaultValue={String(value("locationNotes"))}
-          />
-        </label>
       </FormSection>
 
       <FormSection

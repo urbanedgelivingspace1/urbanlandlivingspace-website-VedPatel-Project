@@ -348,28 +348,6 @@ export function OwnerSubmissionWizard({
               <option value="HIDDEN">Keep location hidden</option>
             </select>
           </label>
-          <label>
-            <span>Latitude (optional, private)</span>
-            <input
-              name="privateLatitude"
-              type="number"
-              step="0.000001"
-              min="-90"
-              max="90"
-              defaultValue={state.values?.privateLatitude}
-            />
-          </label>
-          <label>
-            <span>Longitude (optional, private)</span>
-            <input
-              name="privateLongitude"
-              type="number"
-              step="0.000001"
-              min="-180"
-              max="180"
-              defaultValue={state.values?.privateLongitude}
-            />
-          </label>
         </div>
         <p className="form-help">
           Your preference is not a publication decision. UrbanEdge reviews location visibility

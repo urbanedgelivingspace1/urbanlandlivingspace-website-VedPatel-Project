@@ -35,10 +35,6 @@ const numberOrUndefined = (formData: FormData, key: string) => {
   const value = text(formData, key);
   return value === "" ? undefined : Number(value);
 };
-const numberOrNull = (formData: FormData, key: string) => {
-  const value = text(formData, key);
-  return value === "" ? null : Number(value);
-};
 const checkedOrUndefined = (formData: FormData, key: string) =>
   formData.has(key) ? true : undefined;
 
@@ -167,15 +163,6 @@ function parsePropertyDraftForm(formData: FormData): AdminPropertyDraftInput {
     displayAreaValue: Number(text(formData, "displayAreaValue")),
     displayAreaUnitId: text(formData, "displayAreaUnitId"),
     publicSlug: optionalText(formData, "publicSlug"),
-    location: {
-      visibility: text(formData, "locationVisibility"),
-      privateLatitude: numberOrNull(formData, "privateLatitude"),
-      privateLongitude: numberOrNull(formData, "privateLongitude"),
-      publicLatitude: numberOrNull(formData, "publicLatitude"),
-      publicLongitude: numberOrNull(formData, "publicLongitude"),
-      publicAccuracyMetres: numberOrNull(formData, "publicAccuracyMetres"),
-      locationNotes: optionalText(formData, "locationNotes"),
-    },
     offer,
     parcel: hasParcel
       ? {

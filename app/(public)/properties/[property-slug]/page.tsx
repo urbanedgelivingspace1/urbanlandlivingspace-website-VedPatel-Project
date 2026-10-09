@@ -15,7 +15,6 @@ import { PropertyGallery } from "@/components/public/property-gallery";
 import { PropertyCollection } from "@/components/public/property-collection";
 import { PropertyBrochureLink } from "@/components/public/property-brochure-link";
 import { GoogleMapsEmbed } from "@/components/public/google-maps-embed";
-import { PublicMap } from "@/components/public/public-map";
 import { ShareButton } from "@/components/public/share-button";
 import { VerificationExplainer } from "@/components/public/verification-explainer";
 import type { PublicInventoryResult } from "@/server/queries/public-page-data";
@@ -213,10 +212,10 @@ export default async function PropertyDetailPage({ params }: Props) {
                     title={property.location.label || property.title}
                   />
                 ) : (
-                  <PublicMap
-                    location={property.location}
-                    styleUrl={process.env.NEXT_PUBLIC_MAP_STYLE_URL || null}
-                  />
+                  <div className="map-fallback">
+                    <strong>Map location is not available for this property.</strong>
+                    <p>Contact our team for property-specific location details.</p>
+                  </div>
                 )}
               </div>
             </section>
