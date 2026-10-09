@@ -200,4 +200,62 @@ describe("PropertyDraftForm", () => {
       "Please save the changes to move forward to other sections.",
     );
   });
+
+  it("opens the Google My Maps boundary guide modal and shows all steps", async () => {
+    const user = userEvent.setup();
+    render(
+      <PropertyDraftForm
+        action={vi.fn(async (state) => state)}
+        references={references}
+        submitLabel="Save Draft"
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: /Need help\? How to draw boundary map/i }),
+    ).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: /Need help\? How to draw boundary map/i }));
+
+    expect(
+      screen.getByRole("heading", { name: "How to Create & Embed Boundary Maps" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Create the Boundary Map" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Draw and Highlight the Area" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Share & Paste Link into UrbanEdge" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Open Google My Maps/i })).toHaveAttribute(
+      "href",
+      "https://mymaps.google.com/",
+    );
+
+    await user.click(screen.getByRole("button", { name: /Got it, back to form/i }));
+  });
+
+  it("accepts a Google My Maps share link and renders the embed preview", async () => {
+    const user = userEvent.setup();
+    render(
+      <PropertyDraftForm
+        action={vi.fn(async (state) => state)}
+        references={references}
+        submitLabel="Save Draft"
+      />,
+    );
+
+    const shareUrl =
+      "https://www.google.com/maps/d/viewer?mid=1Nb59Jzcm4g4HXnP0WQVmc4oJlH_c3Xc&usp=sharing";
+    const expectedEmbedUrl =
+      "https://www.google.com/maps/d/embed?mid=1Nb59Jzcm4g4HXnP0WQVmc4oJlH_c3Xc";
+
+    const embedTextarea = screen.getByLabelText("Google Maps Embed");
+    await user.clear(embedTextarea);
+    await user.type(embedTextarea, shareUrl);
+
+    expect(screen.getByTitle("Google Maps location preview")).toHaveAttribute(
+      "src",
+      expectedEmbedUrl,
+    );
+    expect(screen.getByText("Google Maps location added successfully.")).toBeVisible();
+  });
 });

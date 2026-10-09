@@ -31,8 +31,8 @@ export function isSafeGoogleMapsEmbedUrl(value: string): boolean {
       GOOGLE_MAPS_HOSTS.has(url.hostname) &&
       url.hash === "";
     const standardEmbed = url.pathname === "/maps/embed" || url.pathname.startsWith("/maps/embed/");
-    const myMapsEmbed =
-      url.pathname === "/maps/d/embed" && Boolean(url.searchParams.get("mid")?.trim());
+    const myMapsPathMatch = url.pathname.match(/^\/maps\/d\/(?:u\/\d+\/)?(embed|viewer|edit)$/);
+    const myMapsEmbed = Boolean(myMapsPathMatch) && Boolean(url.searchParams.get("mid")?.trim());
     const officialEmbed = hasSafeOrigin && (standardEmbed || myMapsEmbed) && url.search.length > 1;
     if (officialEmbed) return true;
 
@@ -84,6 +84,21 @@ export function parseGoogleMapsEmbedInput(input: string): GoogleMapsEmbedParseRe
       };
     }
     candidate = decodeHtmlAttribute(source.trim());
+  }
+
+  try {
+    const parsed = new URL(candidate);
+    if (GOOGLE_MAPS_HOSTS.has(parsed.hostname)) {
+      const myMapsMatch = parsed.pathname.match(/^\/maps\/d\/(?:u\/\d+\/)?(viewer|edit|embed)$/);
+      const mid = parsed.searchParams.get("mid");
+      if (myMapsMatch && mid?.trim()) {
+        parsed.pathname = "/maps/d/embed";
+        parsed.searchParams.delete("usp");
+        candidate = parsed.toString();
+      }
+    }
+  } catch {
+    // If invalid URL candidate, fallback to validation below
   }
 
   if (!isSafeGoogleMapsEmbedUrl(candidate)) {

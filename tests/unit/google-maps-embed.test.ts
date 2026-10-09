@@ -53,6 +53,35 @@ describe("Google Maps embed validation", () => {
     });
   });
 
+  it("normalizes Google My Maps share, viewer, and edit links into embed URLs", () => {
+    expect(
+      parseGoogleMapsEmbedInput(
+        "https://www.google.com/maps/d/viewer?mid=1Nb59Jzcm4g4HXnP0WQVmc4oJlH_c3Xc&usp=sharing",
+      ),
+    ).toEqual({
+      ok: true,
+      url: "https://www.google.com/maps/d/embed?mid=1Nb59Jzcm4g4HXnP0WQVmc4oJlH_c3Xc",
+    });
+
+    expect(
+      parseGoogleMapsEmbedInput(
+        "https://www.google.com/maps/d/edit?mid=1Nb59Jzcm4g4HXnP0WQVmc4oJlH_c3Xc",
+      ),
+    ).toEqual({
+      ok: true,
+      url: "https://www.google.com/maps/d/embed?mid=1Nb59Jzcm4g4HXnP0WQVmc4oJlH_c3Xc",
+    });
+
+    expect(
+      parseGoogleMapsEmbedInput(
+        "https://www.google.com/maps/d/u/0/viewer?mid=1Nb59Jzcm4g4HXnP0WQVmc4oJlH_c3Xc",
+      ),
+    ).toEqual({
+      ok: true,
+      url: "https://www.google.com/maps/d/embed?mid=1Nb59Jzcm4g4HXnP0WQVmc4oJlH_c3Xc",
+    });
+  });
+
   it("accepts multiline and self-closing iframe markup with encoded query separators", () => {
     const multiline = `
       <iframe

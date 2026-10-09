@@ -11,6 +11,10 @@ import {
   initialPropertyFormState,
   type PropertyFormState,
 } from "@/features/properties/domain/property-form-state";
+import {
+  PropertyBoundaryMapGuideDialog,
+  PropertyBoundaryMapQuickGuide,
+} from "@/components/admin/property-boundary-map-guide";
 import { parseGoogleMapsEmbedInput } from "@/lib/validation/google-maps-embed";
 
 type FormAction = (state: PropertyFormState, formData: FormData) => Promise<PropertyFormState>;
@@ -61,6 +65,7 @@ export function PropertyDraftForm({
     String(initialValues.landCategory ?? "AGRICULTURAL"),
   );
   const [mapInput, setMapInput] = useState(String(initialValues.googleMapsEmbedUrl ?? ""));
+  const [isMapGuideOpen, setIsMapGuideOpen] = useState(false);
 
   const value = (name: string) => state.values[name] ?? initialValues[name] ?? "";
   const checked = (name: string) => state.values[name] === "on" || initialValues[name] === true;
@@ -319,46 +324,57 @@ export function PropertyDraftForm({
             <span className="mt-1 block text-xs text-red-700">{fieldError("publicAddress")}</span>
           ) : null}
         </label>
-        <label className={`${labelClass} md:col-span-2`}>
-          Google Maps Embed
+        <div className="md:col-span-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <label htmlFor="googleMapsEmbedUrl" className={labelClass}>
+              Google Maps Embed
+            </label>
+            <button
+              type="button"
+              onClick={() => setIsMapGuideOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-900 transition hover:bg-emerald-100 hover:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            >
+              <svg className="h-3.5 w-3.5 text-emerald-700" viewBox="0 0 20 20" fill="currentColor">
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Need help? How to draw boundary map
+            </button>
+          </div>
           <textarea
+            id="googleMapsEmbedUrl"
             className={inputClass}
             name="googleMapsEmbedUrl"
-            rows={4}
-            placeholder="Paste the Google Maps iframe or https://www.google.com/maps/embed?..."
+            rows={3}
+            placeholder="Paste Google My Maps link (e.g. https://www.google.com/maps/d/viewer?mid=...) or embed iframe"
             value={mapInput}
             aria-invalid={Boolean(fieldError("googleMapsEmbedUrl"))}
             onChange={(event) => setMapInput(event.target.value)}
           />
+          <div className="mt-1 flex flex-wrap items-center justify-between gap-1 text-xs text-slate-500">
+            <span>Supports Google My Maps share links, embed URLs, and copied &lt;iframe&gt; code.</span>
+            <button
+              type="button"
+              onClick={() => setIsMapGuideOpen(true)}
+              className="font-medium text-emerald-700 underline hover:text-emerald-900"
+            >
+              View step-by-step guide
+            </button>
+          </div>
           {fieldError("googleMapsEmbedUrl") ? (
             <span className="mt-1 block text-xs text-red-700">
               {fieldError("googleMapsEmbedUrl")}
             </span>
           ) : null}
-        </label>
-        <details className="rounded-lg border border-slate-200 bg-slate-50 md:col-span-2">
-          <summary className="cursor-pointer px-4 py-3 text-sm font-bold text-slate-800">
-            How do I get this link?
-          </summary>
-          <div className="space-y-3 border-t border-slate-200 px-4 py-4 text-sm text-slate-700">
-            <ol className="list-decimal space-y-1 pl-5">
-              <li>Open Google Maps.</li>
-              <li>Search for the property or location.</li>
-              <li>Click Share.</li>
-              <li>Select Embed a map.</li>
-              <li>Choose the desired map view.</li>
-              <li>Click Copy HTML.</li>
-              <li>Paste the copied iframe into the field above.</li>
-            </ol>
-            <code className="block overflow-x-auto rounded-md bg-slate-900 px-3 py-2 text-xs text-slate-100">
-              {'<iframe src="https://www.google.com/maps/embed?pb=...">'}
-            </code>
-            <p>
-              You can paste the complete iframe. UrbanEdge will automatically extract the Google
-              Maps link.
-            </p>
-          </div>
-        </details>
+        </div>
+        <PropertyBoundaryMapQuickGuide onOpenDialog={() => setIsMapGuideOpen(true)} />
+        <PropertyBoundaryMapGuideDialog
+          open={isMapGuideOpen}
+          onClose={() => setIsMapGuideOpen(false)}
+        />
         {mapInput.trim()
           ? (() => {
               const result = parseGoogleMapsEmbedInput(mapInput);
