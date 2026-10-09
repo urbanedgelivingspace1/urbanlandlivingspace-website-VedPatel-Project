@@ -53,7 +53,6 @@ export function AdminNavigation({ canManageSecurity }: Readonly<{ canManageSecur
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  prefetch={false}
                   aria-current={isCurrent(item.href) ? "page" : undefined}
                   className="admin-nav-link"
                 >
@@ -71,7 +70,6 @@ export function AdminNavigation({ canManageSecurity }: Readonly<{ canManageSecur
           <li>
             <Link
               href="/admin/settings/seo"
-              prefetch={false}
               aria-current={isCurrent("/admin/settings/seo") ? "page" : undefined}
               className="admin-nav-link"
             >
@@ -83,7 +81,6 @@ export function AdminNavigation({ canManageSecurity }: Readonly<{ canManageSecur
             <li>
               <Link
                 href="/admin/settings/security"
-                prefetch={false}
                 aria-current={isCurrent("/admin/settings/security") ? "page" : undefined}
                 className="admin-nav-link"
               >

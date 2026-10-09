@@ -18,23 +18,28 @@ export default async function EditPropertyPage({
     getAdminReferenceData(),
   ]);
   if (!record) notFound();
-  if (record.property.publication_status !== "DRAFT") {
+  if (record.property.publication_status === "ARCHIVED") {
     return (
       <section className="rounded-xl border border-amber-300 bg-amber-50 p-6">
         <h1 className="text-2xl font-bold">Editing is unavailable</h1>
-        <p className="mt-2 text-sm">
-          This property is no longer a draft. Return to the property record to manage its current
-          status.
-        </p>
+        <p className="mt-2 text-sm">Restore this archived property before editing it.</p>
       </section>
     );
   }
   const row = record.property;
-  const action = updatePropertyDraftAction.bind(null, id, row.updated_at);
+  const isPublished = row.publication_status === "PUBLISHED";
+  const action = updatePropertyDraftAction.bind(
+    null,
+    id,
+    row.updated_at,
+    isPublished,
+    row.public_slug,
+  );
   const category = record.agricultural ?? record.na ?? record.industrial;
   const values = {
     landCategory: row.land_category,
-    primaryTransactionType: row.primary_transaction_type,
+    primaryTransactionType:
+      row.primary_transaction_type === "BUY" ? "SELL" : row.primary_transaction_type,
     listingTitle: row.listing_title,
     publicSlug: row.public_slug,
     shortDescription: row.short_description,
@@ -112,13 +117,22 @@ export default async function EditPropertyPage({
             known.
           </p>
         </header>
+        {isPublished ? (
+          <p
+            role="note"
+            className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm font-medium text-amber-950"
+          >
+            This property is published. Changes will update the live listing when saved.
+          </p>
+        ) : null}
         <PropertyDraftForm
           action={action}
           references={references}
           initialValues={values}
-          submitLabel="Save Draft"
+          submitLabel={isPublished ? "Save Changes" : "Save Draft"}
           allowTestPresets={isNonProductionEnvironment()}
           propertyId={row.id}
+          isPublished={isPublished}
           deleteAction={deletePropertyDraftAction}
         />
       </PropertyWorkflow>

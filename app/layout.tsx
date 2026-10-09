@@ -7,7 +7,6 @@ import {
 } from "next/font/google";
 import type { ReactNode } from "react";
 
-import "maplibre-gl/dist/maplibre-gl.css";
 import "./globals.css";
 
 import { siteConfig, siteIcons } from "@/config/site";

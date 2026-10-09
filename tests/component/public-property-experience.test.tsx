@@ -203,6 +203,7 @@ describe("M10 public property experience", () => {
 
     rerender(<GoogleMapsEmbed url="https://evil.example.com/embed" title="Unsafe" />);
     expect(screen.queryByTitle("Unsafe map")).not.toBeInTheDocument();
+    expect(screen.getByText("Map unavailable.")).toBeVisible();
   });
 
   it("renders one Download Brochure CTA for Drive and legacy hosted brochures", () => {

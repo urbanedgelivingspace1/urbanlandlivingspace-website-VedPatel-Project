@@ -73,9 +73,9 @@ function retainedValues(formData: FormData): Record<string, string> {
 
 function parsePropertyDraftForm(formData: FormData): AdminPropertyDraftInput {
   const category = text(formData, "landCategory") as AdminPropertyDraftInput["landCategory"];
-  const transaction = text(
-    formData,
-    "primaryTransactionType",
+  const requestedTransaction = text(formData, "primaryTransactionType");
+  const transaction = (
+    requestedTransaction === "SELL" ? "BUY" : requestedTransaction
   ) as AdminPropertyDraftInput["primaryTransactionType"];
   const priceMode = text(formData, "priceMode");
   const offerBase = {
@@ -262,6 +262,8 @@ export async function createPropertyDraftAction(
 export async function updatePropertyDraftAction(
   propertyId: string,
   expectedUpdatedAt: string,
+  wasPublished: boolean,
+  publicSlug: string | null,
   _previous: PropertyFormState,
   formData: FormData,
 ): Promise<PropertyFormState> {
@@ -270,6 +272,10 @@ export async function updatePropertyDraftAction(
     await updatePropertyDraft(propertyId, expectedUpdatedAt, parsePropertyDraftForm(formData));
   } catch (error) {
     return failureState(error, formData);
+  }
+  if (wasPublished) {
+    refreshPublicProperty(propertyId, publicSlug ?? undefined);
+    redirect(`/admin/properties/${propertyId}?saved=1`);
   }
   revalidatePath("/admin/properties");
   revalidatePath(`/admin/properties/${propertyId}`);

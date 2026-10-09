@@ -58,6 +58,26 @@ describe("PropertyDraftForm", () => {
     expect(screen.getByLabelText("Private longitude")).toBeInTheDocument();
     expect(screen.getByLabelText("Listing latitude")).toBeInTheDocument();
     expect(screen.getByLabelText("Listing longitude")).toBeInTheDocument();
+    expect(screen.getByLabelText("Primary transaction")).toHaveValue("SELL");
+    expect(screen.getByRole("option", { name: "Sell" })).toBeInTheDocument();
+  });
+
+  it("uses published-edit copy and removes the draft continuation action", () => {
+    render(
+      <PropertyDraftForm
+        action={vi.fn(async (state) => state)}
+        references={references}
+        submitLabel="Save Changes"
+        propertyId="20000000-0000-4000-8000-000000000001"
+        isPublished={true}
+        deleteAction={vi.fn(async () => undefined)}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Save Changes" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Save & Next →" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Delete property" })).toBeVisible();
+    expect(screen.getByText(/Saving updates the live listing/)).toBeVisible();
   });
 
   it("submits Save & Next with an explicit server-controlled intent", async () => {

@@ -18,8 +18,6 @@ import {
   unpublishPropertyAction,
 } from "../actions";
 
-export const dynamic = "force-dynamic";
-
 export default async function AdminPropertyDetailPage({
   params,
   searchParams,

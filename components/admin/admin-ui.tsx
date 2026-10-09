@@ -91,7 +91,6 @@ export function WorkspaceTabs({
         <Link
           key={tab.key}
           href={tab.href}
-          prefetch={false}
           aria-current={active === tab.key ? "page" : undefined}
           className="admin-tab"
         >
@@ -144,7 +143,7 @@ export function MetricCard({
   tone?: "slate" | "red" | "amber" | "green" | "blue" | "violet";
 }>) {
   return (
-    <Link href={href} prefetch={false} className={`admin-metric admin-metric-${tone}`}>
+    <Link href={href} className={`admin-metric admin-metric-${tone}`}>
       <span className="admin-metric-label">{label}</span>
       <strong>{value}</strong>
       <span className="admin-metric-detail">{detail ?? "Open queue"} →</span>

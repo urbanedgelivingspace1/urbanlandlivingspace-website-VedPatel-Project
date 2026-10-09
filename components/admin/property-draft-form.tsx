@@ -21,6 +21,7 @@ type Props = Readonly<{
   submitLabel: string;
   allowTestPresets?: boolean;
   propertyId?: string;
+  isPublished?: boolean;
   deleteAction?: (data: FormData) => Promise<void>;
 }>;
 
@@ -286,6 +287,7 @@ export function PropertyDraftForm({
   submitLabel,
   allowTestPresets = false,
   propertyId,
+  isPublished = false,
   deleteAction,
 }: Props) {
   const [state, formAction, pending] = useActionState(action, initialPropertyFormState);
@@ -496,12 +498,17 @@ export function PropertyDraftForm({
           <select
             className={inputClass}
             name="primaryTransactionType"
-            defaultValue={String(value("primaryTransactionType") || "BUY")}
+            aria-label="Primary transaction"
+            defaultValue={String(value("primaryTransactionType") || "SELL")}
           >
+            <option value="SELL">Sell</option>
             <option value="BUY">Buy</option>
             <option value="RENT">Rent</option>
             <option value="LEASE">Lease</option>
           </select>
+          <span className="mt-1 block text-xs font-normal text-slate-500">
+            Sell lists the property for buyers and is stored as Buy in listing search.
+          </span>
         </label>
         {input("listingTitle", "Property title (optional)")}
         {input("publicSlug", "Website address (generated automatically when blank)")}
@@ -982,8 +989,9 @@ export function PropertyDraftForm({
 
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <p className="text-sm text-slate-600">
-          Saving keeps this property private. Continue when you are ready to add photos and secure
-          documents.
+          {isPublished
+            ? "Saving updates the live listing and returns you to the property workspace."
+            : "Saving keeps this property private. Continue when you are ready to add photos and secure documents."}
         </p>
         <div className="flex flex-wrap items-center gap-3">
           {allowTestPresets ? (
@@ -1001,9 +1009,10 @@ export function PropertyDraftForm({
               propertyId={propertyId}
               expectedUpdatedAt={String(initialValues?.expectedUpdatedAt ?? "") || undefined}
               propertyTitle={String(initialValues?.listingTitle ?? "") || undefined}
+              isPublished={isPublished}
               action={deleteAction}
               variant="danger-outline"
-              buttonText="Delete draft"
+              buttonText={isPublished ? "Delete property" : "Delete draft"}
             />
           ) : null}
           <Link className="rounded-lg px-4 py-2 text-sm font-semibold" href="/admin/properties">
@@ -1018,15 +1027,17 @@ export function PropertyDraftForm({
           >
             {pending ? "Saving…" : submitLabel}
           </button>
-          <button
-            className="button button-primary disabled:opacity-60"
-            disabled={pending}
-            name="submitIntent"
-            type="submit"
-            value="save-next"
-          >
-            {pending ? "Saving…" : "Save & Next →"}
-          </button>
+          {!isPublished ? (
+            <button
+              className="button button-primary disabled:opacity-60"
+              disabled={pending}
+              name="submitIntent"
+              type="submit"
+              value="save-next"
+            >
+              {pending ? "Saving…" : "Save & Next →"}
+            </button>
+          ) : null}
         </div>
       </div>
     </form>

@@ -95,7 +95,7 @@ export function PropertyWorkspace({
             </h1>
             <p className="text-sm text-slate-600">
               {property.districtName} · {row.display_area_value} {property.areaUnitName} ·{" "}
-              {friendly(row.land_category)} · {friendly(row.primary_transaction_type)}
+              {friendly(row.land_category)} · {adminTransactionLabel(row.primary_transaction_type)}
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
               <span className="admin-badge admin-badge-blue">
@@ -109,30 +109,18 @@ export function PropertyWorkspace({
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            <Link href="/admin/properties" prefetch={false} className="button button-secondary">
+            <Link href="/admin/properties" className="button button-secondary">
               ← Properties
             </Link>
-            <Link
-              href={`/admin/properties/${id}/media`}
-              prefetch={false}
-              className="button button-secondary"
-            >
+            <Link href={`/admin/properties/${id}/media`} className="button button-secondary">
               Add Photos / Brochure
             </Link>
-            {row.publication_status === "DRAFT" ? (
-              <Link
-                href={`/admin/properties/${id}/edit`}
-                prefetch={false}
-                className="button button-primary"
-              >
+            {row.publication_status !== "ARCHIVED" ? (
+              <Link href={`/admin/properties/${id}/edit`} className="button button-primary">
                 Edit
               </Link>
             ) : null}
-            <Link
-              href={`/admin/properties/${id}/preview`}
-              prefetch={false}
-              className="button button-secondary"
-            >
+            <Link href={`/admin/properties/${id}/preview`} className="button button-secondary">
               {row.publication_status === "PUBLISHED" ? "View Live Listing" : "Preview Listing"}
             </Link>
             <details className="relative">
@@ -167,7 +155,7 @@ export function PropertyWorkspace({
           role="status"
           className="rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-sm font-medium text-emerald-900"
         >
-          Draft changes saved successfully.
+          Changes saved successfully.
         </p>
       ) : null}
 
@@ -191,7 +179,6 @@ export function PropertyWorkspace({
         <nav className="flex gap-1 overflow-x-auto" aria-label="Property sections">
           <Link
             href={`/admin/properties/${id}?tab=overview`}
-            prefetch={false}
             aria-current={activeTab === "overview" ? "page" : undefined}
             className="admin-tab"
           >
@@ -199,7 +186,6 @@ export function PropertyWorkspace({
           </Link>
           <Link
             href={`/admin/properties/${id}?tab=media`}
-            prefetch={false}
             aria-current={activeTab === "media" ? "page" : undefined}
             className="admin-tab"
           >
@@ -207,7 +193,6 @@ export function PropertyWorkspace({
           </Link>
           <Link
             href={`/admin/properties/${id}?tab=buyers`}
-            prefetch={false}
             aria-current={activeTab === "buyers" ? "page" : undefined}
             className="admin-tab"
           >
@@ -215,7 +200,6 @@ export function PropertyWorkspace({
           </Link>
           <Link
             href={`/admin/properties/${id}?tab=activity`}
-            prefetch={false}
             aria-current={activeTab === "activity" ? "page" : undefined}
             className="admin-tab"
           >
@@ -349,11 +333,7 @@ export function PropertyWorkspace({
                 Property photos and an optional Google Drive brochure.
               </p>
             </div>
-            <Link
-              href={`/admin/properties/${id}/media`}
-              prefetch={false}
-              className="button button-primary"
-            >
+            <Link href={`/admin/properties/${id}/media`} className="button button-primary">
               Add or Manage Photos
             </Link>
           </div>
@@ -366,11 +346,7 @@ export function PropertyWorkspace({
               <p className="mt-1 text-xs text-slate-400">
                 Add at least one photo and choose a cover before publishing the property.
               </p>
-              <Link
-                href={`/admin/properties/${id}/media`}
-                prefetch={false}
-                className="button button-primary mt-4"
-              >
+              <Link href={`/admin/properties/${id}/media`} className="button button-primary mt-4">
                 Upload photos now
               </Link>
             </div>
@@ -738,4 +714,8 @@ function friendly(value: string | null | undefined) {
         .replaceAll("_", " ")
         .replace(/^./, (letter) => letter.toUpperCase())
     : null;
+}
+
+function adminTransactionLabel(value: string | null | undefined) {
+  return value === "BUY" ? "Sell" : friendly(value);
 }

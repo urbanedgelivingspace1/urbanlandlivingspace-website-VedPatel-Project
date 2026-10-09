@@ -16,6 +16,26 @@ describe("Google Maps embed validation", () => {
     });
   });
 
+  it("accepts standard embeds from the alternate Google Maps hostname", () => {
+    expect(
+      parseGoogleMapsEmbedInput("https://maps.google.com/maps/embed?pb=alternate-host-map"),
+    ).toEqual({
+      ok: true,
+      url: "https://maps.google.com/maps/embed?pb=alternate-host-map",
+    });
+  });
+
+  it("accepts bounded coordinate-path embeds", () => {
+    expect(
+      isSafeGoogleMapsEmbedUrl(
+        "https://www.google.com/maps/@23.2112345,72.6367895,15z?output=embed",
+      ),
+    ).toBe(true);
+    expect(
+      isSafeGoogleMapsEmbedUrl("https://www.google.com/maps/@93.2,72.6,15z?output=embed"),
+    ).toBe(false);
+  });
+
   it("extracts only src from copied iframe HTML", () => {
     expect(
       parseGoogleMapsEmbedInput(

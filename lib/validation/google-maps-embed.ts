@@ -4,6 +4,12 @@ const GOOGLE_MAPS_EMBED_ERROR =
 export type GoogleMapsEmbedParseResult =
   Readonly<{ ok: true; url: string }> | Readonly<{ ok: false; error: string }>;
 
+const GOOGLE_MAPS_HOSTS = new Set(["www.google.com", "maps.google.com"]);
+
+function isValidCoordinate(latitude: number, longitude: number) {
+  return latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
+}
+
 function decodeHtmlAttribute(value: string): string {
   return value
     .replaceAll("&amp;", "&")
@@ -16,29 +22,34 @@ function decodeHtmlAttribute(value: string): string {
 export function isSafeGoogleMapsEmbedUrl(value: string): boolean {
   try {
     const url = new URL(value);
-    const officialEmbed =
+    const hasSafeOrigin =
       url.protocol === "https:" &&
       url.username === "" &&
       url.password === "" &&
       url.port === "" &&
-      url.hostname === "www.google.com" &&
-      (url.pathname === "/maps/embed" || url.pathname.startsWith("/maps/embed/")) &&
-      url.search.length > 1 &&
+      GOOGLE_MAPS_HOSTS.has(url.hostname) &&
       url.hash === "";
+    const officialEmbed =
+      hasSafeOrigin &&
+      (url.pathname === "/maps/embed" || url.pathname.startsWith("/maps/embed/")) &&
+      url.search.length > 1;
     if (officialEmbed) return true;
 
-    if (
-      url.protocol !== "https:" ||
-      url.username ||
-      url.password ||
-      url.port ||
-      url.hostname !== "www.google.com" ||
-      url.pathname !== "/maps" ||
-      url.hash ||
-      url.searchParams.get("output") !== "embed"
-    ) {
+    if (!hasSafeOrigin || url.searchParams.get("output") !== "embed") {
       return false;
     }
+
+    const coordinatePath = url.pathname.match(
+      /^\/maps\/@(-?\d{1,2}(?:\.\d{1,7})?),(-?\d{1,3}(?:\.\d{1,7})?),(\d{1,2}(?:\.\d+)?)z$/,
+    );
+    if (coordinatePath) {
+      const latitude = Number(coordinatePath[1]);
+      const longitude = Number(coordinatePath[2]);
+      const zoom = Number(coordinatePath[3]);
+      return isValidCoordinate(latitude, longitude) && zoom >= 1 && zoom <= 22;
+    }
+
+    if (url.pathname !== "/maps") return false;
 
     const allowedParameters = new Set(["q", "z", "output"]);
     if ([...url.searchParams.keys()].some((key) => !allowedParameters.has(key))) return false;
@@ -48,7 +59,7 @@ export function isSafeGoogleMapsEmbedUrl(value: string): boolean {
     if (!match || !Number.isFinite(zoom) || zoom < 1 || zoom > 18) return false;
     const latitude = Number(match[1]);
     const longitude = Number(match[2]);
-    return latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
+    return isValidCoordinate(latitude, longitude);
   } catch {
     return false;
   }
@@ -98,7 +109,7 @@ export function parseGoogleMapsEmbedInput(input: string): GoogleMapsEmbedParseRe
   if (!isSafeGoogleMapsEmbedUrl(candidate)) {
     try {
       const url = new URL(candidate);
-      if (url.hostname !== "www.google.com") {
+      if (!GOOGLE_MAPS_HOSTS.has(url.hostname)) {
         return { ok: false, error: "Only Google Maps embed links are supported." };
       }
     } catch {

@@ -427,5 +427,31 @@ describe("PropertyWorkspace", () => {
     );
 
     expect(screen.queryByTestId("btn-delete-draft")).toBeNull();
+    expect(screen.getByRole("link", { name: "Edit" })).toBeVisible();
+    expect(screen.getByText(/Agricultural · Sell/)).toBeVisible();
+  });
+
+  it("does not offer editing for archived properties", () => {
+    const archivedProperty = {
+      ...mockProperty,
+      property: {
+        ...mockProperty.property,
+        publication_status: "ARCHIVED" as const,
+      },
+    };
+
+    render(
+      <PropertyWorkspace
+        property={archivedProperty}
+        readiness={mockReadiness}
+        publishAction={action}
+        unpublishAction={action}
+        changeAvailabilityAction={mutateAction}
+        archivePropertyAction={mutateAction}
+        restorePropertyAction={mutateAction}
+      />,
+    );
+
+    expect(screen.queryByRole("link", { name: "Edit" })).not.toBeInTheDocument();
   });
 });

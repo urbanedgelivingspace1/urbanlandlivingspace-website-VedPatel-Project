@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { useLanguage } from "@/components/public/language-provider";
 
@@ -15,10 +16,21 @@ const budgetRanges = {
 
 export function SearchEntryForm() {
   const { t } = useLanguage();
+  const router = useRouter();
   const [budget, setBudget] = useState<keyof typeof budgetRanges>("");
+  const [transaction, setTransaction] = useState("");
   const range = budgetRanges[budget];
   return (
-    <form action="/properties" method="get" className="search-entry-form">
+    <form
+      action={transaction === "sell" ? "/sell-your-land" : "/properties"}
+      method="get"
+      className="search-entry-form"
+      onSubmit={(event) => {
+        if (transaction !== "sell") return;
+        event.preventDefault();
+        router.push("/sell-your-land");
+      }}
+    >
       <label className="search-entry-field">
         <span>{t("search.location")}</span>
         <select name="district" defaultValue="" aria-label={t("search.location")}>
@@ -38,8 +50,14 @@ export function SearchEntryForm() {
       </label>
       <label className="search-entry-field">
         <span>{t("search.transaction")}</span>
-        <select name="transaction" defaultValue="" aria-label={t("search.transaction")}>
+        <select
+          name={transaction === "sell" ? undefined : "transaction"}
+          value={transaction}
+          onChange={(event) => setTransaction(event.target.value)}
+          aria-label={t("search.transaction")}
+        >
           <option value="">{t("search.allTransactions")}</option>
+          <option value="sell">{t("nav.sell")}</option>
           <option value="buy">{t("nav.buy")}</option>
           <option value="rent">{t("nav.rent")}</option>
           <option value="lease">{t("nav.lease")}</option>
@@ -63,7 +81,7 @@ export function SearchEntryForm() {
       <input type="hidden" name="minPrice" value={range.min} />
       <input type="hidden" name="maxPrice" value={range.max} />
       <button className="button button-gold" type="submit">
-        {t("search.submit")}
+        {transaction === "sell" ? t("nav.sell") : t("search.submit")}
       </button>
     </form>
   );
