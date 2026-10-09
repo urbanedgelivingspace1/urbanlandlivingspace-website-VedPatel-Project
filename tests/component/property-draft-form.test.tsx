@@ -3,6 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { PropertyDraftForm } from "@/components/admin/property-draft-form";
+import { PropertyEditGuard } from "@/components/admin/property-edit-guard";
+import { PropertyWorkflow } from "@/components/admin/property-workflow";
 
 const references = {
   districts: [{ id: "00000000-0000-4000-8000-000000000003", name: "Ahmedabad" }],
@@ -50,7 +52,7 @@ describe("PropertyDraftForm", () => {
     expect(screen.getByLabelText("Google Maps Embed")).toBeInTheDocument();
     expect(screen.queryByRole("group", { name: "NA Details" })).not.toBeInTheDocument();
     expect(screen.queryByRole("group", { name: "Industrial Details" })).not.toBeInTheDocument();
-    expect(screen.getByText(/Continue when you are ready to add photos/)).toBeVisible();
+    expect(screen.getByText("Draft listing")).toBeVisible();
     expect(screen.queryByRole("button", { name: /^publish$/i })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Save & Next →" })).toBeVisible();
     expect(screen.queryByRole("group", { name: "Location Coordinates" })).not.toBeInTheDocument();
@@ -60,7 +62,7 @@ describe("PropertyDraftForm", () => {
     expect(screen.getByRole("option", { name: "Sell" })).toBeInTheDocument();
   });
 
-  it("uses published-edit copy and removes the draft continuation action", () => {
+  it("lets published-property edits save or save and continue", () => {
     render(
       <PropertyDraftForm
         action={vi.fn(async (state) => state)}
@@ -73,9 +75,11 @@ describe("PropertyDraftForm", () => {
     );
 
     expect(screen.getByRole("button", { name: "Save Changes" })).toBeVisible();
-    expect(screen.queryByRole("button", { name: "Save & Next →" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save & Next →" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Delete property" })).toBeVisible();
-    expect(screen.getByText(/Saving updates the live listing/)).toBeVisible();
+    expect(screen.getByText("Live on website")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Save Changes" })).toHaveClass("button-primary");
+    expect(screen.getByRole("button", { name: "Save & Next →" })).toHaveClass("button-secondary");
   });
 
   it("submits Save & Next with an explicit server-controlled intent", async () => {
@@ -133,96 +137,67 @@ describe("PropertyDraftForm", () => {
     expect(container.querySelector("form form")).toBeNull();
   });
 
-  it("renders the testing helper toolbar and prefill buttons when allowTestPresets is true", () => {
+  it("reports dirty state when values change and clean state when they are restored", async () => {
+    const user = userEvent.setup();
+    const onDirtyChange = vi.fn();
     render(
       <PropertyDraftForm
         action={vi.fn(async (state) => state)}
         references={references}
         submitLabel="Create draft"
-        allowTestPresets={true}
+        initialValues={{ listingTitle: "Original title" }}
+        onDirtyChange={onDirtyChange}
       />,
     );
 
-    expect(screen.getByTestId("test-fill-helper")).toBeVisible();
-    expect(screen.getByTestId("btn-fill-sample-draft")).toBeVisible();
-    expect(screen.getByTestId("btn-fill-sample-na")).toBeVisible();
-    expect(screen.getByTestId("btn-fill-sample-industrial")).toBeVisible();
-    expect(screen.getByTestId("btn-bottom-prefill")).toBeVisible();
+    const title = screen.getByLabelText("Property title (optional)");
+    await user.clear(title);
+    await user.type(title, "Updated title");
+    await waitFor(() => expect(onDirtyChange).toHaveBeenLastCalledWith(true));
+
+    await user.clear(title);
+    await user.type(title, "Original title");
+    await waitFor(() => expect(onDirtyChange).toHaveBeenLastCalledWith(false));
   });
 
-  it("never renders the testing helper toolbar or prefill buttons in production (allowTestPresets is false/omitted)", () => {
+  it("warns before leaving the page when the form has unsaved changes", async () => {
+    const user = userEvent.setup();
     render(
       <PropertyDraftForm
         action={vi.fn(async (state) => state)}
         references={references}
-        submitLabel="Create draft"
+        submitLabel="Save Draft"
       />,
     );
 
-    expect(screen.queryByTestId("test-fill-helper")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("btn-fill-sample-draft")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("btn-bottom-prefill")).not.toBeInTheDocument();
+    await user.type(screen.getByLabelText("Property title (optional)"), "Unsaved title");
+    const event = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
   });
 
-  it("populates all draft fields with valid sample data when clicking prefill button", () => {
-    const { container } = render(
-      <PropertyDraftForm
-        action={vi.fn(async (state) => state)}
-        references={references}
-        submitLabel="Create draft"
-        allowTestPresets={true}
-      />,
+  it("blocks workflow section navigation while the edit form is dirty", async () => {
+    const user = userEvent.setup();
+    render(
+      <PropertyEditGuard>
+        <PropertyWorkflow currentStep="details" propertyId="20000000-0000-4000-8000-000000000001">
+          <PropertyDraftForm
+            action={vi.fn(async (state) => state)}
+            references={references}
+            submitLabel="Save Draft"
+            initialValues={{ listingTitle: "Original title" }}
+          />
+        </PropertyWorkflow>
+      </PropertyEditGuard>,
     );
 
-    const prefillBtn = screen.getByTestId("btn-fill-sample-draft");
-    prefillBtn.click();
+    await user.type(screen.getByLabelText("Property title (optional)"), " changed");
+    await user.click(screen.getByRole("link", { name: /Photos & DocumentsAvailable/ }));
 
-    // Verify confirmation notice
-    expect(
-      screen.getByText(/Form prefilled with Agricultural Farmland example data/),
-    ).toBeVisible();
-
-    // Verify key fields in DOM
-    const form = container.querySelector("form")!;
-    const titleInput = form.elements.namedItem("listingTitle") as HTMLInputElement;
-    const categorySelect = form.elements.namedItem("landCategory") as HTMLSelectElement;
-    const districtSelect = form.elements.namedItem("districtId") as HTMLSelectElement;
-    const areaInput = form.elements.namedItem("displayAreaValue") as HTMLInputElement;
-    const priceAmountInput = form.elements.namedItem("priceAmount") as HTMLInputElement;
-    const tenureInput = form.elements.namedItem("tenureType") as HTMLInputElement;
-    const roadTouchCheckbox = form.elements.namedItem("roadTouch") as HTMLInputElement;
-
-    expect(titleInput.value).toMatch(/^Sanand 2\.5 Acre Farmland/);
-    expect(categorySelect.value).toBe("AGRICULTURAL");
-    expect(districtSelect.value).toBe("00000000-0000-4000-8000-000000000003");
-    expect(areaInput.value).toBe("2.5");
-    expect(priceAmountInput.value).toBe("12500000");
-    expect(tenureInput.value).toBe("OLD_TENURE");
-    expect(roadTouchCheckbox.checked).toBe(true);
-  });
-
-  it("switches to NA commercial sample data properly", () => {
-    const { container } = render(
-      <PropertyDraftForm
-        action={vi.fn(async (state) => state)}
-        references={references}
-        submitLabel="Create draft"
-        allowTestPresets={true}
-      />,
+    expect(screen.getByRole("alert")).toHaveTextContent("You have unsaved changes");
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Please save the changes to move forward to other sections.",
     );
-
-    const naBtn = screen.getByTestId("btn-fill-sample-na");
-    naBtn.click();
-
-    expect(screen.getByText(/Form prefilled with NA Commercial example data/)).toBeVisible();
-
-    const form = container.querySelector("form")!;
-    const categorySelect = form.elements.namedItem("landCategory") as HTMLSelectElement;
-    const naStatusInput = form.elements.namedItem("naStatus") as HTMLInputElement;
-    const areaInput = form.elements.namedItem("displayAreaValue") as HTMLInputElement;
-
-    expect(categorySelect.value).toBe("NA");
-    expect(naStatusInput.value).toBe("ORDER_ISSUED");
-    expect(areaInput.value).toBe("1200");
   });
 });

@@ -54,12 +54,10 @@ test("admin edits price, area, and Google Maps location without publishing", asy
   await page.getByRole("button", { name: "Save Draft" }).click();
   await expect(page).toHaveURL(/saved=1/);
   await expect(page.getByRole("status")).toContainText("Changes saved successfully");
-  await expect(page.getByText("4.75 Acre (ac)", { exact: true })).toBeVisible();
-  await expect(page.getByText("DRAFT").first()).toBeVisible();
+  await expect(page.getByLabel("Area", { exact: true })).toHaveValue("4.75");
 
-  await page.getByRole("link", { name: "Edit", exact: true }).click();
   await page.getByRole("button", { name: "Save & Next →" }).click();
-  await expect(page).toHaveURL(/\/media$/);
+  await expect(page).toHaveURL(/\/media\?saved=1$/);
   await page.getByRole("link", { name: /Save & Next/ }).click();
   await expect(page).toHaveURL(/\/preview$/);
   await expect(page.getByRole("heading", { name: "Preview" })).toBeVisible();

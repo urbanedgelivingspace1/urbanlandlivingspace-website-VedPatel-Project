@@ -1,4 +1,3 @@
-import { isNonProductionEnvironment } from "@/config/environment-schema";
 import { PropertyDraftForm } from "@/components/admin/property-draft-form";
 import { PropertyWorkflow } from "@/components/admin/property-workflow";
 import { requireActiveAdminPage } from "@/server/auth/require-admin-page";
@@ -13,7 +12,6 @@ export default async function NewPropertyPage({
 }) {
   await requireActiveAdminPage();
   const references = await getAdminReferenceData();
-  const allowTestPresets = isNonProductionEnvironment();
   const params = (await searchParams) ?? {};
   const getParam = (key: string) => (typeof params[key] === "string" ? params[key] : undefined);
 
@@ -50,7 +48,6 @@ export default async function NewPropertyPage({
           references={references}
           initialValues={initialValues}
           submitLabel="Save Draft"
-          allowTestPresets={allowTestPresets}
         />
       </PropertyWorkflow>
     </div>

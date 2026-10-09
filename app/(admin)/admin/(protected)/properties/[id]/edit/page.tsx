@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
-import { isNonProductionEnvironment } from "@/config/environment-schema";
 import { PropertyDraftForm } from "@/components/admin/property-draft-form";
+import { PropertyEditGuard } from "@/components/admin/property-edit-guard";
 import { PropertyWorkflow } from "@/components/admin/property-workflow";
 import { requireActiveAdminPage } from "@/server/auth/require-admin-page";
 import { getAdminProperty, getAdminReferenceData } from "@/server/services/property-drafts";
@@ -10,8 +10,13 @@ import { deletePropertyDraftAction, updatePropertyDraftAction } from "../../acti
 
 export default async function EditPropertyPage({
   params,
-}: Readonly<{ params: Promise<{ id: string }> }>) {
+  searchParams,
+}: Readonly<{
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ saved?: string }>;
+}>) {
   const { id } = await params;
+  const query = await searchParams;
   await requireActiveAdminPage();
   const [record, references] = await Promise.all([getAdminProperty(id), getAdminReferenceData()]);
   if (!record) notFound();
@@ -96,36 +101,37 @@ export default async function EditPropertyPage({
   };
   return (
     <div className="mx-auto max-w-5xl">
-      <PropertyWorkflow currentStep="details" propertyId={id}>
-        <header>
-          <p className="text-xs font-bold tracking-widest text-[var(--brand-gold-deep)] uppercase">
-            {row.property_code}
-          </p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight">Edit Property</h1>
-          <p className="mt-1 text-sm text-slate-600">
-            Update the information you have now. Other details can remain blank until they are
-            known.
-          </p>
-        </header>
-        {isPublished ? (
-          <p
-            role="note"
-            className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm font-medium text-amber-950"
-          >
-            This property is published. Changes will update the live listing when saved.
-          </p>
-        ) : null}
-        <PropertyDraftForm
-          action={action}
-          references={references}
-          initialValues={values}
-          submitLabel={isPublished ? "Save Changes" : "Save Draft"}
-          allowTestPresets={isNonProductionEnvironment()}
-          propertyId={row.id}
-          isPublished={isPublished}
-          deleteAction={deletePropertyDraftAction}
-        />
-      </PropertyWorkflow>
+      <PropertyEditGuard key={row.updated_at} savedNotice={query.saved === "1"}>
+        <PropertyWorkflow currentStep="details" propertyId={id} isPublished={isPublished}>
+          <header>
+            <p className="text-xs font-bold tracking-widest text-[var(--brand-gold-deep)] uppercase">
+              {row.property_code}
+            </p>
+            <h1 className="mt-1 text-3xl font-bold tracking-tight">Edit Property</h1>
+            <p className="mt-1 text-sm text-slate-600">
+              Update the information you have now. Other details can remain blank until they are
+              known.
+            </p>
+          </header>
+          {isPublished ? (
+            <p
+              role="note"
+              className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm font-medium text-amber-950"
+            >
+              This property is published. Changes will update the live listing when saved.
+            </p>
+          ) : null}
+          <PropertyDraftForm
+            action={action}
+            references={references}
+            initialValues={values}
+            submitLabel={isPublished ? "Save Changes" : "Save Draft"}
+            propertyId={row.id}
+            isPublished={isPublished}
+            deleteAction={deletePropertyDraftAction}
+          />
+        </PropertyWorkflow>
+      </PropertyEditGuard>
     </div>
   );
 }

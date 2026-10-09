@@ -124,4 +124,13 @@ describe("public property projection", () => {
       parcelSequence: 1,
     });
   });
+
+  it("projects publicAddress directly from the detail row", () => {
+    const detailRow = {
+      ...row,
+      public_address: "SHIHOLI MOT",
+    } as unknown as PublicPropertyDetailRow;
+    const detail = projectPublicPropertyDetail(detailRow, [], [], []);
+    expect(detail.publicAddress).toBe("SHIHOLI MOT");
+  });
 });

@@ -336,6 +336,7 @@ const en = {
   "property.overviewFallback":
     "Speak with UrbanEdge for the current overview of this land opportunity.",
   "property.location": "Location",
+  "property.propertyLocation": "Property Location",
   "property.exactLocation": "Exact public location",
   "property.approximateLocation": "Approximate location",
   "property.locationThrough": "Location details through UrbanEdge",
@@ -759,6 +760,7 @@ const gu: Dictionary = {
   "property.glance": "મિલકત એક નજરમાં",
   "property.overviewFallback": "આ જમીનની તકની હાલની માહિતી માટે UrbanEdge સાથે વાત કરો.",
   "property.location": "સ્થળ",
+  "property.propertyLocation": "મિલકતનું સ્થળ",
   "property.exactLocation": "ચોક્કસ જાહેર સ્થળ",
   "property.approximateLocation": "અંદાજિત સ્થળ",
   "property.locationThrough": "સ્થળની વિગતો UrbanEdge દ્વારા",
@@ -1181,6 +1183,7 @@ const hi: Dictionary = {
   "property.glance": "प्रॉपर्टी एक नज़र में",
   "property.overviewFallback": "इस ज़मीन के मौजूदा विवरण के लिए UrbanEdge से बात करें।",
   "property.location": "जगह",
+  "property.propertyLocation": "प्रॉपर्टी का स्थान",
   "property.exactLocation": "सटीक सार्वजनिक जगह",
   "property.approximateLocation": "अनुमानित जगह",
   "property.locationThrough": "जगह की जानकारी UrbanEdge से",

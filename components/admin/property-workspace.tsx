@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { AdminTopNotification } from "@/components/admin/admin-top-notification";
 import { DeleteDraftButton } from "@/components/admin/delete-draft-button";
 import { PropertyPublicationPanel } from "@/components/admin/property-publication-panel";
 import type { PropertyInterestedBuyers } from "@/features/crm/domain/contracts";
@@ -151,12 +152,11 @@ export function PropertyWorkspace({
       </header>
 
       {savedNotice ? (
-        <p
-          role="status"
-          className="rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-sm font-medium text-emerald-900"
-        >
-          Changes saved successfully.
-        </p>
+        <AdminTopNotification
+          type="success"
+          title="Changes saved successfully."
+          message="Your updates have been recorded."
+        />
       ) : null}
 
       {readiness ? (

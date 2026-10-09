@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useRef, useState } from "react";
-import { flushSync } from "react-dom";
+import { useActionState, useCallback, useEffect, useRef, useState } from "react";
 
+import { AdminTopNotification } from "@/components/admin/admin-top-notification";
 import { DeleteDraftButton } from "@/components/admin/delete-draft-button";
+import { usePropertyEditGuard } from "@/components/admin/property-edit-guard";
 import type { AdminPropertyReferenceData } from "@/features/admin/contracts";
 import {
   initialPropertyFormState,
@@ -19,243 +20,25 @@ type Props = Readonly<{
   references: AdminPropertyReferenceData;
   initialValues?: Readonly<Record<string, string | number | boolean | null | undefined>>;
   submitLabel: string;
-  allowTestPresets?: boolean;
   propertyId?: string;
   isPublished?: boolean;
   deleteAction?: (data: FormData) => Promise<void>;
+  onDirtyChange?: (isDirty: boolean) => void;
 }>;
 
 const inputClass =
   "mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm disabled:bg-slate-100";
 const labelClass = "text-sm font-semibold text-slate-800";
 
-function buildSampleData(
-  category: "AGRICULTURAL" | "NA" | "INDUSTRIAL",
-  references: AdminPropertyReferenceData,
-): Record<string, string | boolean> {
-  const districtId =
-    (category === "NA"
-      ? references.districts.find((d) => d.name.toLowerCase().includes("gandhinagar"))?.id
-      : references.districts.find((d) => d.name.toLowerCase().includes("ahmedabad"))?.id) ??
-    references.districts[0]?.id ??
-    "00000000-0000-4000-8000-000000000003";
-
-  const acreUnitId =
-    references.areaUnits.find((u) => u.code === "acre")?.id ??
-    references.areaUnits[0]?.id ??
-    "10000000-0000-4000-8000-000000000006";
-
-  const sqYdUnitId =
-    references.areaUnits.find((u) => u.code === "sq_yd")?.id ??
-    references.areaUnits[0]?.id ??
-    "10000000-0000-4000-8000-000000000003";
-
-  const sqMUnitId =
-    references.areaUnits.find((u) => u.code === "sq_m")?.id ??
-    references.areaUnits[0]?.id ??
-    "10000000-0000-4000-8000-000000000001";
-
-  const partyId = references.parties[0]?.id ?? "";
-  const testSuffix = Math.floor(100 + Math.random() * 900);
-
-  if (category === "NA") {
-    return {
-      landCategory: "NA",
-      primaryTransactionType: "BUY",
-      listingTitle: `Prime 1200 Sq Yd NA Commercial Plot in Gandhinagar #${testSuffix}`,
-      publicSlug: `prime-1200-sq-yd-na-commercial-plot-gandhinagar-${testSuffix}`,
-      shortDescription:
-        "NA commercial plot with recorded road frontage and available planning details.",
-      description:
-        "High-visibility non-agricultural plot with recorded commercial-use context, dual-road corner access, and available utility information. Confirm permissions for the intended project independently.",
-      districtId,
-      publicAddress: "Koba Circle, Gandhinagar Highway, Gandhinagar, Gujarat",
-      googleMapsEmbedUrl:
-        "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1000!2d72.63!3d23.16",
-      landmarkText: "Opposite Tech City Gate 1",
-      displayAreaValue: "1200",
-      displayAreaUnitId: sqYdUnitId,
-      priceMode: "EXACT_TOTAL",
-      priceAmount: "45000000",
-      priceMinimum: "",
-      priceMaximum: "",
-      pricePerUnit: "",
-      priceUnitId: "",
-      negotiable: false,
-      commercialTerms:
-        "Standard commercial settlement. Possession handed over upon registered sale deed.",
-      parcelLabel: "Commercial Plot CP-14",
-      parcelAreaValue: "1200",
-      parcelAreaUnitId: sqYdUnitId,
-      identifierType: "CITY_SURVEY_NUMBER",
-      identifierValue: "CS-8891",
-      identifierVisibility: "ADMIN_ONLY",
-      parcelNotesInternal: "NA order no. NA/2024/7711 verified with collectorate records.",
-      reservationStatus: "Commercial zone under TP Scheme 14",
-      roadReservationStatus: "24m TP road fully cleared",
-      planningPublicNotes: "Zoned Commercial High-Density (FSI 2.7).",
-      planningInternalNotes: "Fire and drainage documents received for internal review.",
-      tenureType: "",
-      irrigationStatus: "",
-      currentCultivationStatus: "",
-      roadTouch: false,
-      naStatus: "ORDER_ISSUED",
-      naPurpose: "Commercial / Office Complex",
-      developmentPermissionStatus: "OWNER_REPORTED_LAYOUT_PERMISSION",
-      frontageMetres: "32.5",
-      cornerPlot: true,
-      restrictionSummary: "Height permission up to 45m subject to standard aviation buffer.",
-      industrialSubtype: "",
-      industrialAuthorityName: "",
-      industrialTenure: "",
-      gidcPlotNumber: "",
-      powerStatus: "",
-      existingShedPresent: false,
-      connectivitySummary: "",
-      categoryRoadWidthMetres: "24",
-      partyId,
-      partyRole: "AUTHORIZED_REPRESENTATIVE",
-      ownershipSharePercent: partyId ? "100" : "",
-      partyNotesInternal: partyId ? "Power of attorney registered in Gandhinagar office." : "",
-      removePartyLink: false,
-      sourceType: "DIRECT_OWNER",
-      sourceName: "Sanjay Shah",
-      sourceReference: "Institutional broker network referral",
-      sourceNotesInternal: "Owner supplied a legal-review document; no title conclusion recorded.",
-    };
-  }
-
-  if (category === "INDUSTRIAL") {
-    return {
-      landCategory: "INDUSTRIAL",
-      primaryTransactionType: "LEASE",
-      listingTitle: `5000 Sq Metre Industrial GIDC Plot with Power Feeder #${testSuffix}`,
-      publicSlug: `5000-sq-m-industrial-gidc-plot-sanand-ii-${testSuffix}`,
-      shortDescription:
-        "GIDC industrial allotment with 300 kVA power sanction and heavy vehicle access.",
-      description:
-        "Ready-to-occupy industrial land parcel situated in GIDC Sanand II. Complete with industrial tenure approval, boundary wall, high-tension power connection, and proximity to national freight corridor.",
-      districtId,
-      publicAddress: "Engineering Zone, GIDC Phase II, Sanand, Ahmedabad, Gujarat",
-      googleMapsEmbedUrl:
-        "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1000!2d72.37!3d22.99",
-      landmarkText: "Near GIDC Water Treatment Facility",
-      displayAreaValue: "5000",
-      displayAreaUnitId: sqMUnitId,
-      priceMode: "EXACT_TOTAL",
-      priceAmount: "35000000",
-      priceMinimum: "",
-      priceMaximum: "",
-      pricePerUnit: "",
-      priceUnitId: "",
-      negotiable: true,
-      commercialTerms: "Transfer fee payable by transferee as per GIDC circular guidelines.",
-      parcelLabel: "GIDC Industrial Plot E-42",
-      parcelAreaValue: "5000",
-      parcelAreaUnitId: sqMUnitId,
-      identifierType: "GIDC_PLOT_NUMBER",
-      identifierValue: "Plot E-42/Sanand-II",
-      identifierVisibility: "ADMIN_ONLY",
-      parcelNotesInternal: "Allotment letter reference GIDC/RM/SAN/2023/108.",
-      reservationStatus: "GIDC Industrial Zone - Engineering & Auto Ancillary",
-      roadReservationStatus: "30m arterial industrial road",
-      planningPublicNotes: "Red / Orange category clearance permissible as per GPCB norms.",
-      planningInternalNotes: "GPCB consent to establish valid till 2028.",
-      tenureType: "",
-      irrigationStatus: "",
-      currentCultivationStatus: "",
-      roadTouch: false,
-      naStatus: "",
-      naPurpose: "",
-      developmentPermissionStatus: "",
-      frontageMetres: "",
-      cornerPlot: false,
-      restrictionSummary: "",
-      industrialSubtype: "ENGINEERING_PLOT",
-      industrialAuthorityName: "Gujarat Industrial Development Corporation (GIDC)",
-      industrialTenure: "99_YEAR_LEASE",
-      gidcPlotNumber: "Plot E-42",
-      powerStatus: "300 kVA dedicated transformer installed",
-      existingShedPresent: false,
-      connectivitySummary: "2 km from State Highway with direct container trailer turning radius.",
-      categoryRoadWidthMetres: "30",
-      partyId,
-      partyRole: "OWNER",
-      ownershipSharePercent: partyId ? "100" : "",
-      partyNotesInternal: partyId ? "Original lessee company representative." : "",
-      removePartyLink: false,
-      sourceType: "GOVERNMENT_ALLOTMENT",
-      sourceName: "GIDC Allotment Records",
-      sourceReference: "Allotment File SAN-II-E-42",
-      sourceNotesInternal: "Possession receipt and water connection active.",
-    };
-  }
-
-  // Default: AGRICULTURAL
-  return {
-    landCategory: "AGRICULTURAL",
-    primaryTransactionType: "BUY",
-    listingTitle: `Sanand 2.5 Acre Farmland Near Bavla Road #${testSuffix}`,
-    publicSlug: `sanand-2-5-acre-farmland-bavla-road-${testSuffix}`,
-    shortDescription:
-      "Fertile agricultural parcel with direct canal access and wide road frontage in Sanand.",
-    description:
-      "Agricultural parcel offered for farming or long-term land use, with recorded cultivation, water, and road information in Ahmedabad district. Buyers should confirm suitability and permissions for their intended use.",
-    districtId,
-    publicAddress: "Sanand-Bavla Road, Sanand, Ahmedabad, Gujarat",
-    googleMapsEmbedUrl:
-      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1000!2d72.38!3d22.98",
-    landmarkText: "Near GIDC Gate 2",
-    displayAreaValue: "2.5",
-    displayAreaUnitId: acreUnitId,
-    priceMode: "EXACT_TOTAL",
-    priceAmount: "12500000",
-    priceMinimum: "",
-    priceMaximum: "",
-    pricePerUnit: "",
-    priceUnitId: "",
-    negotiable: true,
-    commercialTerms: "10% token upon agreement to sell; balance at registered sale deed execution.",
-    parcelLabel: "Block A - Main Farmland",
-    parcelAreaValue: "2.5",
-    parcelAreaUnitId: acreUnitId,
-    identifierType: "SURVEY_NUMBER",
-    identifierValue: "Survey 142/P",
-    identifierVisibility: "ADMIN_ONLY",
-    parcelNotesInternal: "7/12 record received; no title conclusion recorded.",
-    reservationStatus: "OWNER_REPORTED_NO_TP_RESERVATION",
-    roadReservationStatus: "18m proposed TP road on west boundary",
-    planningPublicNotes: "No green belt or defense buffer zone restrictions.",
-    planningInternalNotes: "Cross-checked against AUDA Development Plan 2031.",
-    tenureType: "OLD_TENURE",
-    irrigationStatus: "CANAL_AND_BOREWELL",
-    currentCultivationStatus: "Active seasonal cotton and wheat",
-    roadTouch: true,
-    naStatus: "",
-    naPurpose: "",
-    developmentPermissionStatus: "",
-    frontageMetres: "",
-    cornerPlot: false,
-    restrictionSummary: "",
-    industrialSubtype: "",
-    industrialAuthorityName: "",
-    industrialTenure: "",
-    gidcPlotNumber: "",
-    powerStatus: "",
-    existingShedPresent: false,
-    connectivitySummary: "",
-    categoryRoadWidthMetres: "12",
-    partyId,
-    partyRole: "OWNER",
-    ownershipSharePercent: partyId ? "100" : "",
-    partyNotesInternal: partyId ? "Primary titleholder registered in revenue records." : "",
-    removePartyLink: false,
-    sourceType: "DIRECT_OWNER",
-    sourceName: "Rameshbhai Patel",
-    sourceReference: "Direct landowner intake audit 2026",
-    sourceNotesInternal:
-      "Initial documents received and reviewed in person; no legal conclusion recorded.",
-  };
+function formSnapshot(form: HTMLFormElement) {
+  return JSON.stringify(
+    [...new FormData(form).entries()]
+      .filter(([name]) => name !== "submitIntent")
+      .map(([name, value]) => [name, typeof value === "string" ? value : value.name])
+      .sort(([leftName, leftValue], [rightName, rightValue]) =>
+        `${leftName}:${leftValue}`.localeCompare(`${rightName}:${rightValue}`),
+      ),
+  );
 }
 
 export function PropertyDraftForm({
@@ -263,15 +46,17 @@ export function PropertyDraftForm({
   references,
   initialValues = {},
   submitLabel,
-  allowTestPresets = false,
   propertyId,
   isPublished = false,
   deleteAction,
+  onDirtyChange,
 }: Props) {
   const [state, formAction, pending] = useActionState(action, initialPropertyFormState);
   const formRef = useRef<HTMLFormElement>(null);
   const submissionStarted = useRef(false);
-  const [sampleNotice, setSampleNotice] = useState<string | null>(null);
+  const initialFormSnapshot = useRef<string | null>(null);
+  const editGuard = usePropertyEditGuard();
+  const [isDirty, setIsDirty] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(
     String(initialValues.landCategory ?? "AGRICULTURAL"),
   );
@@ -285,56 +70,35 @@ export function PropertyDraftForm({
     if (!pending) submissionStarted.current = false;
   }, [pending, state]);
 
-  const applyValuesToForm = (values: Record<string, string | boolean>) => {
+  useEffect(() => {
     const form = formRef.current;
     if (!form) return;
+    initialFormSnapshot.current = formSnapshot(form);
+  }, []);
 
-    for (const [key, val] of Object.entries(values)) {
-      const item = form.elements.namedItem(key);
-      if (!item) continue;
+  useEffect(() => {
+    editGuard?.setDirty(isDirty);
+    onDirtyChange?.(isDirty);
+  }, [editGuard, isDirty, onDirtyChange]);
 
-      if (item instanceof HTMLInputElement && item.type === "checkbox") {
-        item.checked = Boolean(val);
-        item.dispatchEvent(new Event("change", { bubbles: true }));
-      } else if (
-        item instanceof HTMLInputElement ||
-        item instanceof HTMLSelectElement ||
-        item instanceof HTMLTextAreaElement
-      ) {
-        item.value = String(val);
-        item.dispatchEvent(new Event("input", { bubbles: true }));
-        item.dispatchEvent(new Event("change", { bubbles: true }));
-      }
-    }
-  };
-
-  const handleFillSample = (category: "AGRICULTURAL" | "NA" | "INDUSTRIAL" = "AGRICULTURAL") => {
-    const data = buildSampleData(category, references);
-    flushSync(() => {
-      setSelectedCategory(category);
-      setMapInput(String(data.googleMapsEmbedUrl ?? ""));
-    });
-    applyValuesToForm(data);
-    const categoryLabels = {
-      AGRICULTURAL: "Agricultural Farmland",
-      NA: "NA Commercial",
-      INDUSTRIAL: "Industrial Plot",
+  useEffect(() => {
+    const warnBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!isDirty || submissionStarted.current) return;
+      event.preventDefault();
+      event.returnValue = true;
     };
-    setSampleNotice(
-      `✓ Form prefilled with ${categoryLabels[category]} example data! All fields populated. Click "${submitLabel}" below to save.`,
-    );
-  };
+    window.addEventListener("beforeunload", warnBeforeUnload);
+    return () => window.removeEventListener("beforeunload", warnBeforeUnload);
+  }, [isDirty]);
 
-  const handleClearForm = () => {
-    const form = formRef.current;
-    if (!form) return;
-    form.reset();
-    flushSync(() => {
-      setSelectedCategory(String(initialValues.landCategory ?? "AGRICULTURAL"));
-      setMapInput(String(initialValues.googleMapsEmbedUrl ?? ""));
+  const updateDirtyState = useCallback(() => {
+    window.queueMicrotask(() => {
+      const form = formRef.current;
+      const initial = initialFormSnapshot.current;
+      if (!form || initial === null) return;
+      setIsDirty(formSnapshot(form) !== initial);
     });
-    setSampleNotice("Form cleared.");
-  };
+  }, []);
 
   const input = (
     name: string,
@@ -364,6 +128,8 @@ export function PropertyDraftForm({
       action={formAction}
       className="space-y-6"
       noValidate
+      onInput={updateDirtyState}
+      onChange={updateDirtyState}
       onSubmit={(event) => {
         if (submissionStarted.current) {
           event.preventDefault();
@@ -372,86 +138,14 @@ export function PropertyDraftForm({
         submissionStarted.current = true;
       }}
     >
-      {/* Testing helper toolbar (rendered strictly in non-production environments) */}
-      {allowTestPresets ? (
-        <div
-          data-testid="test-fill-helper"
-          className="rounded-xl border border-amber-300 bg-amber-50/90 p-4 shadow-sm"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-amber-500 text-white font-bold text-sm shadow-sm">
-                ⚡
-              </span>
-              <div>
-                <p className="text-sm font-bold text-amber-950">Test Form Prefill</p>
-                <p className="text-xs text-amber-800">
-                  Populate all fields with a realistic, schema-valid Gujarat property example in one
-                  click.
-                </p>
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                id="btn-fill-sample-draft"
-                data-testid="btn-fill-sample-draft"
-                onClick={() => handleFillSample("AGRICULTURAL")}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--brand-gold-deep,#996b00)] px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:brightness-110 active:scale-95 transition"
-              >
-                <span>⚡ Fill sample draft (Agricultural)</span>
-              </button>
-              <button
-                type="button"
-                data-testid="btn-fill-sample-na"
-                onClick={() => handleFillSample("NA")}
-                className="inline-flex items-center gap-1 rounded-lg border border-amber-400 bg-white px-3 py-2 text-xs font-semibold text-amber-900 hover:bg-amber-100/50 active:scale-95 transition"
-              >
-                <span>NA sample</span>
-              </button>
-              <button
-                type="button"
-                data-testid="btn-fill-sample-industrial"
-                onClick={() => handleFillSample("INDUSTRIAL")}
-                className="inline-flex items-center gap-1 rounded-lg border border-amber-400 bg-white px-3 py-2 text-xs font-semibold text-amber-900 hover:bg-amber-100/50 active:scale-95 transition"
-              >
-                <span>Industrial sample</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleClearForm}
-                className="rounded-lg px-2.5 py-2 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-amber-200/50 transition"
-              >
-                Reset
-              </button>
-            </div>
-          </div>
-          {sampleNotice ? (
-            <div
-              role="status"
-              className="mt-3 flex items-center justify-between rounded-lg border border-amber-200 bg-amber-100/70 px-3 py-2 text-xs font-medium text-amber-900"
-            >
-              <span>{sampleNotice}</span>
-              <button
-                type="button"
-                onClick={() => setSampleNotice(null)}
-                className="text-amber-700 hover:text-amber-950 font-bold ml-2"
-                aria-label="Dismiss notice"
-              >
-                ✕
-              </button>
-            </div>
-          ) : null}
-        </div>
-      ) : null}
-
       {state.message ? (
-        <p
-          role="status"
-          className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950"
-        >
-          {state.message}
-        </p>
+        <AdminTopNotification
+          key={`${state.ok}-${state.message}`}
+          type={state.ok ? "success" : "error"}
+          title={state.ok ? "Changes saved successfully." : "We couldn't save your changes."}
+          message={state.message}
+          autoDismissMs={state.ok ? 6500 : 9000}
+        />
       ) : null}
 
       <FormSection
@@ -929,23 +623,8 @@ export function PropertyDraftForm({
         </label>
       </FormSection>
 
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <p className="text-sm text-slate-600">
-          {isPublished
-            ? "Saving updates the live listing and returns you to the property workspace."
-            : "Saving keeps this property private. Continue when you are ready to add photos and secure documents."}
-        </p>
-        <div className="flex flex-wrap items-center gap-3">
-          {allowTestPresets ? (
-            <button
-              type="button"
-              data-testid="btn-bottom-prefill"
-              onClick={() => handleFillSample("AGRICULTURAL")}
-              className="rounded-lg border border-amber-400 bg-amber-50 px-3.5 py-2 text-xs font-bold text-amber-950 hover:bg-amber-100 active:scale-95 transition"
-            >
-              ⚡ Prefill test data
-            </button>
-          ) : null}
+      <div className="flex flex-col gap-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="sm:min-w-32">
           {deleteAction && propertyId ? (
             <DeleteDraftButton
               propertyId={propertyId}
@@ -957,29 +636,47 @@ export function PropertyDraftForm({
               buttonText={isPublished ? "Delete property" : "Delete draft"}
             />
           ) : null}
-          <Link className="rounded-lg px-4 py-2 text-sm font-semibold" href="/admin/properties">
-            Cancel
-          </Link>
-          <button
-            className="button button-secondary disabled:opacity-60"
-            disabled={pending}
-            name="submitIntent"
-            type="submit"
-            value="save-draft"
+        </div>
+        <div className="flex flex-col gap-3 sm:items-end lg:flex-row lg:items-center">
+          <span
+            className={`inline-flex w-fit items-center gap-2 rounded-full px-3 py-1 text-xs font-bold ${
+              isPublished ? "bg-emerald-50 text-emerald-800" : "bg-slate-100 text-slate-700"
+            }`}
           >
-            {pending ? "Saving…" : submitLabel}
-          </button>
-          {!isPublished ? (
+            <span
+              aria-hidden="true"
+              className={isPublished ? "text-emerald-600" : "text-slate-500"}
+            >
+              ●
+            </span>
+            {isPublished ? "Live on website" : "Draft listing"}
+          </span>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:text-slate-950"
+              href="/admin/properties"
+            >
+              Cancel
+            </Link>
+            <button
+              className="button button-secondary disabled:opacity-60"
+              disabled={pending}
+              type="submit"
+              name="submitIntent"
+              value="save-next"
+            >
+              {pending ? "Saving…" : "Save & Next →"}
+            </button>
             <button
               className="button button-primary disabled:opacity-60"
               disabled={pending}
               name="submitIntent"
               type="submit"
-              value="save-next"
+              value="save-draft"
             >
-              {pending ? "Saving…" : "Save & Next →"}
+              {pending ? "Saving…" : submitLabel}
             </button>
-          ) : null}
+          </div>
         </div>
       </div>
     </form>

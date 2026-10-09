@@ -59,6 +59,12 @@ function draftDestination(propertyId: string, formData: FormData) {
     : `/admin/properties/${propertyId}?saved=1`;
 }
 
+function updatedDraftDestination(propertyId: string, formData: FormData) {
+  return text(formData, "submitIntent") === "save-next"
+    ? `/admin/properties/${propertyId}/media?saved=1`
+    : `/admin/properties/${propertyId}/edit?saved=1`;
+}
+
 function retainedValues(formData: FormData): Record<string, string> {
   return Object.fromEntries(
     [...formData.entries()]
@@ -225,7 +231,9 @@ function failureState(error: unknown, formData: FormData): PropertyFormState {
     message:
       error instanceof PropertyDraftConflictError
         ? error.message
-        : "The draft could not be saved. Please review the form and try again.",
+        : error instanceof Error
+          ? error.message
+          : "The property could not be saved. Please review the form and try again.",
     errors: {},
     values: retainedValues(formData),
   };
@@ -240,6 +248,10 @@ export async function createPropertyDraftAction(
   try {
     propertyId = await createPropertyDraft(parsePropertyDraftForm(formData));
   } catch (error) {
+    console.error("[Property Draft Save Error]", {
+      operation: "create",
+      error,
+    });
     return failureState(error, formData);
   }
   revalidatePath("/admin/properties");
@@ -258,16 +270,21 @@ export async function updatePropertyDraftAction(
   try {
     await updatePropertyDraft(propertyId, expectedUpdatedAt, parsePropertyDraftForm(formData));
   } catch (error) {
+    console.error("[Property Draft Save Error]", {
+      operation: "update",
+      propertyId,
+      error,
+    });
     return failureState(error, formData);
   }
   if (wasPublished) {
     refreshPublicProperty(propertyId, publicSlug ?? undefined);
-    redirect(`/admin/properties/${propertyId}?saved=1`);
+  } else {
+    revalidatePath("/admin/properties");
+    revalidatePath(`/admin/properties/${propertyId}`);
+    revalidatePath(`/admin/properties/${propertyId}/edit`);
   }
-  revalidatePath("/admin/properties");
-  revalidatePath(`/admin/properties/${propertyId}`);
-  revalidatePath(`/admin/properties/${propertyId}/edit`);
-  redirect(draftDestination(propertyId, formData));
+  redirect(updatedDraftDestination(propertyId, formData));
 }
 
 export async function changeAvailabilityAction(formData: FormData) {

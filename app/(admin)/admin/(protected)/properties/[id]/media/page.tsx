@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { AdminTopNotification } from "@/components/admin/admin-top-notification";
 import { PropertyMediaManager } from "@/components/admin/property-media-manager";
 import { PropertyWorkflow } from "@/components/admin/property-workflow";
 import { requireActiveAdminPage } from "@/server/auth/require-admin-page";
@@ -20,8 +21,13 @@ export const dynamic = "force-dynamic";
 
 export default async function PropertyMediaPage({
   params,
-}: Readonly<{ params: Promise<{ id: string }> }>) {
+  searchParams,
+}: Readonly<{
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ saved?: string }>;
+}>) {
   const { id } = await params;
+  const query = await searchParams;
   await requireActiveAdminPage();
   const [property, media] = await Promise.all([
     getAdminProperty(id),
@@ -34,6 +40,13 @@ export default async function PropertyMediaPage({
   );
   return (
     <div className="mx-auto max-w-6xl">
+      {query.saved === "1" ? (
+        <AdminTopNotification
+          type="success"
+          title="Changes saved successfully."
+          message="Your updates have been recorded."
+        />
+      ) : null}
       <PropertyWorkflow
         currentStep="media"
         propertyId={id}

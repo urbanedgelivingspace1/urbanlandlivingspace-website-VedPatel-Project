@@ -188,6 +188,7 @@ export type PublicVerificationSummaryDto = Readonly<{
 
 export type PublicPropertyDetailDto = PublicPropertyCardDto &
   Readonly<{
+    publicAddress?: string | null;
     description: string | null;
     googleMapsEmbedUrl: string | null;
     seo: Readonly<{

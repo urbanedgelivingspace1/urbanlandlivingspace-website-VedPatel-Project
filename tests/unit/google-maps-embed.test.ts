@@ -53,6 +53,27 @@ describe("Google Maps embed validation", () => {
     });
   });
 
+  it("accepts multiline and self-closing iframe markup with encoded query separators", () => {
+    const multiline = `
+      <iframe
+        width="640"
+        src="https://www.google.com/maps/d/embed?mid=multiline-map&amp;ehbc=2E312F"
+        height="480"
+      ></iframe>
+    `;
+    const selfClosing =
+      '<iframe src="https://www.google.com/maps/embed?pb=self-closing-map" loading="lazy" />';
+
+    expect(parseGoogleMapsEmbedInput(multiline)).toEqual({
+      ok: true,
+      url: "https://www.google.com/maps/d/embed?mid=multiline-map&ehbc=2E312F",
+    });
+    expect(parseGoogleMapsEmbedInput(selfClosing)).toEqual({
+      ok: true,
+      url: "https://www.google.com/maps/embed?pb=self-closing-map",
+    });
+  });
+
   it("rejects a Google My Maps embed without a map id", () => {
     expect(isSafeGoogleMapsEmbedUrl("https://www.google.com/maps/d/embed?ehbc=2E312F")).toBe(false);
   });

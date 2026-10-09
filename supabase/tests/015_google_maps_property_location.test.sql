@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(14);
+select plan(18);
 
 select has_column(
   'public',
@@ -145,6 +145,39 @@ select is(
   'a published visible location exposes only its approved embed URL'
 );
 
+set local role service_role;
+select lives_ok(
+  format(
+    $$select public.save_property_draft(%L, %L, '15000000-0000-4000-8000-000000000001', %L::jsonb)$$,
+    (select id from map_property),
+    (select updated_at from public.properties where id = (select id from map_property)),
+    jsonb_build_object(
+      'landCategory', 'AGRICULTURAL',
+      'primaryTransactionType', 'BUY',
+      'listingTitle', 'Synthetic published property edited',
+      'publicAddress', 'PDPU Road, Raysan, Gandhinagar',
+      'googleMapsEmbedUrl', 'https://www.google.com/maps/embed?pb=synthetic-published',
+      'districtId', '00000000-0000-4000-8000-000000000003',
+      'displayAreaValue', 2,
+      'displayAreaUnitId', '10000000-0000-4000-8000-000000000006',
+      'categoryDetails', jsonb_build_object('landCategory', 'AGRICULTURAL')
+    )::text
+  ),
+  'published properties can be updated through the admin save transaction'
+);
+reset role;
+
+select is(
+  (select publication_status::text from public.properties where id = (select id from map_property)),
+  'PUBLISHED',
+  'editing a published property preserves its publication status'
+);
+select is(
+  (select google_maps_embed_url from public.properties where id = (select id from map_property)),
+  'https://www.google.com/maps/embed?pb=synthetic-published',
+  'editing a published property saves its Google Maps embed URL'
+);
+
 update public.property_locations
 set location_visibility = 'HIDDEN', public_latitude = null, public_longitude = null
 where property_id = (select id from map_property);
@@ -157,6 +190,33 @@ select is(
   1,
   'a saved Google Maps embed remains public independently of legacy coordinate visibility'
 );
+
+update public.properties
+set publication_status = 'ARCHIVED', availability_status = 'OFF_MARKET', archived_at = now()
+where id = (select id from map_property);
+
+set local role service_role;
+select throws_ok(
+  format(
+    $$select public.save_property_draft(%L, %L, '15000000-0000-4000-8000-000000000001', %L::jsonb)$$,
+    (select id from map_property),
+    (select updated_at from public.properties where id = (select id from map_property)),
+    jsonb_build_object(
+      'landCategory', 'AGRICULTURAL',
+      'primaryTransactionType', 'BUY',
+      'listingTitle', 'Archived property edit attempt',
+      'districtId', '00000000-0000-4000-8000-000000000003',
+      'displayAreaValue', 2,
+      'displayAreaUnitId', '10000000-0000-4000-8000-000000000006',
+      'categoryDetails', jsonb_build_object('landCategory', 'AGRICULTURAL')
+    )::text
+  ),
+  'P0001',
+  'Archived properties cannot be edited directly. Restore the property first.',
+  'archived properties must be restored before they can be edited'
+);
+reset role;
+
 select ok(
   not has_function_privilege(
     'authenticated',

@@ -13,7 +13,7 @@ const propertyId = "20000000-0000-4000-8000-000000000001";
 afterEach(cleanup);
 
 describe("PropertyWorkflow", () => {
-  it("marks prior steps complete, the active step current, and future steps unavailable", () => {
+  it("marks prior steps complete and makes every non-current step available", () => {
     render(
       <PropertyWorkflow currentStep="preview" propertyId={propertyId}>
         <p>Preview content</p>
@@ -24,9 +24,12 @@ describe("PropertyWorkflow", () => {
     expect(workflow).toHaveTextContent("Property DetailsCompleted");
     expect(workflow).toHaveTextContent("Photos & DocumentsCompleted");
     expect(workflow).toHaveTextContent("PreviewCurrent step");
-    expect(workflow).toHaveTextContent("PublishUpcoming");
+    expect(workflow).toHaveTextContent("PublishAvailable");
     expect(screen.getByText("Preview").closest("div")).toHaveAttribute("aria-current", "step");
-    expect(screen.queryByRole("link", { name: /Publish Upcoming/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /PublishAvailable/ })).toHaveAttribute(
+      "href",
+      `/admin/properties/${propertyId}/publish`,
+    );
   });
 
   it("marks Publish complete only for an actually published property", () => {

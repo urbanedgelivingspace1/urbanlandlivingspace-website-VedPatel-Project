@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 
+import { usePropertyEditGuard } from "@/components/admin/property-edit-guard";
 import {
   humanizePublicationIssue,
   type PublicationReadiness,
@@ -25,14 +28,17 @@ export function PropertyWorkflow({
   currentStep,
   propertyId,
   isPublished = false,
+  onNavigateStep,
   children,
 }: Readonly<{
   currentStep: PropertyWorkflowStep;
   propertyId?: string;
   isPublished?: boolean;
+  onNavigateStep?: (step: PropertyWorkflowStep, href: string) => boolean | void;
   children: React.ReactNode;
 }>) {
   const currentIndex = propertyWorkflowSteps.indexOf(currentStep);
+  const editGuard = usePropertyEditGuard();
 
   return (
     <div className="space-y-6">
@@ -41,6 +47,7 @@ export function PropertyWorkflow({
           {propertyWorkflowSteps.map((step, index) => {
             const isCurrent = step === currentStep;
             const isComplete = index < currentIndex || (step === "publish" && isPublished);
+            const isAvailable = Boolean(propertyId && !isCurrent);
             const content = (
               <>
                 <span
@@ -60,7 +67,13 @@ export function PropertyWorkflow({
                     {stepLabels[step]}
                   </span>
                   <span className="mt-0.5 block text-[0.6875rem] font-medium opacity-75">
-                    {isComplete ? "Completed" : isCurrent ? "Current step" : "Upcoming"}
+                    {isComplete
+                      ? "Completed"
+                      : isCurrent
+                        ? "Current step"
+                        : isAvailable
+                          ? "Available"
+                          : "Upcoming"}
                   </span>
                 </span>
               </>
@@ -70,13 +83,26 @@ export function PropertyWorkflow({
                 ? "admin-workflow-current"
                 : isComplete
                   ? "bg-emerald-50 text-emerald-950 hover:bg-emerald-100"
-                  : "bg-slate-100 text-slate-500"
+                  : isAvailable
+                    ? "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    : "bg-slate-100 text-slate-500"
             }`;
 
             return (
               <li key={step}>
-                {isComplete && !isCurrent && propertyId ? (
-                  <Link className={className} href={stepHref(propertyId, step)}>
+                {!isCurrent && propertyId ? (
+                  <Link
+                    className={className}
+                    href={stepHref(propertyId, step)}
+                    onClick={(event) => {
+                      const href = stepHref(propertyId, step);
+                      if (onNavigateStep?.(step, href) === false) {
+                        event.preventDefault();
+                        return;
+                      }
+                      if (editGuard && !editGuard.requestNavigation()) event.preventDefault();
+                    }}
+                  >
                     {content}
                   </Link>
                 ) : (

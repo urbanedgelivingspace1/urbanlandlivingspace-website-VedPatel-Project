@@ -16,7 +16,8 @@ function decodeHtmlAttribute(value: string): string {
     .replaceAll("&#38;", "&")
     .replaceAll("&#x26;", "&")
     .replaceAll("&quot;", '"')
-    .replaceAll("&#39;", "'");
+    .replaceAll("&#39;", "'")
+    .replaceAll("&apos;", "'");
 }
 
 export function isSafeGoogleMapsEmbedUrl(value: string): boolean {
@@ -71,10 +72,11 @@ export function parseGoogleMapsEmbedInput(input: string): GoogleMapsEmbedParseRe
 
   let candidate = trimmed;
   if (trimmed.startsWith("<")) {
-    if (!/^<iframe\b[^>]*>\s*<\/iframe>$/i.test(trimmed) || /<script\b/i.test(trimmed)) {
+    const iframe = trimmed.match(/^<iframe\b(?<attributes>[^>]*?)(?:\/\s*>|>\s*<\/iframe>)$/is);
+    if (!iframe?.groups?.attributes || /<script\b/i.test(trimmed)) {
       return { ok: false, error: GOOGLE_MAPS_EMBED_ERROR };
     }
-    const source = trimmed.match(/\bsrc\s*=\s*(["'])(.*?)\1/i)?.[2];
+    const source = iframe.groups.attributes.match(/\bsrc\s*=\s*(["'])(.*?)\1/is)?.[2];
     if (!source) {
       return {
         ok: false,

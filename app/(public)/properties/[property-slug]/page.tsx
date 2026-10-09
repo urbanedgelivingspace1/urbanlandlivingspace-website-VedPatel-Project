@@ -201,15 +201,22 @@ export default async function PropertyDetailPage({ params }: Props) {
 
             <section className="detail-section" aria-labelledby="location-heading">
               <p className="eyebrow">{t("property.location")}</p>
-              <h2 id="location-heading">{t("property.location")}</h2>
-              <p className="section-copy location-title">
-                {property.location.label || t("property.locationHidden")}
-              </p>
-              <div className="mt-6">
+              <h2 id="location-heading">{t("property.propertyLocation")}</h2>
+              <div className="location-card mt-6">
+                <div className="location-card-header">
+                  <div className="flex items-center gap-2.5">
+                    <LocationIcon className="size-5 shrink-0 text-[var(--brand-gold-deep,#996b00)]" />
+                    <h3 className="location-title">
+                      {property.publicAddress ||
+                        property.location.label ||
+                        t("property.locationHidden")}
+                    </h3>
+                  </div>
+                </div>
                 {property.googleMapsEmbedUrl ? (
                   <GoogleMapsEmbed
                     url={property.googleMapsEmbedUrl}
-                    title={property.location.label || property.title}
+                    title={property.publicAddress || property.location.label || property.title}
                   />
                 ) : (
                   <div className="map-fallback">

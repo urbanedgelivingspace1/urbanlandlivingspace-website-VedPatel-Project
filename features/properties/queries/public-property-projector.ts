@@ -220,6 +220,7 @@ export function projectPublicPropertyDetail(
 ): PublicPropertyDetailDto {
   return {
     ...projectPublicPropertyCard(row),
+    publicAddress: row.public_address,
     description: row.description,
     googleMapsEmbedUrl,
     seo: {
