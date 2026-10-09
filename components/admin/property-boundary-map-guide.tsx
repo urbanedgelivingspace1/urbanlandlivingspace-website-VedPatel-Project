@@ -82,7 +82,12 @@ export function PropertyBoundaryMapGuideDialog({ open, onClose }: Props) {
         <div className="flex items-start justify-between border-b border-slate-200 bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 px-6 py-5 text-white">
           <div className="pr-4">
             <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-3 py-0.5 text-xs font-semibold text-emerald-300 ring-1 ring-inset ring-emerald-400/30">
-              <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <svg
+                className="h-3.5 w-3.5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
                 <path
                   fillRule="evenodd"
                   d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.587a14.28 14.28 0 002.274 1.765c.311.193.571.337.757.433.092.047.17.086.23.116.03.015.053.025.07.033l.006.003.002.001zM10 13a4 4 0 100-8 4 4 0 000 8z"
@@ -91,7 +96,10 @@ export function PropertyBoundaryMapGuideDialog({ open, onClose }: Props) {
               </svg>
               Google My Maps Guide
             </div>
-            <h2 id={titleId} className="mt-2 text-xl font-bold tracking-tight text-white sm:text-2xl">
+            <h2
+              id={titleId}
+              className="mt-2 text-xl font-bold tracking-tight text-white sm:text-2xl"
+            >
               How to Create & Embed Boundary Maps
             </h2>
             <p className="mt-1 text-xs text-slate-300 sm:text-sm">
@@ -168,14 +176,12 @@ export function PropertyBoundaryMapGuideDialog({ open, onClose }: Props) {
               <li>
                 Click the <strong>Create a New Map</strong> button in the top left.
               </li>
-              <li>
-                Search for your property address or GPS coordinate pin to locate the land.
-              </li>
+              <li>Search for your property address or GPS coordinate pin to locate the land.</li>
               <li>
                 Zoom in closely until you clearly see property lines or structures.{" "}
                 <span className="text-slate-500">
-                  (Tip: Switch the base map at the bottom of the left panel to <strong>Satellite</strong>{" "}
-                  view to easily spot fences, roads, and landmarks).
+                  (Tip: Switch the base map at the bottom of the left panel to{" "}
+                  <strong>Satellite</strong> view to easily spot fences, roads, and landmarks).
                 </span>
               </li>
             </ul>
@@ -191,24 +197,22 @@ export function PropertyBoundaryMapGuideDialog({ open, onClose }: Props) {
             </div>
             <ul className="mt-3 list-inside list-disc space-y-1.5 pl-2 text-xs leading-relaxed text-slate-600 sm:text-sm">
               <li>
-                Click the <strong>Draw a line</strong> icon (small inverted &apos;V&apos; with dots below
-                the main search bar) and select <strong>Add line or shape</strong>.
+                Click the <strong>Draw a line</strong> icon (small inverted &apos;V&apos; with dots
+                below the main search bar) and select <strong>Add line or shape</strong>.
               </li>
               <li>
                 Click on the first corner of your property, then click sequentially on each
                 subsequent corner to trace the perimeter.
               </li>
-              <li>
-                Close the shape by clicking back on your very first starting point.
-              </li>
+              <li>Close the shape by clicking back on your very first starting point.</li>
               <li>
                 A box will pop up. Name the shape (e.g. <em>&quot;Property Boundary&quot;</em>) and
                 click <strong>Save</strong>.
               </li>
               <li>
                 Click the <strong>Paint Bucket</strong> icon on that shape: choose border thickness,
-                pick a bright highlight color (like red or yellow), and adjust the fill transparency so
-                buyers can clearly see the ground underneath.
+                pick a bright highlight color (like red or yellow), and adjust the fill transparency
+                so buyers can clearly see the ground underneath.
               </li>
             </ul>
           </div>
@@ -243,9 +247,9 @@ export function PropertyBoundaryMapGuideDialog({ open, onClose }: Props) {
               </li>
             </ul>
             <div className="mt-3 rounded-lg bg-emerald-50/80 p-3 text-xs text-emerald-900 border border-emerald-200">
-              <strong>Buyer Experience:</strong> When buyers open the listing, they will see your custom
-              highlighted polygon laid directly over Google Maps, allowing them to clearly understand
-              the layout, acreage context, and surrounding area.
+              <strong>Buyer Experience:</strong> When buyers open the listing, they will see your
+              custom highlighted polygon laid directly over Google Maps, allowing them to clearly
+              understand the layout, acreage context, and surrounding area.
             </div>
           </div>
 
@@ -266,8 +270,9 @@ export function PropertyBoundaryMapGuideDialog({ open, onClose }: Props) {
               <div className="rounded-lg bg-white p-3 border border-slate-200">
                 <p className="font-semibold text-slate-800">📍 Exact Corner Coordinates</p>
                 <p className="mt-1 leading-normal">
-                  If you have latitude &amp; longitude coordinates from property survey papers, paste
-                  each pair into the search bar to place marker pins, then snap your line between them.
+                  If you have latitude &amp; longitude coordinates from property survey papers,
+                  paste each pair into the search bar to place marker pins, then snap your line
+                  between them.
                 </p>
               </div>
             </div>
@@ -363,14 +368,15 @@ export function PropertyBoundaryMapQuickGuide({
             base map to <em>Satellite</em>.
           </li>
           <li>
-            <strong>Draw &amp; highlight shape:</strong> Click <em>Draw a line</em> icon &rarr; <em>Add line or shape</em>.
-            Click each corner around property perimeter and click start point to close. Name it &quot;Property Boundary&quot;,
-            save, and use the <em>Paint Bucket</em> to pick bright border color and fill transparency.
+            <strong>Draw &amp; highlight shape:</strong> Click <em>Draw a line</em> icon &rarr;{" "}
+            <em>Add line or shape</em>. Click each corner around property perimeter and click start
+            point to close. Name it &quot;Property Boundary&quot;, save, and use the{" "}
+            <em>Paint Bucket</em> to pick bright border color and fill transparency.
           </li>
           <li>
             <strong>Share &amp; paste:</strong> Click <em>Share</em> &rarr; turn ON{" "}
-            <em>&quot;Anyone with this link can view&quot;</em>. Copy the share link (or click ⋮ &rarr;{" "}
-            <em>Embed on my site</em>) and paste it into the field above.
+            <em>&quot;Anyone with this link can view&quot;</em>. Copy the share link (or click ⋮
+            &rarr; <em>Embed on my site</em>) and paste it into the field above.
           </li>
         </ol>
         <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">

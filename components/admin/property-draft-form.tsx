@@ -355,7 +355,9 @@ export function PropertyDraftForm({
             onChange={(event) => setMapInput(event.target.value)}
           />
           <div className="mt-1 flex flex-wrap items-center justify-between gap-1 text-xs text-slate-500">
-            <span>Supports Google My Maps share links, embed URLs, and copied &lt;iframe&gt; code.</span>
+            <span>
+              Supports Google My Maps share links, embed URLs, and copied &lt;iframe&gt; code.
+            </span>
             <button
               type="button"
               onClick={() => setIsMapGuideOpen(true)}

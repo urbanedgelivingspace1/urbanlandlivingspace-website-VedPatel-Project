@@ -221,7 +221,9 @@ describe("PropertyDraftForm", () => {
       screen.getByRole("heading", { name: "How to Create & Embed Boundary Maps" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Create the Boundary Map" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Draw and Highlight the Area" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Draw and Highlight the Area" }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Share & Paste Link into UrbanEdge" }),
     ).toBeInTheDocument();
