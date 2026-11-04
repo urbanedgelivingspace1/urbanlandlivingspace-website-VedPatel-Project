@@ -160,3 +160,33 @@ describe("M7 document validation", () => {
     );
   });
 });
+
+describe("property video poster normalization", () => {
+  it("accepts a screenshot below gallery dimensions, strips metadata, and emits a bounded WebP", async () => {
+    const { normalizePublicPropertyImage } = await import("@/server/storage/image-processing");
+    const bytes = await sharp({
+      create: { width: 1920, height: 1080, channels: 3, background: "navy" },
+    })
+      .withExif({ IFD0: { Copyright: "Synthetic metadata" } })
+      .jpeg()
+      .toBuffer();
+    const poster = await normalizePublicPropertyImage(
+      new File([new Uint8Array(bytes)], "screenshot.jpg", { type: "image/jpeg" }),
+      { poster: true },
+    );
+    const metadata = await sharp(poster.bytes).metadata();
+    expect(poster.mimeType).toBe("image/webp");
+    expect(Math.max(poster.width, poster.height)).toBeLessThanOrEqual(1280);
+    expect(metadata.exif).toBeUndefined();
+    const small = await sharp({
+      create: { width: 640, height: 360, channels: 3, background: "gold" },
+    })
+      .png()
+      .toBuffer();
+    const screenshot = new File([new Uint8Array(small)], "small.png", { type: "image/png" });
+    await expect(normalizePublicPropertyImage(screenshot, { poster: true })).resolves.toMatchObject(
+      { mimeType: "image/webp" },
+    );
+    await expect(normalizePublicPropertyImage(screenshot)).rejects.toThrow(/Gallery images/);
+  });
+});

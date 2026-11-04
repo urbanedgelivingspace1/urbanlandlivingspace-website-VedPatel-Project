@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { propertyVideosEnabled } from "@/lib/media/property-video";
+import { PropertyVideoPlayer } from "@/components/media/property-videos";
 
 import { AdminTopNotification } from "@/components/admin/admin-top-notification";
 import { DeleteDraftButton } from "@/components/admin/delete-draft-button";
@@ -71,7 +73,11 @@ export function PropertyWorkspace({
   const row = property.property;
   const id = row.id;
   const photoAndBrochureMedia = mediaList.filter(
-    (asset) => !asset.archivedAt && (asset.mediaType === "IMAGE" || asset.mediaType === "BROCHURE"),
+    (asset) =>
+      !asset.archivedAt &&
+      (asset.mediaType === "IMAGE" ||
+        asset.mediaType === "BROCHURE" ||
+        (propertyVideosEnabled() && asset.mediaType === "VIDEO")),
   );
 
   const matchesCount = interestedBuyers.matches.length;
@@ -114,7 +120,7 @@ export function PropertyWorkspace({
               ← Properties
             </Link>
             <Link href={`/admin/properties/${id}/media`} className="button button-secondary">
-              Add Photos / Brochure
+              Photos, Videos &amp; Brochure
             </Link>
             {row.publication_status !== "ARCHIVED" ? (
               <Link href={`/admin/properties/${id}/edit`} className="button button-primary">
@@ -189,7 +195,7 @@ export function PropertyWorkspace({
             aria-current={activeTab === "media" ? "page" : undefined}
             className="admin-tab"
           >
-            Photos &amp; brochure
+            Photos, videos &amp; brochure
           </Link>
           <Link
             href={`/admin/properties/${id}?tab=buyers`}
@@ -327,21 +333,21 @@ export function PropertyWorkspace({
           <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5">
             <div>
               <h2 id="media-heading" className="font-display text-xl font-bold text-slate-900">
-                Photos &amp; Brochure ({photoAndBrochureMedia.length})
+                Photos, Videos &amp; Brochure ({photoAndBrochureMedia.length})
               </h2>
               <p className="mt-1 text-sm text-slate-600">
-                Property photos and an optional Google Drive brochure.
+                Property photos, optional videos, and a Google Drive brochure.
               </p>
             </div>
             <Link href={`/admin/properties/${id}/media`} className="button button-primary">
-              Add or Manage Photos
+              Manage Media
             </Link>
           </div>
 
           {photoAndBrochureMedia.length === 0 ? (
             <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center">
               <p className="text-sm font-medium text-slate-600">
-                No property photos or brochure have been added yet.
+                No property media have been added yet.
               </p>
               <p className="mt-1 text-xs text-slate-400">
                 Add at least one photo and choose a cover before publishing the property.
@@ -357,54 +363,85 @@ export function PropertyWorkspace({
                   key={asset.id}
                   className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs"
                 >
-                  <div className="relative aspect-4/3 w-full bg-slate-100">
-                    {asset.previewUrl &&
-                    (asset.mediaType === "IMAGE" || asset.mediaType === "MAP_IMAGE") ? (
-                      // Admin previews may be short-lived signed URLs from the private media
-                      // bucket, so they cannot be represented by a static Next image allowlist.
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={asset.previewUrl}
-                        alt={asset.altText || "Property asset"}
-                        className="h-full w-full object-cover"
+                  {asset.mediaType === "VIDEO" ? (
+                    <div className="p-2">
+                      <PropertyVideoPlayer
+                        provider={asset.externalProvider ?? ""}
+                        mediaId={asset.externalMediaId ?? ""}
+                        resourceKey={asset.driveResourceKey}
+                        title={asset.videoTitle || asset.caption || "Property video"}
+                        posterUrl={
+                          asset.videoPosterUrl ||
+                          photoAndBrochureMedia.find((p) => p.id === asset.videoPhotoId)
+                            ?.previewUrl ||
+                          photoAndBrochureMedia.find((p) => p.isCover)?.previewUrl
+                        }
                       />
-                    ) : (
-                      <div className="flex h-full flex-col items-center justify-center gap-2 px-3 text-center text-slate-500">
-                        <span className="text-2xl" aria-hidden="true">
-                          {asset.mediaType === "BROCHURE" ? "↓" : "□"}
+                      <p className="mt-2 text-xs font-semibold">
+                        {asset.visibility === "PUBLIC" && asset.processingStatus === "APPROVED"
+                          ? row.publication_status === "PUBLISHED"
+                            ? "Visible on website"
+                            : "Approved for publication"
+                          : "Hidden"}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="relative aspect-4/3 w-full bg-slate-100">
+                      {asset.previewUrl &&
+                      (asset.mediaType === "IMAGE" || asset.mediaType === "MAP_IMAGE") ? (
+                        // Admin previews may be short-lived signed URLs from the private media
+                        // bucket, so they cannot be represented by a static Next image allowlist.
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={asset.previewUrl}
+                          alt={asset.altText || "Property asset"}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full flex-col items-center justify-center gap-2 px-3 text-center text-slate-500">
+                          <span className="text-2xl" aria-hidden="true">
+                            {asset.mediaType === "BROCHURE" ? "↓" : "□"}
+                          </span>
+                          <span className="text-xs font-bold">
+                            {asset.mediaType === "BROCHURE"
+                              ? "Property brochure"
+                              : "Property photo"}
+                          </span>
+                        </div>
+                      )}
+                      {asset.isCover && (
+                        <span className="absolute top-2 left-2 rounded-md bg-amber-500 px-2 py-0.5 text-[10px] font-extrabold text-white uppercase tracking-wider shadow-xs">
+                          Cover Photo
                         </span>
-                        <span className="text-xs font-bold">
-                          {asset.mediaType === "BROCHURE" ? "Property brochure" : "Property photo"}
-                        </span>
-                      </div>
-                    )}
-                    {asset.isCover && (
-                      <span className="absolute top-2 left-2 rounded-md bg-amber-500 px-2 py-0.5 text-[10px] font-extrabold text-white uppercase tracking-wider shadow-xs">
-                        Cover Photo
+                      )}
+                      <span
+                        className={`absolute top-2 right-2 rounded-md px-1.5 py-0.5 text-[10px] font-bold shadow-xs ${
+                          asset.processingStatus === "APPROVED"
+                            ? "bg-emerald-500 text-white"
+                            : "bg-slate-700 text-white"
+                        }`}
+                      >
+                        {asset.processingStatus === "APPROVED"
+                          ? "Added"
+                          : asset.processingStatus === "FAILED"
+                            ? "Needs attention"
+                            : "Processing"}
                       </span>
-                    )}
-                    <span
-                      className={`absolute top-2 right-2 rounded-md px-1.5 py-0.5 text-[10px] font-bold shadow-xs ${
-                        asset.processingStatus === "APPROVED"
-                          ? "bg-emerald-500 text-white"
-                          : "bg-slate-700 text-white"
-                      }`}
-                    >
-                      {asset.processingStatus === "APPROVED"
-                        ? "Added"
-                        : asset.processingStatus === "FAILED"
-                          ? "Needs attention"
-                          : "Processing"}
-                    </span>
-                  </div>
+                    </div>
+                  )}
                   <div className="p-3">
                     <p className="truncate text-xs font-semibold text-slate-800">
-                      {asset.caption ||
+                      {asset.videoTitle ||
+                        asset.caption ||
                         asset.altText ||
                         (asset.mediaType === "BROCHURE" ? "Property brochure" : "Property photo")}
                     </p>
                     <p className="mt-0.5 text-[11px] text-slate-500">
-                      {asset.mediaType === "BROCHURE" ? "Brochure" : "Photo"}
+                      {asset.mediaType === "VIDEO"
+                        ? "Video"
+                        : asset.mediaType === "BROCHURE"
+                          ? "Brochure"
+                          : "Photo"}
                     </p>
                   </div>
                 </div>

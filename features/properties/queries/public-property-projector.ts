@@ -180,6 +180,9 @@ export function projectPublicMedia(row: PublicMediaRow): PublicMediaDto {
     mediaSubtype: row.media_subtype,
     altText: row.alt_text,
     caption: row.caption,
+    videoTitle: row.video_title,
+    driveResourceKey: row.drive_resource_key,
+    videoPosterPath: row.video_poster_path,
     width: row.width_px,
     height: row.height_px,
   };

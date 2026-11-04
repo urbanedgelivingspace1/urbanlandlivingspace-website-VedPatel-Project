@@ -81,6 +81,28 @@ describe("M7 public media DTO", () => {
     });
   });
 
+  it("projects video presentation metadata without leaking a staged replacement or audit fields", () => {
+    const dto = projectPublicMedia({
+      ...base,
+      media_type: "VIDEO",
+      object_path: null,
+      external_url: "https://drive.google.com/file/d/ABCDEFGHIJ_123/view?resourcekey=0-key",
+      external_provider: "GOOGLE_DRIVE",
+      external_media_id: "ABCDEFGHIJ_123",
+      video_title: "Property walk",
+      drive_resource_key: "0-key",
+      video_poster_path: "properties/synthetic/video-posters/poster.webp",
+      pending_video: { title: "PRIVATE_PENDING_CANARY" },
+      created_by: "PRIVATE_ACTOR_CANARY",
+    } as PublicMediaRow);
+    expect(dto).toMatchObject({
+      videoTitle: "Property walk",
+      driveResourceKey: "0-key",
+      videoPosterPath: expect.stringContaining("video-posters"),
+    });
+    expect(JSON.stringify(dto)).not.toMatch(/PRIVATE_|pending_video|created_by/);
+  });
+
   it("rejects a row with neither public locator", () => {
     expect(() =>
       projectPublicMedia({

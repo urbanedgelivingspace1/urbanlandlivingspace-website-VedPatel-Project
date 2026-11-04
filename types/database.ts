@@ -168,6 +168,9 @@ export type PublicMediaRow = Readonly<{
   external_provider: string | null;
   external_media_id: string | null;
   media_subtype: string | null;
+  video_title?: string | null;
+  drive_resource_key?: string | null;
+  video_poster_path?: string | null;
 }>;
 
 export type PublicVerificationSummaryRow = Readonly<{

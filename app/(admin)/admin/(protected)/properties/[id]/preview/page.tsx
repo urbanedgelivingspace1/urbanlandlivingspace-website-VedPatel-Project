@@ -1,3 +1,7 @@
+import { PropertyVideos } from "@/components/media/property-videos";
+import { getAdminPropertyVisualMedia } from "@/server/services/property-media";
+import { propertyVideosEnabled } from "@/lib/media/property-video";
+import { getRequestLocale } from "@/lib/i18n/server";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -28,6 +32,39 @@ export default async function PropertyPublicationPreviewPage({
     getPublicationReadiness(id),
   ]);
   if (!preview) notFound();
+  const media = propertyVideosEnabled() ? await getAdminPropertyVisualMedia(id) : [];
+  const locale = await getRequestLocale();
+  const videos = media
+    .filter(
+      (v) =>
+        v.mediaType === "VIDEO" &&
+        !v.archivedAt &&
+        v.visibility === "PUBLIC" &&
+        v.processingStatus === "APPROVED",
+    )
+    .map((v) => ({
+      id: v.id,
+      mediaType: v.mediaType,
+      objectPath: null,
+      externalProvider: v.externalProvider,
+      externalMediaId: v.externalMediaId,
+      driveResourceKey: v.driveResourceKey,
+      videoTitle: v.videoTitle,
+      caption: v.caption,
+      mediaSubtype: v.mediaSubtype,
+      videoPosterPath: v.videoPosterId
+        ? `properties/${id}/video-posters/${v.videoPosterId}.webp`
+        : media.find(
+            (p) =>
+              p.id === v.videoPhotoId &&
+              !p.archivedAt &&
+              p.visibility === "PUBLIC" &&
+              p.processingStatus === "APPROVED",
+          )?.objectPath,
+      altText: null,
+      width: null,
+      height: null,
+    }));
   return (
     <div className="mx-auto max-w-5xl">
       <PropertyWorkflow
@@ -72,6 +109,7 @@ export default async function PropertyPublicationPreviewPage({
             {preview.description ?? "No description recorded."}
           </p>
         </section>
+        <PropertyVideos videos={videos} coverPath={preview.cover?.objectPath} locale={locale} />
         {preview.googleMapsEmbedUrl ? (
           <section className="rounded-xl border border-slate-200 bg-white p-5">
             <h2 className="font-display text-xl font-semibold">Location</h2>
@@ -87,9 +125,9 @@ export default async function PropertyPublicationPreviewPage({
         <PropertyReadinessSummary readiness={readiness} />
         <PropertyWorkflowNavigation
           previousHref={`/admin/properties/${id}/media`}
-          previousLabel="Photos & Documents"
+          previousLabel="Photos, Videos & Brochure"
           secondaryHref={`/admin/properties/${id}`}
-          secondaryLabel="Save as Draft"
+          secondaryLabel="Return to Workspace"
           nextHref={`/admin/properties/${id}/publish`}
           nextLabel="Continue to Publish"
         />

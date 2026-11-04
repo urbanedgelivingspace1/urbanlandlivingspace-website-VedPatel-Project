@@ -79,7 +79,7 @@ test("M9 publishes and unpublishes only a complete public-safe property", async 
   await page.getByRole("link", { name: /Continue to Publish/ }).click();
   await expect(page.getByRole("button", { name: "Publish Property" })).toBeDisabled();
   await page.getByRole("link", { name: /← Preview/ }).click();
-  await page.getByRole("link", { name: /← Photos & Documents/ }).click();
+  await page.getByRole("link", { name: /← Photos, Videos & Brochure/ }).click();
   const image = await sharp({
     create: { width: 1200, height: 800, channels: 3, background: "#8d724d" },
   })

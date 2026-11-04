@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { z } from "zod";
 
 import {
@@ -11,6 +11,8 @@ import {
 import { requireActiveAdmin } from "@/server/auth/authorization";
 import {
   addExternalPropertyMedia,
+  assertLegacyPropertyMediaTarget,
+  managePropertyVideo,
   approvePropertyImageAndMaybeSetCover,
   archivePrivateDocument,
   archivePropertyMedia,
@@ -64,7 +66,7 @@ const fileFrom = (formData: FormData) => {
 };
 
 function refresh(propertyId: string) {
-  revalidateTag("public-properties", "max");
+  updateTag("public-properties");
   revalidatePath(`/admin/properties/${propertyId}`);
   revalidatePath(`/admin/properties/${propertyId}/media`);
   revalidatePath(`/admin/properties/${propertyId}/preview`);
@@ -208,6 +210,8 @@ export async function addExternalMediaAction(
     const kind = z
       .enum(["VIDEO", "DRONE_VIDEO", "PANORAMA_360"])
       .parse(String(formData.get("kind") ?? ""));
+    if (kind !== "PANORAMA_360")
+      throw new MediaValidationError("Use Add Video in the Property Videos section.");
     const result = await addExternalPropertyMedia(
       propertyId,
       kind,
@@ -229,6 +233,10 @@ export async function addExternalMediaAction(
 export async function updateMediaMetadataAction(formData: FormData) {
   await requireActiveAdmin();
   const propertyId = z.uuid().parse(String(formData.get("propertyId") ?? ""));
+  await assertLegacyPropertyMediaTarget(
+    propertyId,
+    z.uuid().parse(String(formData.get("mediaId") ?? "")),
+  );
   await updatePropertyMediaMetadata(
     z.uuid().parse(String(formData.get("mediaId") ?? "")),
     String(formData.get("altText") ?? ""),
@@ -257,6 +265,10 @@ export async function setCoverAction(formData: FormData) {
 export async function approveMediaAction(formData: FormData) {
   await requireActiveAdmin();
   const propertyId = z.uuid().parse(String(formData.get("propertyId") ?? ""));
+  await assertLegacyPropertyMediaTarget(
+    propertyId,
+    z.uuid().parse(String(formData.get("mediaId") ?? "")),
+  );
   await approvePropertyImageAndMaybeSetCover(
     propertyId,
     z.uuid().parse(String(formData.get("mediaId") ?? "")),
@@ -267,6 +279,10 @@ export async function approveMediaAction(formData: FormData) {
 export async function archiveMediaAction(formData: FormData) {
   await requireActiveAdmin();
   const propertyId = z.uuid().parse(String(formData.get("propertyId") ?? ""));
+  await assertLegacyPropertyMediaTarget(
+    propertyId,
+    z.uuid().parse(String(formData.get("mediaId") ?? "")),
+  );
   await archivePropertyMedia(z.uuid().parse(String(formData.get("mediaId") ?? "")));
   refresh(propertyId);
 }
@@ -274,6 +290,10 @@ export async function archiveMediaAction(formData: FormData) {
 export async function restoreMediaAction(formData: FormData) {
   await requireActiveAdmin();
   const propertyId = z.uuid().parse(String(formData.get("propertyId") ?? ""));
+  await assertLegacyPropertyMediaTarget(
+    propertyId,
+    z.uuid().parse(String(formData.get("mediaId") ?? "")),
+  );
   await restorePropertyMedia(z.uuid().parse(String(formData.get("mediaId") ?? "")));
   refresh(propertyId);
 }
@@ -283,4 +303,19 @@ export async function archiveDocumentAction(formData: FormData) {
   const propertyId = z.uuid().parse(String(formData.get("propertyId") ?? ""));
   await archivePrivateDocument(z.uuid().parse(String(formData.get("documentId") ?? "")));
   refresh(propertyId);
+}
+
+export async function manageVideoAction(
+  propertyId: string,
+  _previous: MediaFormState,
+  data: FormData,
+): Promise<MediaFormState> {
+  await requireActiveAdmin();
+  try {
+    await managePropertyVideo(propertyId, data);
+    refresh(propertyId);
+    return success("Video changes saved.");
+  } catch (error) {
+    return initialFailure(error);
+  }
 }

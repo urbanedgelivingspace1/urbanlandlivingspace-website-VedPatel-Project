@@ -14,7 +14,7 @@ export type PropertyWorkflowStep = (typeof propertyWorkflowSteps)[number];
 
 const stepLabels: Record<PropertyWorkflowStep, string> = {
   details: "Property Details",
-  media: "Photos & Documents",
+  media: "Photos, Videos & Brochure",
   preview: "Preview",
   publish: "Publish",
 };

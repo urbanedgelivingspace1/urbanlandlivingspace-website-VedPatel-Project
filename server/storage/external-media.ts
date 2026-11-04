@@ -1,12 +1,13 @@
 import "server-only";
+import { parsePropertyVideo } from "@/lib/media/property-video";
 
 import { MediaValidationError, type ExternalMediaKind } from "@/features/media/domain/contracts";
 
 type ExternalMedia = Readonly<{
   mediaType: "VIDEO" | "PANORAMA_360";
   mediaSubtype: "STANDARD_VIDEO" | "DRONE_VIDEO" | "TOUR_360";
-  sourceType: "YOUTUBE" | "VIMEO" | "OTHER_360_PROVIDER";
-  provider: "YOUTUBE" | "VIMEO" | "MATTERPORT";
+  sourceType: "YOUTUBE" | "GOOGLE_DRIVE" | "VIMEO" | "OTHER_360_PROVIDER";
+  provider: "YOUTUBE" | "GOOGLE_DRIVE" | "VIMEO" | "MATTERPORT";
   mediaId: string;
   canonicalUrl: string;
 }>;
@@ -21,7 +22,7 @@ export function normalizeExternalMedia(kind: ExternalMediaKind, value: string): 
   } catch {
     throw new MediaValidationError("Enter a valid external media URL.", "externalUrl");
   }
-  if (url.protocol !== "https:") {
+  if (url.protocol !== "https:" || url.username || url.password || url.port) {
     throw new MediaValidationError("External media URLs must use HTTPS.", "externalUrl");
   }
   url.hash = "";
@@ -53,37 +54,32 @@ export function normalizeExternalMedia(kind: ExternalMediaKind, value: string): 
     };
   }
 
+  const video = parsePropertyVideo(value);
+  if (video)
+    return {
+      mediaType: "VIDEO",
+      mediaSubtype: kind === "DRONE_VIDEO" ? "DRONE_VIDEO" : "STANDARD_VIDEO",
+      sourceType: video.provider,
+      provider: video.provider,
+      mediaId: video.mediaId,
+      canonicalUrl: video.canonicalUrl,
+    };
   const host = url.hostname.toLowerCase().replace(/^www\./, "");
-  let provider: "YOUTUBE" | "VIMEO";
+  let provider: "VIMEO";
   let mediaId: string | null = null;
-  if (host === "youtu.be") {
-    provider = "YOUTUBE";
-    mediaId = url.pathname.split("/").filter(Boolean)[0] ?? null;
-  } else if (host === "youtube.com" || host === "m.youtube.com") {
-    provider = "YOUTUBE";
-    mediaId =
-      url.pathname === "/watch"
-        ? url.searchParams.get("v")
-        : (url.pathname.match(/^\/shorts\/([^/]+)/)?.[1] ?? null);
-  } else if (host === "vimeo.com" || host === "player.vimeo.com") {
+  if (host === "vimeo.com" || host === "player.vimeo.com") {
     provider = "VIMEO";
-    mediaId = url.pathname.split("/").filter(Boolean).at(-1) ?? null;
+    mediaId = url.pathname.match(/^\/(?:video\/)?(\d{6,12})\/?$/)?.[1] ?? null;
   } else {
     throw new MediaValidationError(
-      "Only reviewed YouTube and Vimeo video URLs are supported.",
+      "Use a Google Drive or YouTube video link. Existing YouTube and Vimeo videos remain supported.",
       "externalUrl",
     );
   }
-  if (
-    !mediaId ||
-    (provider === "YOUTUBE" ? !/^[a-zA-Z0-9_-]{11}$/.test(mediaId) : !/^\d{6,12}$/.test(mediaId))
-  ) {
+  if (!mediaId || !/^\d{6,12}$/.test(mediaId)) {
     throw new MediaValidationError("The external video ID is invalid.", "externalUrl");
   }
-  const canonicalUrl =
-    provider === "YOUTUBE"
-      ? `https://www.youtube.com/watch?v=${encodeURIComponent(mediaId)}`
-      : `https://vimeo.com/${encodeURIComponent(mediaId)}`;
+  const canonicalUrl = `https://vimeo.com/${encodeURIComponent(mediaId)}`;
   return {
     mediaType: "VIDEO",
     mediaSubtype: kind === "DRONE_VIDEO" ? "DRONE_VIDEO" : "STANDARD_VIDEO",

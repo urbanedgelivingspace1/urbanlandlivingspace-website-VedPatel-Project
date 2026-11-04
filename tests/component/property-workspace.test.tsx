@@ -254,7 +254,7 @@ describe("PropertyWorkspace", () => {
     expect(screen.getAllByText("UE-LS-000001")[0]).toBeVisible();
     expect(screen.getByRole("heading", { name: "Sanand Prime Agricultural Land" })).toBeVisible();
     expect(screen.getByRole("link", { name: "Edit" })).toBeVisible();
-    expect(screen.getByRole("link", { name: "Add Photos / Brochure" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Photos, Videos & Brochure" })).toBeVisible();
     expect(screen.queryByRole("link", { name: "Verification" })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "1 item before publishing" })).toBeVisible();
     expect(screen.queryByText("1. Listing Details")).not.toBeInTheDocument();
@@ -315,8 +315,8 @@ describe("PropertyWorkspace", () => {
 
     cleanup();
     render(<PropertyWorkspace {...props} initialTab="media" />);
-    expect(screen.getByRole("heading", { name: "Photos & Brochure (1)" })).toBeVisible();
-    expect(screen.getByRole("link", { name: "Add or Manage Photos" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Photos, Videos & Brochure (1)" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Manage Media" })).toBeVisible();
     expect(screen.getByText("Front entrance facing road")).toBeVisible();
     expect(screen.getByText("Photo")).toBeVisible();
     expect(screen.queryByText("APPROVED")).not.toBeInTheDocument();

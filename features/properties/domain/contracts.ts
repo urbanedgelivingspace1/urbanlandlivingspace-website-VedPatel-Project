@@ -65,6 +65,9 @@ export type PublicMediaDto = Readonly<{
   mediaSubtype?: string | null;
   altText: string | null;
   caption?: string | null;
+  videoTitle?: string | null;
+  driveResourceKey?: string | null;
+  videoPosterPath?: string | null;
   width: number | null;
   height: number | null;
 }>;

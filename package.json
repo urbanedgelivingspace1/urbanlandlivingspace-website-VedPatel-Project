@@ -37,7 +37,8 @@
     "db:reset": "supabase db reset",
     "test:db": "supabase test db",
     "test:db:concurrency": "bash scripts/test-property-code-concurrency.sh",
-    "qa": "npm run lint && npm run format:check && npm run typecheck && npm run check:server-boundaries && npm run check:secrets && npm run test:unit && npm run test:component && npm run build"
+    "qa": "npm run lint && npm run format:check && npm run typecheck && npm run check:server-boundaries && npm run check:secrets && npm run test:unit && npm run test:component && npm run build",
+    "test:video-db": "node scripts/test-property-video-db.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.5",

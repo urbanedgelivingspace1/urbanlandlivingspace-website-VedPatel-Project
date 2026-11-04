@@ -33,8 +33,8 @@ for (const category of ["AGRICULTURAL", "NA", "INDUSTRIAL"] as const) {
     await expect(page.getByText(/^UE-LS-\d{6}$/).first()).toBeVisible();
     await expect(
       page.getByRole("navigation", { name: "Property publishing workflow" }),
-    ).toContainText("Photos & Documents");
-    await page.getByRole("link", { name: "Keep as Draft" }).click();
+    ).toContainText("Photos, Videos & Brochure");
+    await page.getByRole("link", { name: "Return to Workspace" }).click();
     await expect(page.getByText("DRAFT").first()).toBeVisible();
   });
 }

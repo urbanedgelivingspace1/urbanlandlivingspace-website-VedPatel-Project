@@ -193,7 +193,7 @@ describe("PropertyDraftForm", () => {
     );
 
     await user.type(screen.getByLabelText("Property title (optional)"), " changed");
-    await user.click(screen.getByRole("link", { name: /Photos & DocumentsAvailable/ }));
+    await user.click(screen.getByRole("link", { name: /Photos, Videos & BrochureAvailable/ }));
 
     expect(screen.getByRole("alert")).toHaveTextContent("You have unsaved changes");
     expect(screen.getByRole("alert")).toHaveTextContent(

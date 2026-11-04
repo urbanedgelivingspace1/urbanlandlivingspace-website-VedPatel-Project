@@ -1,3 +1,5 @@
+import { propertyVideosEnabled } from "@/lib/media/property-video";
+import { getRequestLocale } from "@/lib/i18n/server";
 import { notFound } from "next/navigation";
 
 import { AdminTopNotification } from "@/components/admin/admin-top-notification";
@@ -9,6 +11,7 @@ import { getAdminPropertyVisualMedia } from "@/server/services/property-media";
 
 import {
   archiveMediaAction,
+  manageVideoAction,
   reorderMediaAction,
   saveGoogleDriveBrochureAction,
   setCoverAction,
@@ -34,6 +37,7 @@ export default async function PropertyMediaPage({
     getAdminPropertyVisualMedia(id),
   ]);
   if (!property) notFound();
+  const locale = await getRequestLocale();
   const activeMedia = media.filter((asset) => !asset.archivedAt);
   const stepMedia = activeMedia.filter(
     (asset) => asset.mediaType === "IMAGE" || asset.mediaType === "BROCHURE",
@@ -56,15 +60,18 @@ export default async function PropertyMediaPage({
           <p className="text-xs font-bold tracking-widest text-[var(--brand-gold-deep)] uppercase">
             {property.property.property_code}
           </p>
-          <h1 className="font-display text-3xl font-semibold">Photos &amp; Brochure</h1>
+          <h1 className="font-display text-3xl font-semibold">Photos, Videos &amp; Brochure</h1>
           <p className="mt-1 text-sm text-slate-600">
-            Upload property photos and optionally connect a brochure from Google Drive. Each
+            Upload property photos and optionally connect videos or a Google Drive brochure. Each
             completed action is saved immediately.
           </p>
         </header>
         <PropertyMediaManager
           propertyId={id}
-          media={stepMedia}
+          media={propertyVideosEnabled() ? media : stepMedia}
+          videoAction={propertyVideosEnabled() ? manageVideoAction.bind(null, id) : undefined}
+          published={property.property.publication_status === "PUBLISHED"}
+          locale={locale}
           activeMediaIds={activeMedia
             .sort((left, right) => left.sortOrder - right.sortOrder)
             .map((asset) => asset.id)}

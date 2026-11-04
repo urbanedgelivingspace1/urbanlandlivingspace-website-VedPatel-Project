@@ -44,6 +44,13 @@ export type AdminMediaAssetDto = Readonly<{
   approvedAt: string | null;
   archivedAt: string | null;
   previewUrl: string | null;
+  videoTitle?: string | null;
+  driveResourceKey?: string | null;
+  videoPhotoId?: string | null;
+  videoPosterId?: string | null;
+  videoPosterUrl?: string | null;
+  videoRevision?: number;
+  pendingVideo?: VideoDraft | null;
 }>;
 
 export type AdminPrivateDocumentDto = Readonly<{
@@ -80,3 +87,15 @@ export class MediaValidationError extends Error {
     this.field = field;
   }
 }
+
+export type VideoDraft = Readonly<{
+  provider: string;
+  mediaId: string;
+  resourceKey: string | null;
+  canonicalUrl: string;
+  title: string;
+  description: string;
+  subtype: string;
+  photoId: string | null;
+  poster?: { id: string; path: string; bytes: number } | null;
+}>;

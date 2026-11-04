@@ -27,7 +27,7 @@ test("active admin uploads a photo batch and connects a Drive brochure without p
 }) => {
   await signIn(page);
   await createDraft(page);
-  await expect(page.getByRole("heading", { name: "Photos & Brochure" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Photos, Videos & Brochure" })).toBeVisible();
   await expect(page.getByText(/Private Documents/)).toHaveCount(0);
   await expect(page.getByText("Add Documents")).toHaveCount(0);
   await expect(page.getByText("Document Category")).toHaveCount(0);
@@ -75,7 +75,7 @@ test("active admin uploads a photo batch and connects a Drive brochure without p
 
   await page.getByRole("link", { name: /Save & Next/ }).click();
   await expect(page).toHaveURL(/\/preview$/);
-  await page.getByRole("link", { name: /← Photos & Documents/ }).click();
+  await page.getByRole("link", { name: /← Photos, Videos & Brochure/ }).click();
   await expect(page).toHaveURL(/\/media$/);
 });
 

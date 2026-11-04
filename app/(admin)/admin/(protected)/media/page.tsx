@@ -1,3 +1,4 @@
+import { propertyVideosEnabled } from "@/lib/media/property-video";
 import Link from "next/link";
 
 import { AdminPageHeader, EmptyState, StatusBadge } from "@/components/admin/admin-ui";
@@ -6,12 +7,21 @@ import { getAdminStorageHealth, listAdminMedia } from "@/server/services/propert
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminMediaPage() {
+export default async function AdminMediaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ type?: string }>;
+}) {
+  const filter = (await searchParams).type;
   await requireActiveAdminPage();
   const [media, storage] = await Promise.all([listAdminMedia(), getAdminStorageHealth()]);
   const listingMedia = media.filter(
-    (asset) => asset.mediaType === "IMAGE" || asset.mediaType === "BROCHURE",
+    (asset) =>
+      asset.mediaType === "IMAGE" ||
+      asset.mediaType === "BROCHURE" ||
+      (propertyVideosEnabled() && asset.mediaType === "VIDEO"),
   );
+  const filteredMedia = listingMedia.filter((asset) => !filter || asset.mediaType === filter);
   const unused = listingMedia.filter(
     (asset) => asset.archivedAt || asset.processingStatus === "FAILED",
   );
@@ -20,10 +30,10 @@ export default async function AdminMediaPage() {
       <AdminPageHeader
         eyebrow="Inventory operations"
         title="Media library"
-        description="Review property photos and brochures, identify items that need attention, and return to the property to make changes."
+        description="Review property photos, videos and brochures, identify items that need attention, and return to the property to make changes."
       />
       <section className="grid gap-4 sm:grid-cols-4">
-        <Metric label="Photos & brochures" value={listingMedia.length} />
+        <Metric label="Photos, videos & brochures" value={listingMedia.length} />
         <Metric
           label="Added"
           value={
@@ -47,10 +57,27 @@ export default async function AdminMediaPage() {
         configured budget. Warning at {storage.warningPercent}%; uploads stop at
         {` ${storage.hardStopPercent}%`}.
       </p>
-      {listingMedia.length === 0 ? (
+      <nav className="flex flex-wrap gap-3" aria-label="Filter media type">
+        {[
+          ["", "All media"],
+          ["IMAGE", "Photos"],
+          ...(propertyVideosEnabled() ? [["VIDEO", "Videos"]] : []),
+          ["BROCHURE", "Brochures"],
+        ].map(([value, label]) => (
+          <Link
+            key={value}
+            className="button button-secondary"
+            aria-current={(filter ?? "") === value ? "page" : undefined}
+            href={`/admin/media${value ? `?type=${value}` : ""}`}
+          >
+            {label}
+          </Link>
+        ))}
+      </nav>
+      {filteredMedia.length === 0 ? (
         <EmptyState
-          title="No media assets"
-          description="Upload photos and documents from a property workspace."
+          title="No matching media assets"
+          description="Choose another filter, or add media from a property workspace."
           action={{ href: "/admin/properties", label: "Open properties" }}
         />
       ) : (
@@ -64,7 +91,7 @@ export default async function AdminMediaPage() {
               </tr>
             </thead>
             <tbody>
-              {listingMedia.map((asset) => (
+              {filteredMedia.map((asset) => (
                 <tr key={asset.id} className="border-t border-slate-200">
                   <td className="p-3">
                     <Link
@@ -78,7 +105,13 @@ export default async function AdminMediaPage() {
                       {asset.propertyTitle || "Untitled draft"}
                     </span>
                   </td>
-                  <td className="p-3">{asset.mediaType === "BROCHURE" ? "Brochure" : "Photo"}</td>
+                  <td className="p-3">
+                    {asset.mediaType === "VIDEO"
+                      ? `Video · ${asset.externalProvider} · ${asset.videoTitle || asset.caption || "Untitled"}`
+                      : asset.mediaType === "BROCHURE"
+                        ? "Brochure"
+                        : "Photo"}
+                  </td>
                   <td className="p-3">
                     <StatusBadge
                       tone={
@@ -90,12 +123,21 @@ export default async function AdminMediaPage() {
                       }
                     >
                       {asset.archivedAt
-                        ? "Removed"
+                        ? "Archived"
                         : asset.processingStatus === "APPROVED"
-                          ? "Added"
+                          ? asset.mediaType === "VIDEO"
+                            ? asset.propertyPublicationStatus === "PUBLISHED" &&
+                              asset.visibility === "PUBLIC"
+                              ? "Visible on website"
+                              : asset.visibility === "PUBLIC"
+                                ? "Approved for publication"
+                                : "Hidden"
+                            : "Added"
                           : asset.processingStatus === "FAILED"
                             ? "Needs attention"
-                            : "Processing"}
+                            : asset.mediaType === "VIDEO"
+                              ? "Hidden"
+                              : "Processing"}
                     </StatusBadge>
                   </td>
                 </tr>

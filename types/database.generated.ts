@@ -1336,8 +1336,56 @@ export type Database = {
           },
         ];
       };
+      property_video_posters: {
+        Row: {
+          id: string;
+          property_id: string;
+          object_path: string;
+          file_size_bytes: number;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: {
+          id: string;
+          property_id: string;
+          object_path: string;
+          file_size_bytes: number;
+          created_by: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          property_id?: string;
+          object_path?: string;
+          file_size_bytes?: number;
+          created_by?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "property_video_posters_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "properties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "property_video_posters_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "admin_profiles";
+            referencedColumns: ["user_id"];
+          },
+        ];
+      };
       media_assets: {
         Row: {
+          video_title?: string | null;
+          drive_resource_key?: string | null;
+          video_photo_id?: string | null;
+          video_poster_id?: string | null;
+          pending_video?: Json | null;
+          video_revision?: number;
           alt_text: string | null;
           approved_at: string | null;
           archived_at: string | null;
@@ -1369,6 +1417,12 @@ export type Database = {
           width_px: number | null;
         };
         Insert: {
+          video_title?: string | null;
+          drive_resource_key?: string | null;
+          video_photo_id?: string | null;
+          video_poster_id?: string | null;
+          pending_video?: Json | null;
+          video_revision?: number;
           alt_text?: string | null;
           approved_at?: string | null;
           archived_at?: string | null;
@@ -1400,6 +1454,12 @@ export type Database = {
           width_px?: number | null;
         };
         Update: {
+          video_title?: string | null;
+          drive_resource_key?: string | null;
+          video_photo_id?: string | null;
+          video_poster_id?: string | null;
+          pending_video?: Json | null;
+          video_revision?: number;
           alt_text?: string | null;
           approved_at?: string | null;
           archived_at?: string | null;
@@ -6009,6 +6069,9 @@ export type Database = {
       };
       public_property_media: {
         Row: {
+          video_title: string | null;
+          drive_resource_key: string | null;
+          video_poster_path: string | null;
           alt_text: string | null;
           caption: string | null;
           duration_seconds: number | null;
@@ -6460,6 +6523,15 @@ export type Database = {
       };
     };
     Functions: {
+      manage_property_video: {
+        Args: {
+          requested_actor_id: string;
+          requested_property_id: string;
+          requested_operation: string;
+          requested_payload: Json;
+        };
+        Returns: string;
+      };
       add_lead_activity: {
         Args: {
           requested_activity_type: Database["public"]["Enums"]["lead_activity_type"];

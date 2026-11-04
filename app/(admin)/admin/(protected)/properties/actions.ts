@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
@@ -39,7 +39,7 @@ const checkedOrUndefined = (formData: FormData, key: string) =>
   formData.has(key) ? true : undefined;
 
 function refreshPublicProperty(propertyId: string, slug?: string) {
-  revalidateTag("public-properties", "max");
+  updateTag("public-properties");
   revalidatePath("/");
   revalidatePath("/properties");
   revalidatePath("/sitemap.xml");

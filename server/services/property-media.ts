@@ -1,5 +1,8 @@
 import "server-only";
 
+import { buildPublicMediaUrl } from "@/lib/media/public-media-url";
+import { propertyVideosEnabled, parsePropertyVideo } from "@/lib/media/property-video";
+import type { VideoDraft } from "@/features/media/domain/contracts";
 import { randomUUID } from "node:crypto";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -139,6 +142,17 @@ function toMediaDto(row: MediaRow, previewUrl: string | null): AdminMediaAssetDt
     approvedAt: row.approved_at,
     archivedAt: row.archived_at,
     previewUrl,
+    videoTitle: row.video_title ?? null,
+    driveResourceKey: row.drive_resource_key ?? null,
+    videoPhotoId: row.video_photo_id ?? null,
+    videoPosterId: row.video_poster_id ?? null,
+    videoPosterUrl: row.video_poster_id
+      ? buildPublicMediaUrl(
+          `properties/${row.property_id}/video-posters/${row.video_poster_id}.webp`,
+        )
+      : null,
+    videoRevision: row.video_revision ?? 0,
+    pendingVideo: row.pending_video as VideoDraft | null,
   };
 }
 
@@ -778,7 +792,8 @@ export async function getAdminPropertyMedia(propertyId: string) {
       .select("*")
       .eq("property_id", id)
       .order("archived_at", { ascending: true, nullsFirst: true })
-      .order("sort_order"),
+      .order("sort_order")
+      .order("id"),
     client
       .from("private_documents")
       .select(
@@ -804,7 +819,8 @@ export async function getAdminPropertyVisualMedia(propertyId: string) {
     .select("*")
     .eq("property_id", id)
     .order("archived_at", { ascending: true, nullsFirst: true })
-    .order("sort_order");
+    .order("sort_order")
+    .order("id");
   if (result.error) throw result.error;
   return Promise.all(
     result.data.map(async (row) => toMediaDto(row, await signedPreview(client, row))),
@@ -831,11 +847,12 @@ export async function listAdminMedia() {
   const client = privilegedClient();
   const { data, error } = await client
     .from("media_assets")
-    .select("*,properties!inner(property_code,listing_title)")
+    .select("*,properties!inner(property_code,listing_title,publication_status)")
     .order("updated_at", { ascending: false });
   if (error) throw error;
   return data.map((row) => ({
     ...toMediaDto(row, null),
+    propertyPublicationStatus: row.properties.publication_status,
     propertyCode: row.properties.property_code,
     propertyTitle: row.properties.listing_title,
   }));
@@ -1036,4 +1053,153 @@ export async function createPrivateDocumentSignedUrl(documentId: string, purpose
     documentId,
     purpose,
   );
+}
+
+const videoOperation = z.enum([
+  "create",
+  "edit",
+  "replace",
+  "approve",
+  "hide",
+  "archive",
+  "restore",
+  "earlier",
+  "later",
+  "discard",
+]);
+
+export async function managePropertyVideoWithClient(
+  client: Db,
+  actorId: string,
+  propertyId: string,
+  data: FormData,
+) {
+  if (!propertyVideosEnabled())
+    throw new MediaValidationError("Property videos are currently disabled.");
+  const id = await ensureActiveProperty(client, propertyId);
+  const operation = videoOperation.parse(data.get("operation"));
+  const payload: Record<string, Json> = {};
+  if (operation !== "create") {
+    payload.id = z.uuid().parse(data.get("id"));
+    payload.revision = z.coerce.number().int().min(0).parse(data.get("revision"));
+    // Authorize association before doing any file processing or upload; RPC repeats this under lock.
+    const current = await client
+      .from("media_assets")
+      .select("id,external_provider,external_media_id,external_url,drive_resource_key")
+      .eq("property_id", id)
+      .eq("id", String(payload.id))
+      .eq("media_type", "VIDEO")
+      .maybeSingle();
+    if (current.error) throw current.error;
+    if (!current.data) throw new MediaValidationError("Video not found on this property.");
+    if (operation === "edit")
+      Object.assign(payload, {
+        provider: current.data.external_provider,
+        mediaId: current.data.external_media_id,
+        canonicalUrl: current.data.external_url,
+        resourceKey: current.data.drive_resource_key ?? null,
+      });
+  }
+  let poster: { path: string; id: string; bytes: number } | null = null;
+  if (["create", "edit", "replace"].includes(operation)) {
+    if (operation !== "edit") {
+      const video = parsePropertyVideo(String(data.get("url") ?? ""));
+      if (!video)
+        throw new MediaValidationError("Paste a valid Google Drive or YouTube video link.", "url");
+      Object.assign(payload, video);
+    }
+    payload.title = z.string().trim().min(1).max(120).parse(data.get("title"));
+    payload.description = z
+      .string()
+      .trim()
+      .max(500)
+      .parse(String(data.get("description") ?? ""));
+    validatePublicMediaText(String(payload.title), String(payload.description));
+    payload.subtype = z.enum(["STANDARD_VIDEO", "DRONE_VIDEO"]).parse(data.get("subtype"));
+    const photoId = String(data.get("photoId") ?? "");
+    payload.photoId = photoId ? z.uuid().parse(photoId) : null;
+    payload.clearPoster = data.get("clearPoster") === "on";
+    if (photoId) {
+      const photo = await client
+        .from("media_assets")
+        .select("id")
+        .eq("id", photoId)
+        .eq("property_id", id)
+        .eq("media_type", "IMAGE")
+        .is("archived_at", null)
+        .maybeSingle();
+      if (photo.error) throw photo.error;
+      if (!photo.data) throw new MediaValidationError("Choose a current photo from this property.");
+    }
+    const file = data.get("poster");
+    if (file instanceof File && file.size > 0) {
+      const image = await normalizePublicPropertyImage(file, { poster: true });
+      await assertStorageCapacity(client, image.bytes.length);
+      const posterId = randomUUID();
+      poster = {
+        id: posterId,
+        path: `properties/${id}/video-posters/${posterId}.webp`,
+        bytes: image.bytes.length,
+      };
+      const upload = await client.storage
+        .from(getStorageConfig().buckets.propertyMediaPublic)
+        .upload(poster.path, image.bytes, {
+          contentType: "image/webp",
+          upsert: false,
+          cacheControl: "3600",
+        });
+      if (upload.error) throw new MediaValidationError("Screenshot upload failed. Try again.");
+      payload.poster = poster;
+    }
+  }
+  try {
+    const result = await client.rpc("manage_property_video", {
+      requested_actor_id: actorId,
+      requested_property_id: id,
+      requested_operation: operation,
+      requested_payload: payload,
+    });
+    if (result.error) throw new MediaValidationError(result.error.message);
+    return result.data;
+  } catch (error) {
+    if (poster) {
+      // A lost RPC response may follow a committed transaction. Never remove its live poster.
+      try {
+        const registered = await client
+          .from("property_video_posters")
+          .select("id")
+          .eq("id", poster.id)
+          .maybeSingle();
+        if (!registered.error && !registered.data) {
+          await client.storage
+            .from(getStorageConfig().buckets.propertyMediaPublic)
+            .remove([poster.path]);
+        }
+      } catch {
+        // Preserve the source error and leave an uncertain object for storage reconciliation.
+        console.error("video_poster_cleanup_deferred", { propertyId: id, posterId: poster.id });
+      }
+    }
+    throw error;
+  }
+}
+
+export async function managePropertyVideo(propertyId: string, data: FormData) {
+  const admin = await requireActiveAdmin();
+  return managePropertyVideoWithClient(privilegedClient(), admin.userId, propertyId, data);
+}
+
+// Legacy photo/brochure actions must not bypass video revisions or use a different property ID.
+export async function assertLegacyPropertyMediaTarget(propertyId: string, mediaId: string) {
+  await requireActiveAdmin();
+  const result = await privilegedClient()
+    .from("media_assets")
+    .select("id,media_type")
+    .eq("property_id", z.uuid().parse(propertyId))
+    .eq("id", z.uuid().parse(mediaId))
+    .maybeSingle();
+  if (result.error) throw result.error;
+  if (!result.data) throw new MediaValidationError("Media asset not found on this property.");
+  if (result.data.media_type === "VIDEO")
+    throw new MediaValidationError("Use the video controls to change this video.");
 }

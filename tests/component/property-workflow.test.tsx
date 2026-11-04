@@ -22,7 +22,7 @@ describe("PropertyWorkflow", () => {
 
     const workflow = screen.getByRole("navigation", { name: "Property publishing workflow" });
     expect(workflow).toHaveTextContent("Property DetailsCompleted");
-    expect(workflow).toHaveTextContent("Photos & DocumentsCompleted");
+    expect(workflow).toHaveTextContent("Photos, Videos & BrochureCompleted");
     expect(workflow).toHaveTextContent("PreviewCurrent step");
     expect(workflow).toHaveTextContent("PublishAvailable");
     expect(screen.getByText("Preview").closest("div")).toHaveAttribute("aria-current", "step");
@@ -48,7 +48,7 @@ describe("PropertyWorkflow", () => {
     render(
       <PropertyWorkflowNavigation
         previousHref={`/admin/properties/${propertyId}/media`}
-        previousLabel="Photos & Documents"
+        previousLabel="Photos, Videos & Brochure"
         secondaryHref={`/admin/properties/${propertyId}`}
         secondaryLabel="Save as Draft"
         nextHref={`/admin/properties/${propertyId}/publish`}
@@ -56,7 +56,7 @@ describe("PropertyWorkflow", () => {
       />,
     );
 
-    expect(screen.getByRole("link", { name: /← Photos & Documents/ })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /← Photos, Videos & Brochure/ })).toHaveAttribute(
       "href",
       `/admin/properties/${propertyId}/media`,
     );

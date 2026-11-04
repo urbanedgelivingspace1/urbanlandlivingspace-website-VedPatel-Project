@@ -12,6 +12,8 @@ import {
 } from "react";
 import { flushSync, useFormStatus } from "react-dom";
 
+import { PropertyVideoManager } from "@/components/admin/property-video-manager";
+import type { Locale } from "@/lib/i18n/config";
 import { PropertyWorkflowNavigation } from "@/components/admin/property-workflow";
 import type {
   AdminMediaAssetDto,
@@ -35,6 +37,9 @@ type BatchAction = (
 ) => Promise<BatchPhotoUploadResult>;
 
 type Props = Readonly<{
+  videoAction?: MediaAction;
+  published?: boolean;
+  locale?: Locale;
   propertyId: string;
   media: readonly AdminMediaAssetDto[];
   activeMediaIds: readonly string[];
@@ -223,6 +228,10 @@ export function PropertyMediaManager(props: Props) {
       return next;
     });
   }, []);
+  const reportVideoPending = useCallback(
+    (pending: boolean) => reportPending("property-videos", pending),
+    [reportPending],
+  );
   const active = props.media
     .filter((asset) => !asset.archivedAt)
     .sort((left, right) => left.sortOrder - right.sortOrder);
@@ -254,6 +263,16 @@ export function PropertyMediaManager(props: Props) {
           archiveMediaAction={props.archiveMediaAction}
         />
 
+        {props.videoAction ? (
+          <PropertyVideoManager
+            media={props.media}
+            published={props.published ?? false}
+            locale={props.locale}
+            action={props.videoAction}
+            onPendingChange={reportVideoPending}
+          />
+        ) : null}
+
         <BrochureSection
           propertyId={props.propertyId}
           brochure={brochure}
@@ -265,7 +284,7 @@ export function PropertyMediaManager(props: Props) {
           previousHref={`/admin/properties/${props.propertyId}/edit`}
           previousLabel="Property Details"
           secondaryHref={`/admin/properties/${props.propertyId}`}
-          secondaryLabel="Keep as Draft"
+          secondaryLabel="Return to Workspace"
           nextHref={`/admin/properties/${props.propertyId}/preview`}
           nextLabel="Save & Next"
           nextDisabledReason={

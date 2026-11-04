@@ -1,3 +1,5 @@
+import { PropertyVideos } from "@/components/media/property-videos";
+import { propertyVideosEnabled } from "@/lib/media/property-video";
 import { randomUUID } from "node:crypto";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -196,6 +198,10 @@ export default async function PropertyDetailPage({ params }: Props) {
                 {property.description || property.summary || t("property.overviewFallback")}
               </p>
             </section>
+
+            {propertyVideosEnabled() ? (
+              <PropertyVideos videos={property.media} coverPath={property.cover?.objectPath} />
+            ) : null}
 
             <PropertyFacts property={property} />
 
