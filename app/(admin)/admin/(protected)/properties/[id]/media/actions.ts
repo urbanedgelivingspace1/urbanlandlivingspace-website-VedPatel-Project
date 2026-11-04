@@ -68,6 +68,7 @@ const fileFrom = (formData: FormData) => {
 function refresh(propertyId: string) {
   updateTag("public-properties");
   revalidatePath(`/admin/properties/${propertyId}`);
+  revalidatePath(`/admin/properties/${propertyId}/edit`);
   revalidatePath(`/admin/properties/${propertyId}/media`);
   revalidatePath(`/admin/properties/${propertyId}/preview`);
   revalidatePath(`/admin/properties/${propertyId}/publish`);

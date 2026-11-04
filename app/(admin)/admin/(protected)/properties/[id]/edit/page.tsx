@@ -2,11 +2,16 @@ import { notFound } from "next/navigation";
 
 import { PropertyDraftForm } from "@/components/admin/property-draft-form";
 import { PropertyEditGuard } from "@/components/admin/property-edit-guard";
+import { PropertyVideoManager } from "@/components/admin/property-video-manager";
 import { PropertyWorkflow } from "@/components/admin/property-workflow";
+import { getRequestLocale } from "@/lib/i18n/server";
+import { propertyVideosEnabled } from "@/lib/media/property-video";
 import { requireActiveAdminPage } from "@/server/auth/require-admin-page";
 import { getAdminProperty, getAdminReferenceData } from "@/server/services/property-drafts";
+import { getAdminPropertyVisualMedia } from "@/server/services/property-media";
 
 import { deletePropertyDraftAction, updatePropertyDraftAction } from "../../actions";
+import { manageVideoAction } from "../media/actions";
 
 export default async function EditPropertyPage({
   params,
@@ -30,6 +35,9 @@ export default async function EditPropertyPage({
   }
   const row = record.property;
   const isPublished = row.publication_status === "PUBLISHED";
+  const videos = propertyVideosEnabled()
+    ? await Promise.all([getAdminPropertyVisualMedia(id), getRequestLocale()])
+    : null;
   const action = updatePropertyDraftAction.bind(
     null,
     id,
@@ -120,6 +128,14 @@ export default async function EditPropertyPage({
             >
               This property is published. Changes will update the live listing when saved.
             </p>
+          ) : null}
+          {videos ? (
+            <PropertyVideoManager
+              media={videos[0]}
+              published={isPublished}
+              locale={videos[1]}
+              action={manageVideoAction.bind(null, id)}
+            />
           ) : null}
           <PropertyDraftForm
             action={action}
