@@ -74,7 +74,7 @@ test("validation errors retain valid draft input", async ({ page }) => {
   await page.getByLabel("Area", { exact: true }).fill("-1");
   await page.locator('select[name="displayAreaUnitId"]').selectOption({ label: "Acre (ac)" });
   await page.getByRole("button", { name: "Save & Next →" }).click();
-  await expect(page.getByRole("status")).toContainText("retained");
+  await expect(page.getByRole("alert").filter({ hasText: "retained" })).toBeVisible();
   await expect(page.getByLabel("Property title (optional)")).toHaveValue(
     "Retained synthetic title",
   );
