@@ -1,5 +1,4 @@
 import "server-only";
-import { propertyVideosEnabled } from "@/lib/media/property-video";
 
 import { unstable_cache } from "next/cache";
 import { cache } from "react";
@@ -62,7 +61,7 @@ export const loadPublicProperty = cache(
       const client = createPublicServerClient();
       return getPublicPropertyDetail(client, slug);
     },
-    ["public-property", propertyVideosEnabled() ? "videos-v1" : "without-videos"],
+    ["public-property", "approved-media-v2"],
     { revalidate: 60, tags: ["public-properties"] },
   ),
 );

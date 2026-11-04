@@ -20,6 +20,7 @@ describe("M17 security headers", () => {
     );
     expect(policy).toContain("https://maps.google.com");
     expect(policy).toContain("https://drive.usercontent.google.com");
+    expect(policy).toMatch(/(?:^|; )img-src [^;]* https:\/\/i\.ytimg\.com(?: |;|$)/);
     expect(policy).toContain("https://project.supabase.co");
     expect(policy).toContain("upgrade-insecure-requests");
     expect(policy).not.toContain("'unsafe-eval'");

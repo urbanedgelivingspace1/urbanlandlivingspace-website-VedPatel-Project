@@ -20,10 +20,7 @@ export type ProcessedPublicImage = Readonly<{
   height: number;
 }>;
 
-export async function normalizePublicPropertyImage(
-  file: File,
-  options: { poster?: boolean } = {},
-): Promise<ProcessedPublicImage> {
+export async function normalizePublicPropertyImage(file: File): Promise<ProcessedPublicImage> {
   if (file.size <= 0 || file.size > MAX_SOURCE_BYTES) {
     throw new MediaValidationError("Image must be between 1 byte and 10 MB.");
   }
@@ -55,25 +52,16 @@ export async function normalizePublicPropertyImage(
   }
   const landscapeReady = metadata.width >= 1200 && metadata.height >= 800;
   const portraitReady = metadata.width >= 800 && metadata.height >= 1200;
-  if (
-    options.poster
-      ? Math.min(metadata.width, metadata.height) < 180 ||
-        Math.max(metadata.width, metadata.height) < 320
-      : !landscapeReady && !portraitReady
-  ) {
-    throw new MediaValidationError(
-      options.poster
-        ? "Video screenshots must be at least 320×180 or 180×320 pixels."
-        : "Gallery images must be at least 1200×800 or 800×1200 pixels.",
-    );
+  if (!landscapeReady && !portraitReady) {
+    throw new MediaValidationError("Gallery images must be at least 1200×800 or 800×1200 pixels.");
   }
 
   try {
     const result = await sharp(source, { failOn: "warning", limitInputPixels: MAX_PIXELS })
       .rotate()
       .resize({
-        width: options.poster ? 1280 : 2200,
-        height: options.poster ? 1280 : 2200,
+        width: 2200,
+        height: 2200,
         fit: "inside",
         withoutEnlargement: true,
       })

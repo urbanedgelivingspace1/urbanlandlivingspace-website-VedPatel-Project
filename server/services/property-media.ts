@@ -1079,28 +1079,45 @@ export async function managePropertyVideoWithClient(
   const id = await ensureActiveProperty(client, propertyId);
   const operation = videoOperation.parse(data.get("operation"));
   const payload: Record<string, Json> = {};
-  if (operation !== "create") {
+  if (operation === "create") payload.subtype = "STANDARD_VIDEO";
+  else {
     payload.id = z.uuid().parse(data.get("id"));
     payload.revision = z.coerce.number().int().min(0).parse(data.get("revision"));
-    // Authorize association before doing any file processing or upload; RPC repeats this under lock.
+    // Check the property association before reading existing metadata. The RPC repeats it under lock.
     const current = await client
       .from("media_assets")
-      .select("id,external_provider,external_media_id,external_url,drive_resource_key")
+      .select(
+        "external_provider,external_media_id,external_url,drive_resource_key,media_subtype,video_photo_id",
+      )
       .eq("property_id", id)
       .eq("id", String(payload.id))
       .eq("media_type", "VIDEO")
       .maybeSingle();
     if (current.error) throw current.error;
     if (!current.data) throw new MediaValidationError("Video not found on this property.");
-    if (operation === "edit")
+    payload.subtype =
+      current.data.media_subtype === "DRONE_VIDEO" ? "DRONE_VIDEO" : "STANDARD_VIDEO";
+    if (operation === "edit") {
       Object.assign(payload, {
         provider: current.data.external_provider,
         mediaId: current.data.external_media_id,
         canonicalUrl: current.data.external_url,
         resourceKey: current.data.drive_resource_key ?? null,
       });
+      if (current.data.video_photo_id) {
+        const photo = await client
+          .from("media_assets")
+          .select("id")
+          .eq("id", current.data.video_photo_id)
+          .eq("property_id", id)
+          .eq("media_type", "IMAGE")
+          .is("archived_at", null)
+          .maybeSingle();
+        if (photo.error) throw photo.error;
+        payload.photoId = photo.data?.id ?? null;
+      }
+    }
   }
-  let poster: { path: string; id: string; bytes: number } | null = null;
   if (["create", "edit", "replace"].includes(operation)) {
     if (operation !== "edit") {
       const video = parsePropertyVideo(String(data.get("url") ?? ""));
@@ -1115,73 +1132,15 @@ export async function managePropertyVideoWithClient(
       .max(500)
       .parse(String(data.get("description") ?? ""));
     validatePublicMediaText(String(payload.title), String(payload.description));
-    payload.subtype = z.enum(["STANDARD_VIDEO", "DRONE_VIDEO"]).parse(data.get("subtype"));
-    const photoId = String(data.get("photoId") ?? "");
-    payload.photoId = photoId ? z.uuid().parse(photoId) : null;
-    payload.clearPoster = data.get("clearPoster") === "on";
-    if (photoId) {
-      const photo = await client
-        .from("media_assets")
-        .select("id")
-        .eq("id", photoId)
-        .eq("property_id", id)
-        .eq("media_type", "IMAGE")
-        .is("archived_at", null)
-        .maybeSingle();
-      if (photo.error) throw photo.error;
-      if (!photo.data) throw new MediaValidationError("Choose a current photo from this property.");
-    }
-    const file = data.get("poster");
-    if (file instanceof File && file.size > 0) {
-      const image = await normalizePublicPropertyImage(file, { poster: true });
-      await assertStorageCapacity(client, image.bytes.length);
-      const posterId = randomUUID();
-      poster = {
-        id: posterId,
-        path: `properties/${id}/video-posters/${posterId}.webp`,
-        bytes: image.bytes.length,
-      };
-      const upload = await client.storage
-        .from(getStorageConfig().buckets.propertyMediaPublic)
-        .upload(poster.path, image.bytes, {
-          contentType: "image/webp",
-          upsert: false,
-          cacheControl: "3600",
-        });
-      if (upload.error) throw new MediaValidationError("Screenshot upload failed. Try again.");
-      payload.poster = poster;
-    }
   }
-  try {
-    const result = await client.rpc("manage_property_video", {
-      requested_actor_id: actorId,
-      requested_property_id: id,
-      requested_operation: operation,
-      requested_payload: payload,
-    });
-    if (result.error) throw new MediaValidationError(result.error.message);
-    return result.data;
-  } catch (error) {
-    if (poster) {
-      // A lost RPC response may follow a committed transaction. Never remove its live poster.
-      try {
-        const registered = await client
-          .from("property_video_posters")
-          .select("id")
-          .eq("id", poster.id)
-          .maybeSingle();
-        if (!registered.error && !registered.data) {
-          await client.storage
-            .from(getStorageConfig().buckets.propertyMediaPublic)
-            .remove([poster.path]);
-        }
-      } catch {
-        // Preserve the source error and leave an uncertain object for storage reconciliation.
-        console.error("video_poster_cleanup_deferred", { propertyId: id, posterId: poster.id });
-      }
-    }
-    throw error;
-  }
+  const result = await client.rpc("manage_property_video", {
+    requested_actor_id: actorId,
+    requested_property_id: id,
+    requested_operation: operation,
+    requested_payload: payload,
+  });
+  if (result.error) throw new MediaValidationError(result.error.message);
+  return result.data;
 }
 
 export async function managePropertyVideo(propertyId: string, data: FormData) {

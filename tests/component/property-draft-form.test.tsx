@@ -23,6 +23,34 @@ describe("PropertyDraftForm", () => {
   afterEach(() => {
     cleanup();
   });
+  it("previews a thumbnail and submits the three optional video fields with a new draft", async () => {
+    const user = userEvent.setup();
+    const action = vi.fn(async (state, data: FormData) => {
+      expect(data.get("initialVideoUrl")).toBe("https://youtu.be/dQw4w9WgXcQ");
+      expect(data.get("initialVideoTitle")).toBe("Property walkthrough");
+      expect(data.get("initialVideoDescription")).toBe("Views from the main road");
+      return state;
+    });
+    render(
+      <PropertyDraftForm
+        action={action}
+        references={references}
+        submitLabel="Create draft"
+        allowInitialVideo
+      />,
+    );
+    await user.type(screen.getByLabelText("Video URL"), "https://youtu.be/dQw4w9WgXcQ");
+    await user.type(screen.getByLabelText("Video title"), "Property walkthrough");
+    await user.type(
+      screen.getByLabelText("Video description (optional)"),
+      "Views from the main road",
+    );
+    expect(
+      screen.getByRole("button", { name: "Load video: Property walkthrough" }).querySelector("img"),
+    ).toHaveAttribute("src", "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg");
+    await user.click(screen.getByRole("button", { name: "Create draft" }));
+    await waitFor(() => expect(action).toHaveBeenCalledTimes(1));
+  });
   it("renders stable draft sections and keeps publication unavailable", () => {
     render(
       <PropertyDraftForm

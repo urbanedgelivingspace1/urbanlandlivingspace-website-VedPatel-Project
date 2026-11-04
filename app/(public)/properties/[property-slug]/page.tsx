@@ -1,5 +1,5 @@
 import { PropertyVideos } from "@/components/media/property-videos";
-import { propertyVideosEnabled } from "@/lib/media/property-video";
+import { isPlayablePropertyVideo } from "@/lib/media/property-video";
 import { randomUUID } from "node:crypto";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -130,6 +130,7 @@ export default async function PropertyDetailPage({ params }: Props) {
   const galleryMedia = property.cover
     ? [property.cover, ...images.filter((item) => item.id !== property.cover?.id)]
     : images;
+  const videos = property.media.filter(isPlayablePropertyVideo);
   const brochures = property.media.filter(
     (item) =>
       item.mediaType === "BROCHURE" &&
@@ -182,6 +183,11 @@ export default async function PropertyDetailPage({ params }: Props) {
             </p>
           </div>
           <div className="property-title-actions">
+            {videos.length > 0 ? (
+              <a className="property-watch-link" href="#property-videos">
+                <span aria-hidden="true">▶</span> {t("video.watch")}
+              </a>
+            ) : null}
             <ShareButton title={property.title} propertyCode={property.propertyCode} />
             {brochures[0] ? <PropertyBrochureLink brochure={brochures[0]} /> : null}
           </div>
@@ -191,6 +197,15 @@ export default async function PropertyDetailPage({ params }: Props) {
 
         <div className="property-detail-layout">
           <div className="property-detail-main">
+            {videos.length > 0 ? (
+              <PropertyVideos
+                id="property-videos"
+                videos={videos}
+                coverPath={property.cover?.objectPath}
+                locale={locale}
+              />
+            ) : null}
+
             <section className="detail-section" aria-labelledby="property-overview">
               <p className="eyebrow">{t("property.overview")}</p>
               <h2 id="property-overview">{t("property.glance")}</h2>
@@ -198,10 +213,6 @@ export default async function PropertyDetailPage({ params }: Props) {
                 {property.description || property.summary || t("property.overviewFallback")}
               </p>
             </section>
-
-            {propertyVideosEnabled() ? (
-              <PropertyVideos videos={property.media} coverPath={property.cover?.objectPath} />
-            ) : null}
 
             <PropertyFacts property={property} />
 

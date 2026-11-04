@@ -109,7 +109,12 @@ export default async function PropertyPublicationPreviewPage({
             {preview.description ?? "No description recorded."}
           </p>
         </section>
-        <PropertyVideos videos={videos} coverPath={preview.cover?.objectPath} locale={locale} />
+        <PropertyVideos
+          videos={videos}
+          coverPath={preview.cover?.objectPath}
+          locale={locale}
+          adminPreview
+        />
         {preview.googleMapsEmbedUrl ? (
           <section className="rounded-xl border border-slate-200 bg-white p-5">
             <h2 className="font-display text-xl font-semibold">Location</h2>

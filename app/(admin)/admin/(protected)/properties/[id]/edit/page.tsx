@@ -132,6 +132,7 @@ export default async function EditPropertyPage({
           {videos ? (
             <PropertyVideoManager
               media={videos[0]}
+              showAddFormWhenEmpty
               published={isPublished}
               locale={videos[1]}
               action={manageVideoAction.bind(null, id)}

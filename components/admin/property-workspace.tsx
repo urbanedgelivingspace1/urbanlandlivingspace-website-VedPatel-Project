@@ -366,16 +366,17 @@ export function PropertyWorkspace({
                   {asset.mediaType === "VIDEO" ? (
                     <div className="p-2">
                       <PropertyVideoPlayer
+                        key={asset.externalUrl}
                         provider={asset.externalProvider ?? ""}
                         mediaId={asset.externalMediaId ?? ""}
                         resourceKey={asset.driveResourceKey}
                         title={asset.videoTitle || asset.caption || "Property video"}
                         posterUrl={
                           asset.videoPosterUrl ||
-                          photoAndBrochureMedia.find((p) => p.id === asset.videoPhotoId)
-                            ?.previewUrl ||
-                          photoAndBrochureMedia.find((p) => p.isCover)?.previewUrl
+                          photoAndBrochureMedia.find((p) => p.id === asset.videoPhotoId)?.previewUrl
                         }
+                        coverUrl={photoAndBrochureMedia.find((p) => p.isCover)?.previewUrl}
+                        adminPreview
                       />
                       <p className="mt-2 text-xs font-semibold">
                         {asset.visibility === "PUBLIC" && asset.processingStatus === "APPROVED"

@@ -1,5 +1,4 @@
 import "server-only";
-import { propertyVideosEnabled } from "@/lib/media/property-video";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -64,19 +63,25 @@ export async function getPublicPropertyDetail(
   if (propertyError) throw propertyError;
   if (!property) return null;
 
-  const mediaQuery = propertyVideosEnabled()
-    ? client
-        .from("public_property_media")
-        .select(publicVideoMediaFields)
-        .eq("property_id", property.id)
-        .order("sort_order")
-        .order("id")
-    : client
-        .from("public_property_media")
-        .select(publicMediaFields)
-        .eq("property_id", property.id)
-        .order("sort_order")
-        .order("id");
+  const mediaQuery = async () => {
+    const result = await client
+      .from("public_property_media")
+      .select(publicVideoMediaFields)
+      .eq("property_id", property.id)
+      .order("sort_order")
+      .order("id");
+    // Keep property details available while the additive video migration rolls out.
+    const missingVideoColumn =
+      result.error?.code === "42703" &&
+      /\b(video_title|drive_resource_key|video_poster_path)\b/.test(result.error.message);
+    if (!missingVideoColumn) return result;
+    return client
+      .from("public_property_media")
+      .select(publicMediaFields)
+      .eq("property_id", property.id)
+      .order("sort_order")
+      .order("id");
+  };
   const [
     { data: googleMap, error: googleMapError },
     { data: media, error: mediaError },
@@ -88,7 +93,7 @@ export async function getPublicPropertyDetail(
       .select("google_maps_embed_url")
       .eq("property_id", property.id)
       .maybeSingle(),
-    mediaQuery,
+    mediaQuery(),
     client
       .from("public_property_verification_summaries")
       .select(publicVerificationFields)

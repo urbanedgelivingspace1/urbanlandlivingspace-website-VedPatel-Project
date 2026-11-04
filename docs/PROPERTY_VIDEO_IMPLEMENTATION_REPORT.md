@@ -182,3 +182,10 @@ The focused follow-up passed 37 tests, TypeScript, and lint for the changed comp
 The production project configured by this checkout is xrqulhapgjqgymrfuclo. The connected account could list projects but could not see this project or inspect its SQL or migration history. Local browser access was disabled in Work settings. The read-only query in `supabase/inspection/property-video-production-preflight.sql` is ready for the account that has access. Verify production migration history before applying only the pending video migration. The transaction wrapper was prepared at `/tmp/urbanedge-video-production-apply.sql` with existing public-row verification. No production write was attempted or confirmed. No staging, commit, push, merge, pull request, website deployment, or production environment change was performed.
 
 The owner reported applying the production migration and authorized proceeding with the GitHub branch. The production migration-history entry was not independently verified because the connected account lacked access. No production SQL was executed by Codex.
+
+
+## Add and edit form follow-up
+
+Add Property accepts an optional YouTube or Google Drive URL and video title before the first save. The draft saves first and the video is attached as hidden. If the attachment fails, the media page identifies that the draft was saved and lets the admin retry. Edit Property opens the video form for properties without active videos and offers Add Video for properties that already have them.
+
+Videos now default to enabled when the build setting is absent. Set `NEXT_PUBLIC_PROPERTY_VIDEOS_ENABLED=false` and rebuild to opt out. An existing explicit false still disables the controls. Apply the video migrations for video management. Public property details fall back to the existing media fields if the video projection columns are missing.

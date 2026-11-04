@@ -15,6 +15,7 @@ import { buildPublicMediaUrl } from "@/lib/media/public-media-url";
 type Props = {
   media: readonly AdminMediaAssetDto[];
   published: boolean;
+  showAddFormWhenEmpty?: boolean;
   locale?: Locale;
   action: (state: MediaFormState, data: FormData) => Promise<MediaFormState>;
   onPendingChange?: (pending: boolean) => void;
@@ -23,6 +24,7 @@ type Editor = { mode: "create" | "edit" | "replace"; asset?: AdminMediaAssetDto 
 export function PropertyVideoManager({
   media,
   published,
+  showAddFormWhenEmpty,
   locale = "en",
   action,
   onPendingChange,
@@ -35,14 +37,16 @@ export function PropertyVideoManager({
   const archived = videos.filter((v) => v.archivedAt);
   const photos = media.filter((v) => v.mediaType === "IMAGE" && !v.archivedAt);
   const cover = photos.find((v) => v.isCover)?.previewUrl;
-  const [editor, setEditor] = useState<Editor | null>(null);
+  const [editor, setEditor] = useState<Editor | null>(() =>
+    showAddFormWhenEmpty && active.length === 0 ? { mode: "create" } : null,
+  );
   const [isDirty, setDirty] = useState(false);
   const [navigationBlocked, setNavigationBlocked] = useState(false);
   const [result, setResult] = useState<MediaFormState>({ ok: false, message: "" });
   const [pending, startTransition] = useTransition();
   const submitting = useRef(false);
   const posterFor = (v: AdminMediaAssetDto) =>
-    v.videoPosterUrl || photos.find((p) => p.id === v.videoPhotoId)?.previewUrl || cover;
+    v.videoPosterUrl || photos.find((p) => p.id === v.videoPhotoId)?.previewUrl;
   useEffect(() => {
     const beforeUnload = (event: BeforeUnloadEvent) => {
       if (!isDirty && !pending) return;
@@ -151,7 +155,8 @@ export function PropertyVideoManager({
         <VideoEditor
           key={`${editor.mode}:${editor.asset?.id ?? "new"}`}
           editor={editor}
-          photos={photos}
+          coverUrl={cover}
+          posterUrl={editor.mode === "edit" && editor.asset ? posterFor(editor.asset) : undefined}
           locale={locale}
           pending={pending}
           onSubmit={run}
@@ -168,12 +173,14 @@ export function PropertyVideoManager({
           <article className="property-video-admin-card" key={video.id}>
             <div className="min-w-0">
               <PropertyVideoPlayer
-                key={`${video.id}:${video.externalMediaId}`}
+                key={video.externalUrl}
                 provider={video.externalProvider ?? ""}
                 mediaId={video.externalMediaId ?? ""}
                 resourceKey={video.driveResourceKey}
                 title={video.videoTitle || video.caption || t("video.heading")}
                 posterUrl={posterFor(video)}
+                coverUrl={cover}
+                adminPreview
                 locale={locale}
               />
               <p className="mt-1 text-xs text-slate-500">{t("video.fallback")}</p>
@@ -262,9 +269,8 @@ export function PropertyVideoManager({
                   <DraftPlayer
                     draft={video.pendingVideo}
                     locale={locale}
-                    fallback={
-                      photos.find((p) => p.id === video.pendingVideo?.photoId)?.previewUrl || cover
-                    }
+                    posterUrl={photos.find((p) => p.id === video.pendingVideo?.photoId)?.previewUrl}
+                    coverUrl={cover}
                   />
                   <button
                     type="button"
@@ -323,11 +329,13 @@ export function PropertyVideoManager({
 function DraftPlayer({
   draft,
   locale,
-  fallback,
+  posterUrl,
+  coverUrl,
 }: {
   draft: VideoDraft;
   locale: Locale;
-  fallback?: string | null;
+  posterUrl?: string | null;
+  coverUrl?: string | null;
 }) {
   return (
     <PropertyVideoPlayer
@@ -336,14 +344,17 @@ function DraftPlayer({
       mediaId={draft.mediaId}
       resourceKey={draft.resourceKey}
       title={draft.title}
-      posterUrl={buildPublicMediaUrl(draft.poster?.path ?? null) || fallback}
+      posterUrl={buildPublicMediaUrl(draft.poster?.path ?? null) || posterUrl}
+      coverUrl={coverUrl}
+      adminPreview
       locale={locale}
     />
   );
 }
 function VideoEditor({
   editor,
-  photos,
+  posterUrl,
+  coverUrl,
   locale,
   pending,
   onSubmit,
@@ -351,7 +362,8 @@ function VideoEditor({
   onCancel,
 }: {
   editor: Editor;
-  photos: readonly AdminMediaAssetDto[];
+  posterUrl?: string | null;
+  coverUrl?: string | null;
   locale: Locale;
   pending: boolean;
   onDirtyChange: (dirty: boolean) => void;
@@ -363,19 +375,7 @@ function VideoEditor({
   const [url, setUrl] = useState(editor.mode === "edit" ? (asset?.externalUrl ?? "") : "");
   const [title, setTitle] = useState(asset?.videoTitle || asset?.caption || "");
   const [description, setDescription] = useState(asset?.videoTitle ? (asset.caption ?? "") : "");
-  const [subtype, setSubtype] = useState(asset?.mediaSubtype || "STANDARD_VIDEO");
-  const [photoId, setPhotoId] = useState(asset?.videoPhotoId || "");
-  const [clearPoster, setClearPoster] = useState(false);
-  const [screenshotUrl, setScreenshotUrl] = useState<string | null>(null);
-  useEffect(
-    () => () => {
-      if (screenshotUrl) URL.revokeObjectURL(screenshotUrl);
-    },
-    [screenshotUrl],
-  );
   const source = parsePropertyVideo(url);
-  const fallback =
-    photos.find((p) => p.id === photoId)?.previewUrl || photos.find((p) => p.isCover)?.previewUrl;
   return (
     <form
       className="mt-5 space-y-4 rounded-xl border border-slate-300 bg-slate-50 p-4"
@@ -430,13 +430,6 @@ function VideoEditor({
         />
       </label>
       <label>
-        {t("video.type")}
-        <select name="subtype" value={subtype} onChange={(e) => setSubtype(e.target.value)}>
-          <option value="STANDARD_VIDEO">{t("video.standard")}</option>
-          <option value="DRONE_VIDEO">{t("video.drone")}</option>
-        </select>
-      </label>
-      <label>
         {t("video.description")}
         <textarea
           name="description"
@@ -446,41 +439,6 @@ function VideoEditor({
           onChange={(e) => setDescription(e.target.value)}
         />
       </label>
-      <label>
-        {t("video.photo")}
-        <select name="photoId" value={photoId} onChange={(e) => setPhotoId(e.target.value)}>
-          <option value="">{t("video.cover")}</option>
-          {photos.map((photo, index) => (
-            <option value={photo.id} key={photo.id}>
-              {photo.altText || `${index + 1}`}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        {t("video.screenshot")}
-        <input
-          name="poster"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            setScreenshotUrl(file ? URL.createObjectURL(file) : null);
-            if (file) setClearPoster(false);
-          }}
-        />
-      </label>
-      {editor.mode === "edit" && asset?.videoPosterId ? (
-        <label>
-          <input
-            name="clearPoster"
-            type="checkbox"
-            checked={clearPoster}
-            onChange={(event) => setClearPoster(event.target.checked)}
-          />{" "}
-          {t("video.clearPoster")}
-        </label>
-      ) : null}
       {source ? (
         <PropertyVideoPlayer
           key={source.canonicalUrl}
@@ -488,11 +446,9 @@ function VideoEditor({
           mediaId={source.mediaId}
           resourceKey={source.resourceKey}
           title={title || t("video.preview")}
-          posterUrl={
-            screenshotUrl ||
-            (editor.mode === "edit" && !clearPoster ? asset?.videoPosterUrl : null) ||
-            fallback
-          }
+          posterUrl={posterUrl}
+          coverUrl={coverUrl}
+          adminPreview
           locale={locale}
         />
       ) : null}

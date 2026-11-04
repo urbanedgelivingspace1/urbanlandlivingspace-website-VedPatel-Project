@@ -6,6 +6,7 @@ import { useActionState, useCallback, useEffect, useRef, useState } from "react"
 import { AdminTopNotification } from "@/components/admin/admin-top-notification";
 import { DeleteDraftButton } from "@/components/admin/delete-draft-button";
 import { usePropertyEditGuard } from "@/components/admin/property-edit-guard";
+import { PropertyVideoPlayer } from "@/components/media/property-videos";
 import type { AdminPropertyReferenceData } from "@/features/admin/contracts";
 import {
   initialPropertyFormState,
@@ -16,6 +17,7 @@ import {
   PropertyBoundaryMapQuickGuide,
 } from "@/components/admin/property-boundary-map-guide";
 import { parseGoogleMapsEmbedInput } from "@/lib/validation/google-maps-embed";
+import { parsePropertyVideo } from "@/lib/media/property-video";
 
 type FormAction = (state: PropertyFormState, formData: FormData) => Promise<PropertyFormState>;
 
@@ -24,6 +26,7 @@ type Props = Readonly<{
   references: AdminPropertyReferenceData;
   initialValues?: Readonly<Record<string, string | number | boolean | null | undefined>>;
   submitLabel: string;
+  allowInitialVideo?: boolean;
   propertyId?: string;
   isPublished?: boolean;
   deleteAction?: (data: FormData) => Promise<void>;
@@ -50,6 +53,7 @@ export function PropertyDraftForm({
   references,
   initialValues = {},
   submitLabel,
+  allowInitialVideo,
   propertyId,
   isPublished = false,
   deleteAction,
@@ -66,6 +70,9 @@ export function PropertyDraftForm({
   );
   const [mapInput, setMapInput] = useState(String(initialValues.googleMapsEmbedUrl ?? ""));
   const [isMapGuideOpen, setIsMapGuideOpen] = useState(false);
+  const [videoUrl, setVideoUrl] = useState(String(initialValues.initialVideoUrl ?? ""));
+  const [videoTitle, setVideoTitle] = useState(String(initialValues.initialVideoTitle ?? ""));
+  const videoSource = allowInitialVideo ? parsePropertyVideo(videoUrl) : null;
 
   const value = (name: string) => state.values[name] ?? initialValues[name] ?? "";
   const checked = (name: string) => state.values[name] === "on" || initialValues[name] === true;
@@ -208,6 +215,74 @@ export function PropertyDraftForm({
           />
         </label>
       </FormSection>
+
+      {allowInitialVideo ? (
+        <FormSection
+          title="Property Video (optional)"
+          description="Add a YouTube or Google Drive video link. The video stays hidden until you approve it."
+        >
+          <label className={labelClass}>
+            Video title
+            <input
+              className={inputClass}
+              name="initialVideoTitle"
+              maxLength={120}
+              value={videoTitle}
+              onChange={(event) => setVideoTitle(event.target.value)}
+              aria-invalid={Boolean(fieldError("initialVideoTitle"))}
+            />
+            {fieldError("initialVideoTitle") ? (
+              <span className="mt-1 block text-xs text-red-700">
+                {fieldError("initialVideoTitle")}
+              </span>
+            ) : null}
+          </label>
+          <label className={labelClass}>
+            Video URL
+            <input
+              className={inputClass}
+              name="initialVideoUrl"
+              type="url"
+              value={videoUrl}
+              onChange={(event) => setVideoUrl(event.target.value)}
+              aria-invalid={Boolean(fieldError("initialVideoUrl"))}
+            />
+            {fieldError("initialVideoUrl") ? (
+              <span className="mt-1 block text-xs text-red-700">
+                {fieldError("initialVideoUrl")}
+              </span>
+            ) : null}
+          </label>
+          <label className={`${labelClass} md:col-span-2`}>
+            Video description (optional)
+            <textarea
+              className={inputClass}
+              name="initialVideoDescription"
+              rows={3}
+              maxLength={500}
+              defaultValue={String(value("initialVideoDescription"))}
+              aria-invalid={Boolean(fieldError("initialVideoDescription"))}
+            />
+            {fieldError("initialVideoDescription") ? (
+              <span className="mt-1 block text-xs text-red-700">
+                {fieldError("initialVideoDescription")}
+              </span>
+            ) : null}
+          </label>
+          {videoSource ? (
+            <div className="md:col-span-2">
+              <PropertyVideoPlayer
+                key={videoSource.canonicalUrl}
+                provider={videoSource.provider}
+                mediaId={videoSource.mediaId}
+                resourceKey={videoSource.resourceKey}
+                title={videoTitle.trim() || "Video preview"}
+                adminPreview
+              />
+            </div>
+          ) : null}
+        </FormSection>
+      ) : null}
 
       <FormSection
         title="Location & Land Details"

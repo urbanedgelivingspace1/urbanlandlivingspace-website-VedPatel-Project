@@ -1,6 +1,8 @@
+import type { PublicMediaDto } from "@/features/properties/domain/contracts";
+
 export const MAX_PROPERTY_VIDEOS = 5;
 export const propertyVideosEnabled = () =>
-  process.env.NEXT_PUBLIC_PROPERTY_VIDEOS_ENABLED === "true";
+  process.env.NEXT_PUBLIC_PROPERTY_VIDEOS_ENABLED !== "false";
 
 export type VideoSource = Readonly<{
   provider: "GOOGLE_DRIVE" | "YOUTUBE";
@@ -12,6 +14,13 @@ export type VideoSource = Readonly<{
 const driveId = /^[A-Za-z0-9_-]{10,160}$/;
 const youtubeId = /^[A-Za-z0-9_-]{11}$/;
 const resourceKeyPattern = /^[A-Za-z0-9_-]{1,200}$/;
+
+export function youtubeThumbnailUrls(mediaId: string) {
+  if (!youtubeId.test(mediaId)) return [];
+  return ["hqdefault", "mqdefault", "default"].map(
+    (size) => `https://i.ytimg.com/vi/${mediaId}/${size}.jpg`,
+  );
+}
 
 export function parsePropertyVideo(value: string): VideoSource | null {
   try {
@@ -91,4 +100,18 @@ export function videoPlaybackUrls(provider: string, mediaId: string, resourceKey
       external: `https://my.matterport.com/show/?m=${mediaId}`,
     };
   return null;
+}
+export function isPlayablePropertyVideo(
+  media: PublicMediaDto,
+): media is PublicMediaDto & { externalProvider: string; externalMediaId: string } {
+  return (
+    media.mediaType === "VIDEO" &&
+    Boolean(
+      videoPlaybackUrls(
+        media.externalProvider ?? "",
+        media.externalMediaId ?? "",
+        media.driveResourceKey,
+      ),
+    )
+  );
 }

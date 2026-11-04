@@ -1,5 +1,6 @@
 import { PropertyDraftForm } from "@/components/admin/property-draft-form";
 import { PropertyWorkflow } from "@/components/admin/property-workflow";
+import { propertyVideosEnabled } from "@/lib/media/property-video";
 import { requireActiveAdminPage } from "@/server/auth/require-admin-page";
 import { getAdminReferenceData } from "@/server/services/property-drafts";
 
@@ -48,6 +49,7 @@ export default async function NewPropertyPage({
           references={references}
           initialValues={initialValues}
           submitLabel="Save Draft"
+          allowInitialVideo={propertyVideosEnabled()}
         />
       </PropertyWorkflow>
     </div>

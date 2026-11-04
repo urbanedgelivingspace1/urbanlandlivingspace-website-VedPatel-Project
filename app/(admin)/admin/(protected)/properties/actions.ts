@@ -12,6 +12,7 @@ import {
 import type { PropertyFormState } from "@/features/properties/domain/property-form-state";
 import type { PublicationActionState } from "@/features/properties/domain/publication";
 import type { BatchDocumentUploadResult } from "@/features/media/domain/contracts";
+import { parsePropertyVideo, propertyVideosEnabled } from "@/lib/media/property-video";
 import { requireActiveAdmin } from "@/server/auth/authorization";
 import {
   archivePropertyDraft,
@@ -23,8 +24,10 @@ import {
 } from "@/server/services/property-drafts";
 import {
   createPrivateDocumentSignedUrl,
+  managePropertyVideo,
   uploadPrivatePropertyDocument,
 } from "@/server/services/property-media";
+import { validatePublicMediaText } from "@/server/storage/external-media";
 import { publishProperty, unpublishProperty } from "@/server/services/property-publication";
 import type { AvailabilityStatus } from "@/types/database";
 
@@ -244,8 +247,28 @@ export async function createPropertyDraftAction(
   formData: FormData,
 ): Promise<PropertyFormState> {
   await requireActiveAdmin();
+  const videoUrl = text(formData, "initialVideoUrl");
+  const videoTitle = text(formData, "initialVideoTitle");
+  const videoDescription = text(formData, "initialVideoDescription");
   let propertyId: string;
   try {
+    if (videoUrl || videoTitle || videoDescription) {
+      z.object({
+        initialVideoUrl: z
+          .string()
+          .refine(
+            (url) => propertyVideosEnabled() && parsePropertyVideo(url) !== null,
+            "Enter a supported YouTube or Google Drive video link.",
+          ),
+        initialVideoTitle: z.string().min(1, "Enter a video title.").max(120),
+        initialVideoDescription: z.string().max(500),
+      }).parse({
+        initialVideoUrl: videoUrl,
+        initialVideoTitle: videoTitle,
+        initialVideoDescription: videoDescription,
+      });
+      validatePublicMediaText(videoTitle, videoDescription);
+    }
     propertyId = await createPropertyDraft(parsePropertyDraftForm(formData));
   } catch (error) {
     console.error("[Property Draft Save Error]", {
@@ -255,6 +278,20 @@ export async function createPropertyDraftAction(
     return failureState(error, formData);
   }
   revalidatePath("/admin/properties");
+  if (videoUrl) {
+    const video = new FormData();
+    video.set("operation", "create");
+    video.set("url", videoUrl);
+    video.set("title", videoTitle);
+    video.set("description", videoDescription);
+    try {
+      await managePropertyVideo(propertyId, video);
+      revalidatePath("/admin/media");
+    } catch (error) {
+      console.error("[Initial Property Video Save Error]", { propertyId, error });
+      redirect(`/admin/properties/${propertyId}/media?videoSaveFailed=1`);
+    }
+  }
   redirect(draftDestination(propertyId, formData));
 }
 

@@ -2517,7 +2517,8 @@ select option {
   margin-top: 0.15rem;
   color: var(--brand-gold-deep);
 }
-.share-button {
+.share-button,
+.property-watch-link {
   display: inline-flex;
   width: max-content;
   min-height: 2.75rem;

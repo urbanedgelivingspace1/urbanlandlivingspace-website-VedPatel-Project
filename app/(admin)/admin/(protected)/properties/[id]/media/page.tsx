@@ -27,7 +27,7 @@ export default async function PropertyMediaPage({
   searchParams,
 }: Readonly<{
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ saved?: string }>;
+  searchParams: Promise<{ saved?: string; videoSaveFailed?: string }>;
 }>) {
   const { id } = await params;
   const query = await searchParams;
@@ -44,6 +44,14 @@ export default async function PropertyMediaPage({
   );
   return (
     <div className="mx-auto max-w-6xl">
+      {query.videoSaveFailed === "1" ? (
+        <AdminTopNotification
+          type="warning"
+          title="Property draft saved without the video."
+          message="Use Add Video below to try attaching the link again."
+          autoDismissMs={0}
+        />
+      ) : null}
       {query.saved === "1" ? (
         <AdminTopNotification
           type="success"
