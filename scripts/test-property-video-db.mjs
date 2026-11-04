@@ -64,7 +64,10 @@ try {
   await db.exec(
     readFileSync(`${repo}/supabase/migrations/20261104010000_property_videos.sql`, "utf8"),
   );
-  console.log("Migration applied successfully");
+  await db.exec(
+    readFileSync(`${repo}/supabase/migrations/20261105010000_force_video_poster_rls.sql`, "utf8"),
+  );
+  console.log("Video migrations applied successfully");
 } catch (e) {
   console.error("MIGRATION:", e.message, {
     position: e.position,

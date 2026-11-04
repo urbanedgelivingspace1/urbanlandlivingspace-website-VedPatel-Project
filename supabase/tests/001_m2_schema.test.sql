@@ -7,8 +7,8 @@ select plan(38);
 
 select is(
   (select count(*)::integer from pg_tables where schemaname = 'public'),
-  64,
-  'authoritative public table inventory includes the M16 redirect ledger'
+  65,
+  'authoritative public table inventory includes the property video poster registry'
 );
 select is(
   (select count(*)::integer from pg_type t join pg_namespace n on n.oid = t.typnamespace where n.nspname = 'public' and t.typtype = 'e'),

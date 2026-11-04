@@ -191,9 +191,13 @@ select is((select count(*)::integer from public.private_documents where id = '45
 reset role;
 
 select is(
-  (select count(distinct tablename)::integer from pg_policies where schemaname = 'public' and policyname = 'active_admin_select'),
-  (select count(*)::integer from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r'),
-  'every current application table has the active-admin read policy'
+  (select array_agg(c.relname::text order by c.relname)
+   from pg_class c join pg_namespace n on n.oid = c.relnamespace
+   where n.nspname = 'public' and c.relkind = 'r'
+     and not exists (select 1 from pg_policies p where p.schemaname = 'public'
+                     and p.tablename = c.relname and p.policyname = 'active_admin_select')),
+  array['property_video_posters'],
+  'only the server-managed video poster registry omits the active-admin read policy'
 );
 
 select * from finish();

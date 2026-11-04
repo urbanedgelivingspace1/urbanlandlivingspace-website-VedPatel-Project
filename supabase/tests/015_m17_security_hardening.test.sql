@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(33);
+select plan(34);
 
 select cmp_ok(
   (select count(*)::integer from pg_class c join pg_namespace n on n.oid=c.relnamespace
@@ -23,11 +23,19 @@ select is(
   'every current application table forces RLS'
 );
 select is(
-  (select count(distinct tablename)::integer from pg_policies
-   where schemaname='public' and policyname='active_admin_select'),
-  (select count(*)::integer from pg_class c join pg_namespace n on n.oid=c.relnamespace
-   where n.nspname='public' and c.relkind='r'),
-  'every application table has the active-admin read policy'
+  (select array_agg(c.relname::text order by c.relname)
+   from pg_class c join pg_namespace n on n.oid = c.relnamespace
+   where n.nspname = 'public' and c.relkind = 'r'
+     and not exists (select 1 from pg_policies p where p.schemaname = 'public'
+                     and p.tablename = c.relname and p.policyname = 'active_admin_select')),
+  array['property_video_posters'],
+  'only the server-managed video poster registry omits the active-admin read policy'
+);
+
+select ok(
+  not has_table_privilege('authenticated', 'public.property_video_posters', 'SELECT')
+  and not has_table_privilege('anon', 'public.property_video_posters', 'SELECT'),
+  'the video poster registry has no browser read grant'
 );
 
 select is(
